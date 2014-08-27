@@ -7,7 +7,7 @@ CC = g++ -O3
 
 #CFLAGS = -g -Wall -Wno-return-type $(INCLUDES) -DSWIG_GLOBAL
 #CFLAGS = -g -Wall -Werror
-CFLAGS = -g -Wall 
+CFLAGS = -g -Wall
 
 neat: neat.o network.o nnode.o link.o trait.o gene.o genome.o innovation.o organism.o species.o population.o experiments.o polylogic.o neatmain.o #neatswig_wrap.o visual.o
 	$(CC) $(CFLAGS) $(LIBS) neat.o network.o nnode.o link.o trait.o gene.o genome.o innovation.o organism.o species.o population.o experiments.o polylogic.o neatmain.o -o neat
@@ -52,7 +52,7 @@ experiments.o: experiments.cpp experiments.h network.h species.h
 	$(CC) $(CFLAGS) -c experiments.cpp -o experiments.o
 
 polylogic.o: polylogic.cpp polylogic.h network.h species.h
-	$(CC) $(CFLAGS) -c polylogic.cpp -o polylogic.o
+	$(CC) --std=c++11 $(CFLAGS) -c polylogic.cpp -o polylogic.o
 
 neatmain.o: neatmain.cpp neatmain.h neat.h population.h
 	$(CC) $(CFLAGS) -c neatmain.cpp -o neatmain.o

@@ -95,6 +95,8 @@ int main(int argc, char *argv[]) {
 
   //p=xor_test(100);  //100 generation XOR experiment
 
+  p = polylogic_test(100);
+/*
   int choice;
 
   cout<<"Please choose an experiment: "<<endl;
@@ -127,7 +129,7 @@ int main(int argc, char *argv[]) {
     default:
       cout<<"Not an available option."<<endl;
     }
-
+*/
 
   //p = pole1_test(100); // 1-pole balancing
   //p = pole2_test(100,1); // 2-pole balancing, velocity

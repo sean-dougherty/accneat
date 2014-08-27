@@ -1,5 +1,7 @@
 #include "polylogic.h"
 
+#include <assert.h>
+
 #include <iostream>
 #include <sstream>
 
@@ -133,7 +135,6 @@ bool polylogic_evaluate(Organism *org) {
     double out[4]; //The four outputs
     double this_out; //The current output
     int count;
-    double errorsum;
 
     bool success;  //Check for successful activation
     int numnodes;  /* Used to figure out how many nodes
@@ -142,27 +143,27 @@ bool polylogic_evaluate(Organism *org) {
     int net_depth; //The max depth of the network to be activated
     int relax; //Activates until relaxation
 
-    //The four possible input combinations to xor
-    //The first number is for biasing
-    double in[4][3]={{1.0,0.0,0.0},
-                     {1.0,0.0,1.0},
-                     {1.0,1.0,0.0},
-                     {1.0,1.0,1.0}};
-  
+    struct Test {
+        vector<float> input;
+        float output;
+    };
+
+    vector<Test> tests = {
+        {{1.0, 0.0, 0.0}, 0.0},
+        {{1.0, 0.0, 1.0}, 1.0},
+        {{1.0, 1.0, 0.0}, 1.0},
+        {{1.0, 1.0, 1.0}, 0.0}
+    };
+
     net=org->net;
     numnodes=((org->gnome)->nodes).size();
 
-    cout << "evaluating depth"; cout.flush();
     net_depth=net->max_depth();
-    cout << "OK" << endl;
 
-    //TEST CODE: REMOVE
-    //cout<<"ACTIVATING: "<<org->gnome<<endl;
-    //cout<<"DEPTH: "<<net_depth<<endl;
+    for(size_t i = 0; i < tests.size(); i++) {
+        Test &test = tests[i];
 
-    //Load and activate the network on each input
-    for(count=0;count<=3;count++) {
-        net->load_sensors(in[count]);
+        net->load_sensors(test.input);
 
         //Relax net and get output
         success=net->activate();
@@ -170,46 +171,29 @@ bool polylogic_evaluate(Organism *org) {
         //use depth to ensure relaxation
         for (relax=0;relax<=net_depth;relax++) {
             success=net->activate();
-            this_out=(*(net->outputs.begin()))->activation;
         }
 
-        out[count]=(*(net->outputs.begin()))->activation;
+        out[i]=(*(net->outputs.begin()))->activation;
 
         net->flush();
-
     }
-  
+
     if (success) {
-        errorsum=(fabs(out[0])+fabs(1.0-out[1])+fabs(1.0-out[2])+fabs(out[3]));
-        org->fitness=pow((4.0-errorsum),2);
+        double errorsum = 0.0;
+        for(size_t i = 0; i < tests.size(); i++) {
+            errorsum += fabs(out[i] - tests[i].output);
+        }
+        org->fitness=pow((float(tests.size())-errorsum),2);
         org->error=errorsum;
     }
     else {
         //The network is flawed (shouldnt happen)
-        errorsum=999.0;
         org->fitness=0.001;
     }
 
-#ifndef NO_SCREEN_OUT
-    cout<<"Org "<<(org->gnome)->genome_id<<"                                     error: "<<errorsum<<"  ["<<out[0]<<" "<<out[1]<<" "<<out[2]<<" "<<out[3]<<"]"<<endl;
-    cout<<"Org "<<(org->gnome)->genome_id<<"                                     fitness: "<<org->fitness<<endl;
-#endif
+    org->winner = (org->fitness / float(tests.size()*tests.size())) >= 0.95;
 
-    //  if (errorsum<0.05) { 
-    //if (errorsum<0.2) {
-    if ((out[0]<POLYLOGIC_THRESH_FALSE)
-        &&(out[1]>=POLYLOGIC_THRESH_TRUE)
-        &&(out[2]>=POLYLOGIC_THRESH_TRUE)
-        &&(out[3]<POLYLOGIC_THRESH_FALSE)) {
-        cout << "SUCCESS" << endl;
-        org->winner=true;
-        return true;
-    }
-    else {
-        org->winner=false;
-        return false;
-    }
-
+    return org->winner;
 }
 
 int polylogic_epoch(Population *pop,int generation,char *filename,int &winnernum,int &winnergenes,int &winnernodes) {
