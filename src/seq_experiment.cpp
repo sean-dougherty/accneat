@@ -3,6 +3,7 @@
 #include "organism.h"
 
 #include <assert.h>
+#include <omp.h>
 
 #include <iostream>
 #include <sstream>
@@ -20,7 +21,7 @@ static int epoch(NEAT::Population *pop,
                  int &winnerdepth);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
-Population *seq_experiment(int gens) {
+Population *seq_experiment(int gens, char const *startgenes_path) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
@@ -51,7 +52,7 @@ Population *seq_experiment(int gens) {
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
     memset (depth, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile("startgenes/seq_experiment",ios::in);
+    ifstream iFile(startgenes_path);
 
     cout<<"START SEQ_EXPERIMENT TEST"<<endl;
 
@@ -251,8 +252,9 @@ int epoch(Population *pop,
     bool win=false;
     //Evaluate each organism on a test
 
-#pragma omp parallel for
-    for(size_t i = 0; i < pop->organisms.size(); i++) {
+    const size_t n = pop->organisms.size();
+#pragma omp parallel for num_threads(4)
+    for(size_t i = 0; i < n; i++) {
         Organism *org = pop->organisms[i];
         if (evaluate(org)) {
 #pragma omp critical

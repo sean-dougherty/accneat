@@ -1,0 +1,57 @@
+#!/bin/bash
+
+set -e
+
+function err() {
+    echo $* >&2
+    exit 1
+}
+
+if [[ $# != 2 ]]; then
+    err "usage: $0 runid comment"
+fi
+
+runid="$1"
+comment="$2"
+
+neat_dir=$(readlink -f $(dirname $0)/..)
+runs_dir=$(readlink -f $neat_dir/../runs)
+run_dir=$runs_dir/$runid
+
+ne=$neat_dir/ne/seq_experiment.ne
+sg=$neat_dir/startgenes/seq_experiment
+
+if [[ -e $run_dir ]]; then
+    err "Already exists: $run_dir"
+fi
+
+mkdir -p $run_dir
+touch $run_dir/neat_out
+rm -f $neat_dir/neat_out
+ln -s $run_dir/neat_out $neat_dir/neat_out
+
+echo "$comment" > $run_dir/comment.txt
+submit_script=$run_dir/pbs_submit.sh
+
+cat > $submit_script <<EOF
+#!/bin/sh
+
+#PBS -N neat-$runid
+#PBS -o $run_dir/pbs_out 
+#PBS -e $run_dir/pbs_err
+
+#PBS -l nodes=1:ppn=6
+#PBS -q m1060
+
+cd $neat_dir
+
+source /share/apps/Modules/3.2.10/init/sh
+module load gcc/4.9.1
+
+make || exit 1
+
+cd $run_dir
+$neat_dir/neat $ne $sg > neat_out
+EOF
+
+qsub $submit_script
