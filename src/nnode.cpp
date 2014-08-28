@@ -404,15 +404,15 @@ void NNode::print_to_file(std::ostream &outFile) {
 
 //Find the greatest depth starting from this neuron at depth d
 int NNode::depth(int d, Network *mynet) {
-  const int MAX_DEPTH = 100;
+  const int MAX_DEPTH = 10;
 
   std::vector<Link*> innodes=this->incoming;
   std::vector<Link*>::iterator curlink;
   int cur_depth; //The depth of the current node
   int max=d; //The max depth
 
-  if (d>MAX_DEPTH) {
-    return d;
+  if (d>=MAX_DEPTH) {
+    return MAX_DEPTH;
   }
 
   //Base Case
@@ -421,7 +421,7 @@ int NNode::depth(int d, Network *mynet) {
   //Recursion
   } else {
 
-    for(curlink=innodes.begin();curlink!=innodes.end() && max<=MAX_DEPTH;++curlink) {
+    for(curlink=innodes.begin();curlink!=innodes.end() && max<MAX_DEPTH;++curlink) {
       cur_depth=((*curlink)->in_node)->depth(d+1,mynet);
       if (cur_depth>max) max=cur_depth;
     }

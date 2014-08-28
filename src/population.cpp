@@ -20,6 +20,8 @@
 #include <fstream>
 using namespace NEAT;
 
+#define VERBOSE false
+
 Population::Population(Genome *g,int size) {
 	winnergen=0;
 	highest_fitness=0.0;
@@ -568,11 +570,13 @@ bool Population::epoch(int generation) {
 
 	best_species_num=(*(sorted_species.begin()))->id;
 
+#if VERBOSE
 	for(curspecies=sorted_species.begin();curspecies!=sorted_species.end();++curspecies) {
 
 		//Print out for Debugging/viewing what's going on 
 		std::cout<<"orig fitness of Species"<<(*curspecies)->id<<"(Size "<<(*curspecies)->organisms.size()<<"): "<<(*((*curspecies)->organisms).begin())->orig_fitness<<" last improved "<<((*curspecies)->age-(*curspecies)->age_of_last_improvement)<<std::endl;
 	}
+#endif
 
 	//Check for Population-level stagnation
 	curspecies=sorted_species.begin();

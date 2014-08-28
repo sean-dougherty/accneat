@@ -19,6 +19,7 @@
 #include "population.h"
 #include "experiments.h"
 #include "mem_experiment.h"
+#include "seq_experiment.h"
 #include "polylogic.h"
 using namespace std;
 
@@ -39,7 +40,7 @@ int main(int argc, char *argv[]) {
   //Load in the params
   NEAT::load_neat_params(argv[1],true);
 
-  p = mem_experiment(10000);
+  p = seq_experiment(10000);
 /*
   int choice;
 

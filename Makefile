@@ -3,7 +3,7 @@ OBJECTS=${SOURCES:src/%.cpp=obj/%.o}
 DEPENDS=${OBJECTS:%.o=%.d}
 
 ./neat: ${OBJECTS}
-	g++ ${OBJECTS} -o $@
+	g++ ${OBJECTS} -lgomp -o $@
 
 .PHONY: clean
 clean:
@@ -12,6 +12,6 @@ clean:
 
 obj/%.o: src/%.cpp Makefile
 	@mkdir -p obj
-	g++ -MMD -O3 -c -std=c++11 $< -o $@
+	g++ -fopenmp -MMD -O3 -c -std=c++11 $< -o $@
 
 -include ${DEPENDS}
