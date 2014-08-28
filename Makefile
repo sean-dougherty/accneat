@@ -10,8 +10,8 @@ clean:
 	rm -rf obj
 	rm -f ./neat
 
-obj/%.o: src/%.cpp
+obj/%.o: src/%.cpp Makefile
 	@mkdir -p obj
-	g++ -MMD -c -std=c++11 $< -o $@
+	g++ -MMD -O3 -c -std=c++11 $< -o $@
 
 -include ${DEPENDS}

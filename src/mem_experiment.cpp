@@ -16,7 +16,8 @@ static int epoch(NEAT::Population *pop,
                  char *filename,
                  int &winnernum,
                  int &winnergenes,
-                 int &winnernodes);
+                 int &winnernodes,
+                 int &winnerdepth);
 
 //Perform evolution on MEM_EXPERIMENT, for gens generations
 Population *mem_experiment(int gens) {
@@ -28,16 +29,19 @@ Population *mem_experiment(int gens) {
     ostringstream *fnamebuf;
     int gen;
  
-    int evals[NEAT::num_runs];  //Hold records for each run
+    int evals[NEAT::num_runs];
     int genes[NEAT::num_runs];
     int nodes[NEAT::num_runs];
+    int depth[NEAT::num_runs];
     int winnernum;
     int winnergenes;
     int winnernodes;
+    int winnerdepth;
     //For averaging
     int totalevals=0;
     int totalgenes=0;
     int totalnodes=0;
+    int totaldepth=0;
     int totalgens=0;
     int expcount;
     int samples;  //For averaging
@@ -45,6 +49,7 @@ Population *mem_experiment(int gens) {
     memset (evals, 0, NEAT::num_runs * sizeof(int));
     memset (genes, 0, NEAT::num_runs * sizeof(int));
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
+    memset (depth, 0, NEAT::num_runs * sizeof(int));
 
     ifstream iFile("startgenes/mem_experiment",ios::in);
 
@@ -82,12 +87,13 @@ Population *mem_experiment(int gens) {
             sprintf (temp, "gen_%d", gen);
 
             //Check for success
-            if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
+            if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes, winnerdepth)) {
                 //	if (mem_experiment_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
                 //Collect Stats on end of experiment
                 evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
                 genes[expcount]=winnergenes;
                 nodes[expcount]=winnernodes;
+                depth[expcount]=winnerdepth;
                 totalgens += gen;
                 gen=gens;
 
@@ -127,11 +133,18 @@ Population *mem_experiment(int gens) {
         }
     }
 
+    cout<<"Depth: "<<endl;
+    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+        cout<<depth[expcount]<<endl;
+        totaldepth+=depth[expcount];
+    }
+    
     cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
     cout<<"Average Generations: "<<double(totalgens)/expcount<<endl;
     cout<<"Average Nodes: "<<(samples>0 ? (double)totalnodes/samples : 0)<<endl;
     cout<<"Average Genes: "<<(samples>0 ? (double)totalgenes/samples : 0)<<endl;
     cout<<"Average Evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<endl;
+    cout<<"Average Depth: "<<(samples>0 ? (double)totaldepth/samples : 0)<<endl;
 
     return pop;
 
@@ -167,7 +180,7 @@ bool evaluate(Organism *org) {
 
     double errorsum = 0.0;
 
-    auto activate = [=] (vector<float> &input) {
+    auto activate = [net, net_depth] (vector<float> &input) {
         net->load_sensors(input);
 
         //Relax net and get output
@@ -199,7 +212,7 @@ bool evaluate(Organism *org) {
         net->flush();
     }
 
-    auto score = [=] (float errorsum) {
+    auto score = [tests] (float errorsum) {
         return pow(tests.size() * 3 - errorsum, 2);
     };
 
@@ -215,7 +228,8 @@ int epoch(Population *pop,
           char *filename,
           int &winnernum,
           int &winnergenes,
-          int &winnernodes) {
+          int &winnernodes,
+          int &winnerdepth) {
 
     vector<Organism*>::iterator curorg;
     vector<Species*>::iterator curspecies;
@@ -230,11 +244,7 @@ int epoch(Population *pop,
             winnernum=(*curorg)->gnome->genome_id;
             winnergenes=(*curorg)->gnome->extrons();
             winnernodes=((*curorg)->gnome->nodes).size();
-            if (winnernodes==5) {
-                //You could dump out optimal genomes here if desired
-                //(*curorg)->gnome->print_to_filename("mem_experiment_optimal");
-                //cout<<"DUMPED OPTIMAL"<<endl;
-            }
+            winnerdepth=(*curorg)->net->max_depth();
         }
     }
   
