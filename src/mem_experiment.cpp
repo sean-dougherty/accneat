@@ -1,4 +1,6 @@
-#include "polylogic.h"
+#include "mem_experiment.h"
+
+#include "organism.h"
 
 #include <assert.h>
 
@@ -8,11 +10,16 @@
 using namespace NEAT;
 using namespace std;
 
-#define POLYLOGIC_THRESH_FALSE 0.3
-#define POLYLOGIC_THRESH_TRUE 0.7
+static bool evaluate(NEAT::Organism *org);
+static int epoch(NEAT::Population *pop,
+                 int generation,
+                 char *filename,
+                 int &winnernum,
+                 int &winnergenes,
+                 int &winnernodes);
 
-//Perform evolution on POLYLOGIC, for gens generations
-Population *polylogic_test(int gens) {
+//Perform evolution on MEM_EXPERIMENT, for gens generations
+Population *mem_experiment(int gens) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
@@ -39,9 +46,9 @@ Population *polylogic_test(int gens) {
     memset (genes, 0, NEAT::num_runs * sizeof(int));
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile("startgenes/polylogic",ios::in);
+    ifstream iFile("startgenes/mem_experiment",ios::in);
 
-    cout<<"START POLYLOGIC TEST"<<endl;
+    cout<<"START MEM_EXPERIMENT TEST"<<endl;
 
     cout<<"Reading in the start genome"<<endl;
     //Read in the start Genome
@@ -75,8 +82,8 @@ Population *polylogic_test(int gens) {
             sprintf (temp, "gen_%d", gen);
 
             //Check for success
-            if (polylogic_epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
-                //	if (polylogic_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
+            if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
+                //	if (mem_experiment_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
                 //Collect Stats on end of experiment
                 evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
                 genes[expcount]=winnergenes;
@@ -130,111 +137,102 @@ Population *polylogic_test(int gens) {
 
 }
 
-bool polylogic_evaluate(Organism *org) {
+bool evaluate(Organism *org) {
     Network *net;
     int count;
 
-    bool success;  //Check for successful activation
     int numnodes;  /* Used to figure out how many nodes
                       should be visited during activation */
 
     int net_depth; //The max depth of the network to be activated
-    int relax; //Activates until relaxation
 
     struct Test {
         vector<float> input;
         float output;
     };
 
+    // First input is bias, not sensor.
     vector<Test> tests = {
-        // XOR
-        {{1.0, 0.0, 0.0, 0.0}, 0.0},
-        {{1.0, 0.0, 0.0, 1.0}, 1.0},
-        {{1.0, 0.0, 1.0, 0.0}, 1.0},
-        {{1.0, 0.0, 1.0, 1.0}, 0.0},
-/*
-        // OR
-        {{1.0, 0.5, 0.0, 0.0}, 0.0},
-        {{1.0, 0.5, 0.0, 1.0}, 1.0},
-        {{1.0, 0.5, 1.0, 0.0}, 1.0},
-        {{1.0, 0.5, 1.0, 1.0}, 1.0},
-        // AND
-        {{1.0, 1.0, 0.0, 0.0}, 0.0},
-*/
-        {{1.0, 1.0, 0.0, 1.0}, 0.0},
-        {{1.0, 1.0, 1.0, 0.0}, 0.0},
-        {{1.0, 1.0, 1.0, 1.0}, 1.0}
+        {{1.0, 0.0, 1.0, 0.0}, 0.5},
+        {{1.0, 1.0, 0.0, 0.0}, 1.0}
     };
-    double out[tests.size()];
+    vector<float> input_delay =
+        {1.0, 0.0, 0.0, 0.0};
+    vector<float> input_query =
+        {1.0, 0.0, 0.0, 1.0};
 
     net=org->net;
     numnodes=((org->gnome)->nodes).size();
-
     net_depth=net->max_depth();
+
+    double errorsum = 0.0;
+
+    auto activate = [=] (vector<float> &input) {
+        net->load_sensors(input);
+
+        //Relax net and get output
+        net->activate();
+
+        //use depth to ensure relaxation
+        for(int relax=0; relax <= net_depth; relax++) {
+            net->activate();
+        }
+
+        return (*(net->outputs.begin()))->activation;        
+    };
+
+    auto err = [] (float expected, float actual) {
+        float diff = abs(expected - actual);
+        if(diff < 0.01) {
+            diff = 0.0;
+        }
+        return diff;
+    };
 
     for(size_t i = 0; i < tests.size(); i++) {
         Test &test = tests[i];
 
-        net->load_sensors(test.input);
-
-        //Relax net and get output
-        success=net->activate();
-
-        //use depth to ensure relaxation
-        for (relax=0;relax<=net_depth;relax++) {
-            success=net->activate();
-        }
-
-        out[i]=(*(net->outputs.begin()))->activation;
+        errorsum += err(0.0, activate(test.input));
+        errorsum += err(0.0, activate(input_delay));
+        errorsum += err(test.output, activate(input_query));
 
         net->flush();
     }
 
-    if (success) {
-        double errorsum = 0.0;
-        for(size_t i = 0; i < tests.size(); i++) {
-            errorsum += fabs(out[i] - tests[i].output);
-        }
-        org->fitness=pow((float(tests.size())-errorsum),2);
-        org->error=errorsum;
-    }
-    else {
-        //The network is flawed (shouldnt happen)
-        org->fitness=0.001;
-    }
+    auto score = [=] (float errorsum) {
+        return pow(tests.size() * 3 - errorsum, 2);
+    };
 
-    org->winner = (org->fitness / float(tests.size()*tests.size())) >= 0.98;
-    if(org->winner) {
-        for(auto x: out) {
-            cout << x << " " << endl;
-        }
-        exit(0);
-    }
+    org->fitness = score(errorsum) / score(0.0);
+    org->error=errorsum;
 
+    org->winner = org->fitness >= 0.99999;
     return org->winner;
 }
 
-int polylogic_epoch(Population *pop,int generation,char *filename,int &winnernum,int &winnergenes,int &winnernodes) {
+int epoch(Population *pop,
+          int generation,
+          char *filename,
+          int &winnernum,
+          int &winnergenes,
+          int &winnernodes) {
+
     vector<Organism*>::iterator curorg;
     vector<Species*>::iterator curspecies;
-    //char cfilename[100];
-    //strncpy( cfilename, filename.c_str(), 100 );
-
-    //ofstream cfilename(filename.c_str());
 
     bool win=false;
 
 
     //Evaluate each organism on a test
     for(curorg=(pop->organisms).begin();curorg!=(pop->organisms).end();++curorg) {
-        if (polylogic_evaluate(*curorg)) {
+        if (evaluate(*curorg)) {
             win=true;
             winnernum=(*curorg)->gnome->genome_id;
             winnergenes=(*curorg)->gnome->extrons();
             winnernodes=((*curorg)->gnome->nodes).size();
             if (winnernodes==5) {
                 //You could dump out optimal genomes here if desired
-                //(*curorg)->gnome->print_to_filename("polylogic_optimal");
+                //(*curorg)->gnome->print_to_filename("mem_experiment_optimal");
                 //cout<<"DUMPED OPTIMAL"<<endl;
             }
         }
@@ -269,7 +267,7 @@ int polylogic_epoch(Population *pop,int generation,char *filename,int &winnernum
                 cout<<"WINNER IS #"<<((*curorg)->gnome)->genome_id<<endl;
                 //Prints the winner to file
                 //IMPORTANT: This causes generational file output!
-                print_Genome_tofile((*curorg)->gnome,"polylogic_winner");
+                print_Genome_tofile((*curorg)->gnome,"mem_experiment_winner");
             }
         }
     

@@ -13,50 +13,18 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-//#include <stdlib.h>
-//#include <stdio.h>
-//#include <iostream>
-//#include <iomanip>
-//#include <sstream>
-//#include <list>
-//#include <vector>
-//#include <algorithm>
-//#include <cmath>
-//#include <iostream.h>
-//#include "networks.h"
-//#include "neat.h"
-//#include "genetics.h"
-//#include "experiments.h"
-//#include "neatmain.h"
 #include <iostream>
 #include <vector>
 #include "neat.h"
 #include "population.h"
 #include "experiments.h"
+#include "mem_experiment.h"
 #include "polylogic.h"
 using namespace std;
 
 
-//  double testdoubval() {
-//    return *testdoub;
-//  }
-
-//  double testdoubset(double val) {
-//    *testdoub=val;
-//  }
-
 int main(int argc, char *argv[]) {
-
-  //list<NNode*> nodelist;
-
-  int pause;
-
-  NEAT::Population *p=0;
-
-  /* GTKMM */
-//    myapp=new Gtk::Main(argc, argv);
-
-//    testdoub=&val;
+  NEAT::Population *p = nullptr;
 
   //***********RANDOM SETUP***************//
   /* Seed the random-number generator with current time so that
@@ -71,31 +39,7 @@ int main(int argc, char *argv[]) {
   //Load in the params
   NEAT::load_neat_params(argv[1],true);
 
-  cout<<"loaded"<<endl;
-  
-  /*
-  //Test a genome file on pole balancing
-  Genome *g;
-  Network *n;
-  CartPole *thecart;
-  thecart=new CartPole(true,0);
-  g=Genome::new_Genome_load("tested");
-  n=g->genesis(1);
-  Organism *org= new Organism(0, g, 1);
-  thecart->nmarkov_long=true;
-  thecart->generalization_test=false;
-  pole2_evaluate(org,0,thecart);
-  cout<<"made score "<<org->fitness<<endl;
-  cin>>pause;
-  */
-
-
-  //Here is an example of how to run an experiment directly from main
-  //and then visualize the speciation that took place
-
-  //p=xor_test(100);  //100 generation XOR experiment
-
-  p = polylogic_test(10000);
+  p = mem_experiment(10000);
 /*
   int choice;
 
@@ -130,10 +74,6 @@ int main(int argc, char *argv[]) {
       cout<<"Not an available option."<<endl;
     }
 */
-
-  //p = pole1_test(100); // 1-pole balancing
-  //p = pole2_test(100,1); // 2-pole balancing, velocity
-  //p = pole2_test(100,0); // 2-pole balancing, no velocity (non-markov)
 
   if (p)
     delete p;

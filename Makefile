@@ -8,10 +8,10 @@ DEPENDS=${OBJECTS:%.o=%.d}
 .PHONY: clean
 clean:
 	rm -rf obj
+	rm -f ./neat
 
 obj/%.o: src/%.cpp
 	@mkdir -p obj
 	g++ -MMD -c -std=c++11 $< -o $@
 
 -include ${DEPENDS}
-
