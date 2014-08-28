@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
   //p=xor_test(100);  //100 generation XOR experiment
 
-  p = polylogic_test(100);
+  p = polylogic_test(10000);
 /*
   int choice;
 

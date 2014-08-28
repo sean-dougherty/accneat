@@ -132,8 +132,6 @@ Population *polylogic_test(int gens) {
 
 bool polylogic_evaluate(Organism *org) {
     Network *net;
-    double out[4]; //The four outputs
-    double this_out; //The current output
     int count;
 
     bool success;  //Check for successful activation
@@ -149,11 +147,25 @@ bool polylogic_evaluate(Organism *org) {
     };
 
     vector<Test> tests = {
-        {{1.0, 0.0, 0.0}, 0.0},
-        {{1.0, 0.0, 1.0}, 1.0},
-        {{1.0, 1.0, 0.0}, 1.0},
-        {{1.0, 1.0, 1.0}, 0.0}
+        // XOR
+        {{1.0, 0.0, 0.0, 0.0}, 0.0},
+        {{1.0, 0.0, 0.0, 1.0}, 1.0},
+        {{1.0, 0.0, 1.0, 0.0}, 1.0},
+        {{1.0, 0.0, 1.0, 1.0}, 0.0},
+/*
+        // OR
+        {{1.0, 0.5, 0.0, 0.0}, 0.0},
+        {{1.0, 0.5, 0.0, 1.0}, 1.0},
+        {{1.0, 0.5, 1.0, 0.0}, 1.0},
+        {{1.0, 0.5, 1.0, 1.0}, 1.0},
+        // AND
+        {{1.0, 1.0, 0.0, 0.0}, 0.0},
+*/
+        {{1.0, 1.0, 0.0, 1.0}, 0.0},
+        {{1.0, 1.0, 1.0, 0.0}, 0.0},
+        {{1.0, 1.0, 1.0, 1.0}, 1.0}
     };
+    double out[tests.size()];
 
     net=org->net;
     numnodes=((org->gnome)->nodes).size();
@@ -191,7 +203,13 @@ bool polylogic_evaluate(Organism *org) {
         org->fitness=0.001;
     }
 
-    org->winner = (org->fitness / float(tests.size()*tests.size())) >= 0.95;
+    org->winner = (org->fitness / float(tests.size()*tests.size())) >= 0.98;
+    if(org->winner) {
+        for(auto x: out) {
+            cout << x << " " << endl;
+        }
+        exit(0);
+    }
 
     return org->winner;
 }
