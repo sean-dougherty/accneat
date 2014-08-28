@@ -1,7 +1,6 @@
 /neat
-/*.o
 /gen_*
 /gens_*
 /G*
 /out*
-/build
+/obj

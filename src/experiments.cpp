@@ -49,7 +49,7 @@ Population *xor_test(int gens) {
     memset (genes, 0, NEAT::num_runs * sizeof(int));
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile("xorstartgenes",ios::in);
+    ifstream iFile("startgenes/xor",ios::in);
 
     cout<<"START XOR TEST"<<endl;
 
@@ -310,7 +310,7 @@ Population *pole1_test(int gens) {
 
     memset (runs, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile("pole1startgenes",ios::in);
+    ifstream iFile("startgenes/pole1",ios::in);
 
     cout<<"START SINGLE POLE BALANCING EVOLUTION"<<endl;
 
@@ -642,14 +642,13 @@ Population *pole2_test(int gens,int velocity) {
     }
     memset (winnergens, 0, NEAT::num_runs * sizeof(int));
 
-    const char *non_markov_starter="pole2startgenes2";
-    const char *markov_starter="pole2startgenes1";
+    const char *non_markov_starter="startgenes/pole2_2";
+    const char *markov_starter="startgenes/pole2_1";
     const char *startstring;
 
     if (velocity==0) startstring=non_markov_starter;
     else if (velocity==1) startstring=markov_starter;
     ifstream iFile(startstring,ios::in);
-    //ifstream iFile("pole2startgenes",ios::in);
 
     cout<<"START DOUBLE POLE BALANCING EVOLUTION"<<endl;
     if (!velocity)
