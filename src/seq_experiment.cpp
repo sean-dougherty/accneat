@@ -170,17 +170,15 @@ bool evaluate(Organism *org) {
                 result = x - maxact;
             else if(x < minact)
                 result = minact - x;
-            else if(x == minact)
-                result = 0.001f;
             else
                 result = 0.0f;
 
             return result;
         }
     };
-    Frequency f_null = {"null", -0.001, 0.2};
+    Frequency f_null = {"null", 0.0, 0.333};
 
-    vector<Frequency> f = {{"0", 0.2, 0.6}, {"1", 0.6, 1.0}};
+    vector<Frequency> f = {{"0", 0.3334, 0.666}, {"1", 0.6667, 1.0}};
            
            struct Step {
                vector<float> input;
@@ -195,18 +193,32 @@ bool evaluate(Organism *org) {
                // First input is bias, not sensor.
                vector<Test> tests = {
                    Test({
-                           {{1.0, 1.0, 0.0, 0.0}, f_null}
+                            {{1.0, 1.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 1.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.5}, f[0]}
+                           ,{{1.0, 0.0, 0.0, 1.0}, f[0]}
+                       }),
+                   Test({
+                            {{1.0, 1.0, 0.0, 0.0}, f_null}
                            ,{{1.0, 0.0, 1.0, 0.0}, f_null}
                            ,{{1.0, 0.0, 0.0, 0.0}, f_null}
                            ,{{1.0, 0.0, 0.0, 0.5}, f[0]}
                            ,{{1.0, 0.0, 0.0, 1.0}, f[1]}
                        }),
                    Test({
-                           {{1.0, 0.0, 1.0, 0.0}, f_null}
+                            {{1.0, 0.0, 1.0, 0.0}, f_null}
                            ,{{1.0, 1.0, 0.0, 0.0}, f_null}
                            ,{{1.0, 0.0, 0.0, 0.0}, f_null}
                            ,{{1.0, 0.0, 0.0, 0.5}, f[1]}
                            ,{{1.0, 0.0, 0.0, 1.0}, f[0]}
+                       }),
+                   Test({
+                            {{1.0, 0.0, 1.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 1.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.5}, f[1]}
+                           ,{{1.0, 0.0, 0.0, 1.0}, f[1]}
                        })
                };
                const size_t nsteps = [tests]() {
@@ -233,7 +245,7 @@ bool evaluate(Organism *org) {
                    return (*(net->outputs.begin()))->activation;        
                };
 
-               const size_t nreps = 10;
+               const size_t nreps = 1;
                float errorsum = 0.0;
 
                for(size_t rep = 0; rep < nreps; rep++) {
@@ -254,6 +266,10 @@ bool evaluate(Organism *org) {
                org->error=errorsum;
 
                org->winner = org->fitness >= 0.99999;
+               if(org->winner) {
+                   cout << "FOUND A WINNER: " << org->fitness << endl;
+                   cout.flush();
+               }
 
                return org->winner;
            }
