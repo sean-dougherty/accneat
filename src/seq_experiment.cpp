@@ -159,85 +159,104 @@ bool evaluate(Organism *org) {
                       should be visited during activation */
     int net_depth; //The max depth of the network to be activated
 
-    struct Step {
-        vector<float> input;
-        float output;
-    };
+    struct Frequency {
+        const char *name;
+        float minact;
+        float maxact;
 
-    struct Test {
-        vector<Step> steps;
-        Test(const vector<Step> &steps_) : steps(steps_) {}
-    };
+        float err(float x) {
+            float result;
+            if(x > maxact)
+                result = x - maxact;
+            else if(x < minact)
+                result = minact - x;
+            else if(x == minact)
+                result = 0.001f;
+            else
+                result = 0.0f;
 
-    // First input is bias, not sensor.
-    vector<Test> tests = {
-        Test({
-        {{1.0, 1.0, 0.0, 0.0}, 0.0}
-        ,{{1.0, 0.0, 1.0, 0.0}, 0.0}
-        ,{{1.0, 0.0, 0.0, 0.0}, 0.0}
-        ,{{1.0, 0.0, 0.0, 0.5}, 0.5}
-        ,{{1.0, 0.0, 0.0, 1.0}, 1.0}
-            }),
-        Test({
-        {{1.0, 0.0, 1.0, 0.0}, 0.0}
-        ,{{1.0, 1.0, 0.0, 0.0}, 0.0}
-        ,{{1.0, 0.0, 0.0, 0.0}, 0.0}
-        ,{{1.0, 0.0, 0.0, 0.5}, 1.0}
-        ,{{1.0, 0.0, 0.0, 1.0}, 0.5}
-            })
-    };
-    const size_t nsteps = [tests]() {
-        size_t n = 0;
-        for(auto &test: tests) n += test.steps.size();
-        return n;
-    }();
-
-    net=org->net;
-    numnodes=((org->gnome)->nodes).size();
-    net_depth=net->max_depth();
-
-    auto activate = [net, net_depth] (vector<float> &input) {
-        net->load_sensors(input);
-
-        //Relax net and get output
-        net->activate();
-
-        //use depth to ensure relaxation
-        for(int relax=0; relax <= net_depth; relax++) {
-            net->activate();
+            return result;
         }
-
-        return (*(net->outputs.begin()))->activation;        
     };
+    Frequency f_null = {"null", -0.001, 0.2};
 
-    auto err = [] (float expected, float actual) {
-        float diff = abs(expected - actual);
-        if(diff < 0.01) {
-            diff = 0.0;
-        }
-        return diff;
-    };
+    vector<Frequency> f = {{"0", 0.2, 0.6}, {"1", 0.6, 1.0}};
+           
+           struct Step {
+               vector<float> input;
+                      Frequency output;
+                      };
 
-    float errorsum = 0.0;
-    for(auto &test: tests) {
-        for(auto &step: test.steps) {
-            errorsum += err(step.output, activate(step.input));
-        }
+               struct Test {
+                   vector<Step> steps;
+                   Test(const vector<Step> &steps_) : steps(steps_) {}
+               };
 
-        net->flush();
-    }
+               // First input is bias, not sensor.
+               vector<Test> tests = {
+                   Test({
+                           {{1.0, 1.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 1.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.5}, f[0]}
+                           ,{{1.0, 0.0, 0.0, 1.0}, f[1]}
+                       }),
+                   Test({
+                           {{1.0, 0.0, 1.0, 0.0}, f_null}
+                           ,{{1.0, 1.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.0}, f_null}
+                           ,{{1.0, 0.0, 0.0, 0.5}, f[1]}
+                           ,{{1.0, 0.0, 0.0, 1.0}, f[0]}
+                       })
+               };
+               const size_t nsteps = [tests]() {
+                   size_t n = 0;
+                   for(auto &test: tests) n += test.steps.size();
+                   return n;
+               }();
 
-    auto score = [nsteps] (float errorsum) {
-        return pow(nsteps - errorsum, 2);
-    };
+               net=org->net;
+               numnodes=((org->gnome)->nodes).size();
+               net_depth=net->max_depth();
 
-    org->fitness = score(errorsum) / score(0.0);
-    org->error=errorsum;
+               auto activate = [net, net_depth] (vector<float> &input) {
+                   net->load_sensors(input);
 
-    org->winner = org->fitness >= 0.99999;
+                   //Relax net and get output
+                   net->activate();
 
-    return org->winner;
-}
+                   //use depth to ensure relaxation
+                   for(int relax=0; relax <= net_depth; relax++) {
+                       net->activate();
+                   }
+
+                   return (*(net->outputs.begin()))->activation;        
+               };
+
+               const size_t nreps = 10;
+               float errorsum = 0.0;
+
+               for(size_t rep = 0; rep < nreps; rep++) {
+                   for(auto &test: tests) {
+                       for(auto &step: test.steps) {
+                           errorsum += step.output.err( activate(step.input) );
+                       }
+
+                       net->flush();
+                   }
+               }
+
+               auto score = [nsteps] (float errorsum) {
+                   return pow(nsteps * nreps - errorsum, 2);
+               };
+
+               org->fitness = score(errorsum) / score(0.0);
+               org->error=errorsum;
+
+               org->winner = org->fitness >= 0.99999;
+
+               return org->winner;
+           }
 
 int epoch(Population *pop,
           int generation,
@@ -253,7 +272,7 @@ int epoch(Population *pop,
     //Evaluate each organism on a test
 
     const size_t n = pop->organisms.size();
-#pragma omp parallel for num_threads(4)
+#pragma omp parallel
     for(size_t i = 0; i < n; i++) {
         Organism *org = pop->organisms[i];
         if (evaluate(org)) {
