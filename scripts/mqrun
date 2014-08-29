@@ -51,7 +51,10 @@ module load gcc/4.9.1
 make || exit 1
 
 cd $run_dir
-$neat_dir/neat $ne $sg > neat_out
+cp -r $neat_dir/src src
+cp $ne ne
+cp $sg sg
+time $neat_dir/neat $ne $sg > neat_out
 EOF
 
 qsub $submit_script

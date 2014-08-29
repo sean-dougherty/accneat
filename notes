@@ -4,4 +4,8 @@ time to recall first: 31m0; halted, fitness=0.997412
 --------------------------------------------------------------------------------
 reduce max_depth from 101 to 10
 
-time to recall first: 
+--------------------------------------------------------------------------------
+4 core on cluster node
+
+time to recall first [seq/tight/first]: 10m0
+time to recall both [seq/tight/both]: 12h15m; halted, fitness=0.994637

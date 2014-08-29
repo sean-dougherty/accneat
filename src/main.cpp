@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     //Load in the params
     NEAT::load_neat_params(argv[1],true);
 
-    p = seq_experiment(10000, argv[2]);
+    p = seq_experiment(1000000, argv[2]);
 /*
   int choice;
 
