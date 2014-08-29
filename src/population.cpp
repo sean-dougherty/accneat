@@ -581,13 +581,14 @@ bool Population::epoch(int generation) {
 	//Check for Population-level stagnation
 	curspecies=sorted_species.begin();
 	(*(((*curspecies)->organisms).begin()))->pop_champ=true; //DEBUG marker of the best of pop
-	if (((*(((*curspecies)->organisms).begin()))->orig_fitness)>
-		highest_fitness) {
-			highest_fitness=((*(((*curspecies)->organisms).begin()))->orig_fitness);
-			highest_last_changed=0;
-			std::cout<<"NEW POPULATION RECORD FITNESS: "<<highest_fitness<<std::endl;
-		}
-	else {
+	if (((*(((*curspecies)->organisms).begin()))->orig_fitness) > highest_fitness) {
+        
+        double old_highest = highest_fitness;
+        highest_fitness=((*(((*curspecies)->organisms).begin()))->orig_fitness);
+        highest_last_changed=0;
+
+        printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg\n", highest_fitness, highest_fitness - old_highest);
+    } else {
 		++highest_last_changed;
 		std::cout<<highest_last_changed<<" generations since last population fitness record: "<<highest_fitness<<std::endl;
 	}
@@ -826,23 +827,23 @@ bool Population::epoch(int generation) {
 	curspecies=species.begin();
 	int last_id=(*curspecies)->id;
 	while(curspecies!=species.end()) {
-	  (*curspecies)->reproduce(generation,this,sorted_species);
+        (*curspecies)->reproduce(generation,this,sorted_species);
 
-	  //Set the current species to the id of the last species checked
-	  //(the iterator must be reset because there were possibly vector insertions during reproduce)
-	  std::vector<Species*>::iterator curspecies2=species.begin();
-	  while(curspecies2!=species.end()) {
-	    if (((*curspecies2)->id)==last_id)
-	      curspecies=curspecies2;
-	    curspecies2++;
-	  }
+        //Set the current species to the id of the last species checked
+        //(the iterator must be reset because there were possibly vector insertions during reproduce)
+        std::vector<Species*>::iterator curspecies2=species.begin();
+        while(curspecies2!=species.end()) {
+            if (((*curspecies2)->id)==last_id)
+                curspecies=curspecies2;
+            curspecies2++;
+        }
 
-	  //Move to the next on the list
-	  curspecies++;
+        //Move to the next on the list
+        curspecies++;
 	  
-	  //Record where we are
-	  if (curspecies!=species.end())
-	    last_id=(*curspecies)->id;
+        //Record where we are
+        if (curspecies!=species.end())
+            last_id=(*curspecies)->id;
 
 	}
 
