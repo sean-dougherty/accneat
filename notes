@@ -13,4 +13,10 @@ time to recall both [seq/tight/both]: 12h15m; halted, fitness=0.994637
 --------------------------------------------------------------------------------
 large frequency activation regions
 
-recall both
+recall both: 51m; halted, gen=1944, fitness=0.993307
+
+--------------------------------------------------------------------------------
+recall elements in separate tests
+
+recall both [seq/sep/both]: 
+
