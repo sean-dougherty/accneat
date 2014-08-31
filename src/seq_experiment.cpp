@@ -291,8 +291,10 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
                     double err = step.output.err( activation );
                     errorsum += err;
 
-                    *details_act++ = activation;
-                    *details_err++ = err;
+                    *details_act = activation;
+                    details_act++;
+                    *details_err = err;
+                    details_err++;
                 }
 
                 net->flush();
@@ -327,15 +329,17 @@ int epoch(Population *pop,
     bool win=false;
     //Evaluate each organism on a test
 
-    size_t i_best = 0;
+    bool best = false;
+    size_t i_best;
 
     const size_t n = pop->organisms.size();
-    float details_act[n][nreps * nsteps];
-    float details_err[n][nreps * nsteps];
-#pragma omp parallel
+    float details_act[n * nreps * nsteps];
+    float details_err[n * nreps * nsteps];
+#pragma omp parallel for
     for(size_t i = 0; i < n; i++) {
         Organism *org = pop->organisms[i];
-        if (evaluate(org, details_act[i], details_err[i])) {
+        size_t details_offset = i * nreps * nsteps;
+        if (evaluate(org, details_act + details_offset, details_err + details_offset)) {
 #pragma omp critical
             {
                 win=true;
@@ -349,18 +353,21 @@ int epoch(Population *pop,
         if(org->fitness > best_fitness) {
 #pragma omp critical
             if(org->fitness > best_fitness) {
+                best = true;
+                i_best = i;
                 best_fitness = org->fitness;
-                i_best = i + 1;
             }
         }
     }
 
-    if(i_best) {
-        float *best_act = details_act[i_best - 1];
-        float *best_err = details_err[i_best - 1];
+    if(best) {
+        float *best_act = details_act + i_best * nsteps * nreps;
+        float *best_err = details_err + i_best * nsteps * nreps;
         size_t idetail = 0;
+        Organism *org = pop->organisms[i_best];
         
-        printf("new best; fitness=%f -- activation (err)\n", best_fitness);
+        printf("new best_fitness=%f; fitness=%f, errorsum=%f -- activation (err)\n",
+               (float)best_fitness, (float)org->fitness, (float)org->error);
         for(size_t i = 0; i < nreps; i++) {
             for(size_t j = 0; j < nsteps; j++, idetail++) {
                 printf("%f (%f) ", best_act[idetail], best_err[idetail]);

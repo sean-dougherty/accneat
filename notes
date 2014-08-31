@@ -51,5 +51,18 @@ compatibility threshold 10.0 and 10k pop
 recall both [seq/pop=10k,compa=10.0]: FITNESS=1.0!!! gen=477, nspecies=[1, 938, 743, 383.05]
                                   _1: 4h, halted; fitness=0.999955, gen=845, [1, 850, 240, 270.33]
 
+********************************************************************************
+MOVE ALL PREVIOUS TO inflated_score/*
+
 --------------------------------------------------------------------------------
-square individual error result
+compat threshold 4.0, 10k pop
+
+[seq/comp=4.0]: fitness=0.955744, gen=537
+
+********************************************************************************
+3 frequencies
+
+--------------------------------------------------------------------------------
+compat threshold 4.0, 10k pop
+
+
