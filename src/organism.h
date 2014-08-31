@@ -50,9 +50,6 @@ namespace NEAT {
 		double high_fit; //DEBUG variable- high fitness of champ
 		int time_alive; //When playing in real-time allows knowing the maturity of an individual
 
-        float eval_details[128];
-        int eval_ndetails = 0;
-
 		// Track its origin- for debugging or analysis- we can tell how the organism was born
 		bool mut_struct_baby;
 		bool mate_baby;
