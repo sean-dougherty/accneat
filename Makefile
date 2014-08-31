@@ -12,6 +12,6 @@ clean:
 
 obj/%.o: src/%.cpp Makefile
 	@mkdir -p obj
-	g++ -fopenmp -MMD -O3 -c -std=c++11 -g -gdwarf-3 $< -o $@
+	g++ -MMD -O3 -c -std=c++11 -g -gdwarf-3 $< -o $@
 
 -include ${DEPENDS}

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function err() {
+    echo "$*" >&2
+    exit 1
+}
+
+out=${1-./neat_out}
+if [ ! -f $out ]; then
+    err "Must specify neat output file"
+fi
+
+grep -a "Species:" $out |
+grep -o '[0-9]\+' |
+python -c 'import sys; x=map(int,sys.stdin.readlines()); print "[%d, %d, %d, %.2f]" % (min(x),max(x),x[len(x)/2],sum(x)/float(len(x)))'

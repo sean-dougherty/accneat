@@ -18,5 +18,38 @@ recall both: 51m; halted, gen=1944, fitness=0.993307
 --------------------------------------------------------------------------------
 recall elements in separate tests
 
-recall both [seq/sep/both]: 
+recall both [seq/sep/both]: 6h1m; halted, gen=3945, fitness=0.999423
 
+--------------------------------------------------------------------------------
+increase population from 1k to 5k
+
+recall both [seq/pop5k]: 15h30m; halted, gen=1883, fitness=0.999829, nspecies=[2, 3473, 2756]
+
+--------------------------------------------------------------------------------
+increase compatibility threshold from 4.0 to 6.0
+
+recall both [seq/compat=6.0]: 16m; halted, gen=279, fitness=0.999825, nspecies=[1, 2115, 1319]
+
+--------------------------------------------------------------------------------
+increase compatibility threshold from 6.0 to 20.0
+
+recall both [seq/compat=20.0]: 18m; halted, gen=402, fitness=0.999791, nspecies=[1, 51, 38]
+
+--------------------------------------------------------------------------------
+decrease compatibility threshold from 20.0 to 10.0
+
+recall both [seq/compat=10.0]: 37m, halted, gen=457, fitness=0.999877, nspecies=[1, 490, 244]
+
+--------------------------------------------------------------------------------
+compatibility threshold 20.0 and 10k pop
+
+recall both [seq/pop=10k,compat=20.0]: halted quickly. only one species after 600 generations!
+
+--------------------------------------------------------------------------------
+compatibility threshold 10.0 and 10k pop
+
+recall both [seq/pop=10k,compa=10.0]: FITNESS=1.0!!! gen=477, nspecies=[1, 938, 743, 383.05]
+                                  _1: 4h, halted; fitness=0.999955, gen=845, [1, 850, 240, 270.33]
+
+--------------------------------------------------------------------------------
+square individual error result

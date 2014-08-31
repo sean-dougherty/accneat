@@ -588,6 +588,16 @@ bool Population::epoch(int generation) {
         highest_last_changed=0;
 
         printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg\n", highest_fitness, highest_fitness - old_highest);
+
+        if(!(*curspecies)->organisms.empty()) {
+            Organism *org = (*curspecies)->organisms[0];
+            for(int i = 0; i < org->eval_ndetails; i++) {
+                printf("  %f", org->eval_details[i]);
+                if((i+1) % 4 == 0)
+                    printf("\n");
+            }
+            printf("\n");
+        }
     } else {
 		++highest_last_changed;
 		std::cout<<highest_last_changed<<" generations since last population fitness record: "<<highest_fitness<<std::endl;

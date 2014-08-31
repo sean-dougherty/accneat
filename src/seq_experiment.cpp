@@ -173,12 +173,12 @@ bool evaluate(Organism *org) {
             else
                 result = 0.0f;
 
-            return result;
+            return result * result;
         }
     };
-    Frequency f_null = {"null", 0.0, 0.333};
+    Frequency f_null = {"null", 0.0, 0.2};
 
-    vector<Frequency> f = {{"0", 0.3334, 0.666}, {"1", 0.6667, 1.0}};
+    vector<Frequency> f = {{"0", 0.4, 0.6}, {"1", 0.8, 1.0}};
            
            struct Step {
                vector<float> input;
@@ -275,18 +275,24 @@ bool evaluate(Organism *org) {
                const size_t nreps = 1;
                float errorsum = 0.0;
 
-               for(size_t rep = 0; rep < nreps; rep++) {
-                   for(auto &test: tests) {
-                       for(auto &step: test.steps) {
-                           errorsum += step.output.err( activate(step.input) );
-                       }
+               org->eval_ndetails = 0;
+               {
+                   for(size_t rep = 0; rep < nreps; rep++) {
+                       for(auto &test: tests) {
+                           for(auto &step: test.steps) {
+                               double activation= activate(step.input);
+                               errorsum += step.output.err( activation );
 
-                       net->flush();
+                               org->eval_details[org->eval_ndetails++] = activation;
+                           }
+
+                           net->flush();
+                       }
                    }
                }
-
+ 
                auto score = [nsteps] (float errorsum) {
-                   return pow(nsteps * nreps - errorsum, 2);
+                   return nsteps * nreps - errorsum;
                };
 
                org->fitness = score(errorsum) / score(0.0);
