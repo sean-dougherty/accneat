@@ -11,130 +11,78 @@
 using namespace NEAT;
 using namespace std;
 
-struct Frequency {
-    const char *name;
-    float minact;
-    float maxact;
-
-    float err(float x) {
-        if(x > maxact) {
-            float diff = (x - maxact) / (1.0f - maxact);
-            return 0.5f + 0.5f * diff;
-        } else if(x < minact) {
-            float diff = (minact - x) / minact;
-            return 0.5f + 0.5f * diff;
-        } else {
-            return 0.0f;
-        }
-    }
-};
-
-Frequency f_null = {"null", 0.0, 0.1};
-
-vector<Frequency> f = {{"a", 0.3, 0.4}, {"b", 0.6, 0.7}, {"c", 0.9, 1.0}};
-           
 struct Step {
     vector<float> input;
-    Frequency output;
+    vector<float> output;
+
+    double err(vector<NNode*> &netout,
+               float **details_act,
+               float **details_err) {
+        assert(netout.size() == output.size());
+
+        double result = 0.0;
+
+        for(size_t i = 0; i < netout.size(); i++) {
+            double diff = netout[i]->activation - output[i];
+            double err = diff * diff;
+
+            if(err < (0.05 * 0.05)) {
+                err = 0.0;
+            }
+
+            result += err;
+
+            **details_act = netout[i]->activation;
+            **details_err = err;
+
+            (*details_act)++;
+            (*details_err)++;
+        }
+
+        return result;
+    }
 };
 
 struct Test {
     vector<Step> steps;
-    Test(const vector<Step> &steps_) : steps(steps_) {}
+    Test(const vector<Step> &steps_) : steps(steps_) {
+        // Insert 1.0 for bias sensor
+        for(auto &step: steps) {
+            step.input.insert(step.input.begin(), 1.0f);
+        }
+    }
 };
 
-// First input is bias, not sensor.
 vector<Test> tests = {
-    //
-    // a a
-    // 
-    Test({       // A    B    C
-             {{1.0, 1.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 1.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[0]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[0]}
+    Test({  // in0  in1  out0  out1
+            {{0.0, 0.0}, {0.0, 0.0}}
         }),
-    //
-    // a b
-    // 
-    Test({       // A    B    C
-             {{1.0, 1.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 1.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[0]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[1]}
+    Test({  // in0  in1  out0  out1
+            {{0.0, 0.5}, {0.0, 0.5}}
         }),
-    //
-    // a c
-    // 
-    Test({       // A    B    C
-             {{1.0, 1.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 1.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[0]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[2]}
+    Test({  // in0  in1  out0  out1
+            {{0.0, 1.0}, {0.0, 1.0}}
         }),
-    //
-    // b a
-    // 
-    Test({       // A    B    C
-             {{1.0, 0.0, 1.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 1.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[1]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[0]}
+
+    Test({  // in0  in1  out0  out1
+            {{0.5, 0.0}, {0.5, 0.0}}
         }),
-    //
-    // b b
-    // 
-    Test({       // A    B    C
-             {{1.0, 0.0, 1.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 1.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[1]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[1]}
+    Test({  // in0  in1  out0  out1
+            {{0.5, 0.5}, {0.5, 0.5}}
         }),
-    //
-    // b c
-    // 
-    Test({       // A    B    C
-             {{1.0, 0.0, 1.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 1.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[1]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[2]}
+    Test({  // in0  in1  out0  out1
+            {{0.5, 1.0}, {0.5, 1.0}}
         }),
-    //
-    // c a
-    // 
-    Test({       // A    B    C
-             {{1.0, 0.0, 0.0, 1.0, 0.0}, f_null}
-            ,{{1.0, 1.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[2]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[0]}
+
+    Test({  // in0  in1  out0  out1
+            {{1.0, 0.0}, {1.0, 0.0}}
         }),
-    //
-    // c b
-    // 
-    Test({       // A    B    C
-             {{1.0, 0.0, 0.0, 1.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 1.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[2]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[1]}
+    Test({  // in0  in1  out0  out1
+            {{1.0, 0.5}, {1.0, 0.5}}
         }),
-    //
-    // c c
-    // 
-    Test({       // A    B    C
-             {{1.0, 0.0, 0.0, 1.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 1.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.0}, f_null}
-            ,{{1.0, 0.0, 0.0, 0.0, 0.5}, f[2]}
-            ,{{1.0, 0.0, 0.0, 0.0, 1.0}, f[2]}
-        }),
+    Test({  // in0  in1  out0  out1
+            {{1.0, 1.0}, {1.0, 1.0}}
+        })
 };
 
 const size_t nsteps = []() {
@@ -142,12 +90,13 @@ const size_t nsteps = []() {
     for(auto &test: tests) n += test.steps.size();
     return n;
 }();
-const size_t nreps = 1;
+const size_t nouts = []() {
+    return nsteps * tests[0].steps[0].output.size();
+}();
 
 static float score(float errorsum) {
-    return nsteps * nreps - errorsum;
+    return nouts - errorsum;
 };
-
 
 static bool evaluate(NEAT::Organism *org);
 static int epoch(NEAT::Population *pop,
@@ -319,28 +268,22 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
     float errorsum = 0.0;
 
     {
-        for(size_t rep = 0; rep < nreps; rep++) {
-            for(auto &test: tests) {
-                for(auto &step: test.steps) {
-                    double activation = activate(step.input);
-                    double err = step.output.err( activation );
-                    errorsum += err;
-
-                    *details_act = activation;
-                    details_act++;
-                    *details_err = err;
-                    details_err++;
-                }
-
-                net->flush();
+        for(auto &test: tests) {
+            for(auto &step: test.steps) {
+                double activation = activate(step.input);
+                double err = step.err( net->outputs, &details_act, &details_err );
+                errorsum += err;
+                
             }
+
+            net->flush();
         }
     }
  
     org->fitness = score(errorsum) / score(0.0);
     org->error=errorsum;
 
-    org->winner = org->fitness >= 0.99999;
+    org->winner = org->fitness >= 0.9999999;
     if(org->winner) {
         cout << "FOUND A WINNER: " << org->fitness << endl;
         cout.flush();
@@ -368,12 +311,12 @@ int epoch(Population *pop,
     size_t i_best;
 
     const size_t n = pop->organisms.size();
-    float details_act[n * nreps * nsteps];
-    float details_err[n * nreps * nsteps];
+    float details_act[n * nouts];
+    float details_err[n * nouts];
 #pragma omp parallel for
     for(size_t i = 0; i < n; i++) {
         Organism *org = pop->organisms[i];
-        size_t details_offset = i * nreps * nsteps;
+        size_t details_offset = i * nouts;
         if (evaluate(org, details_act + details_offset, details_err + details_offset)) {
 #pragma omp critical
             {
@@ -396,21 +339,21 @@ int epoch(Population *pop,
     }
 
     if(best) {
-        float *best_act = details_act + i_best * nsteps * nreps;
-        float *best_err = details_err + i_best * nsteps * nreps;
-        size_t idetail = 0;
+        float *best_act = details_act + i_best * nouts;
+        float *best_err = details_err + i_best * nouts;
         Organism *org = pop->organisms[i_best];
         
         printf("new best_fitness=%f; fitness=%f, errorsum=%f -- activation (err)\n",
                (float)best_fitness, (float)org->fitness, (float)org->error);
-        for(size_t i = 0; i < nreps; i++) {
-            for(size_t j = 0; j < nsteps; j++, idetail++) {
-                printf("%f (%f) ", best_act[idetail], best_err[idetail]);
 
-                if((idetail+1) % 5 == 0) {
-                    printf("\n");
+        for(auto &test: tests) {
+            for(auto &step: test.steps) {
+                for(auto &out: step.output) {
+                    printf("%f (%f) ", *best_act++, *best_err++);
                 }
+                printf("\n");
             }
+            printf("---\n");
         }
     }
   
