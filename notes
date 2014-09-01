@@ -65,3 +65,4 @@ compat threshold 4.0, 10k pop
 --------------------------------------------------------------------------------
 compat threshold 4.0, 10k pop
 
+[3freq/compat=4.0]: 12h30m; fitness=0.876239, gen=818
