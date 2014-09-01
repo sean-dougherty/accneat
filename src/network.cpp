@@ -14,6 +14,9 @@
    limitations under the License.
 */
 #include "network.h"
+
+#include <assert.h>
+
 #include <iostream>
 #include <sstream>
 
@@ -392,6 +395,8 @@ void Network::load_sensors(const std::vector<float> &sensvals) {
 	//int counter=0;  //counter to move through array
 	std::vector<NNode*>::iterator sensPtr;
 	std::vector<float>::const_iterator valPtr;
+
+    assert(sensvals.size() == inputs.size());
 
 	for(valPtr = sensvals.begin(), sensPtr = inputs.begin(); sensPtr != inputs.end() && valPtr != sensvals.end(); ++sensPtr, ++valPtr) {
 		//only load values into SENSORS (not BIASes)
