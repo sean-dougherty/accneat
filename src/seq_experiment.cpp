@@ -55,7 +55,7 @@ struct Test {
 
 const float S = 1.0; // Signal
 const float Q = 1.0; // Query
-const float N = 0.0; // Null
+const float _ = 0.0; // Null
 
 const float A = 0.0;
 const float B = 0.5;
@@ -63,34 +63,43 @@ const float C = 1.0;
 
 vector<Test> tests = {
     Test({
-            {{S, Q, A, A}, {A, A}}
+            {{S, _, A, A}, {_, _}},
+            {{_, Q, _, _}, {A, A}}
         }),
     Test({
-            {{S, Q, A, B}, {A, B}}
+            {{S, _, A, B}, {_, _}},
+            {{_, Q, _, _}, {A, B}}
         }),
     Test({
-            {{S, Q, A, C}, {A, C}}
-        }),
-
-    Test({
-            {{S, Q, B, A}, {B, A}}
-        }),
-    Test({
-            {{S, Q, B, B}, {B, B}}
-        }),
-    Test({
-            {{S, Q, B, C}, {B, C}}
+            {{S, _, A, C}, {_, _}},
+            {{_, Q, _, _}, {A, C}}
         }),
 
     Test({
-            {{S, Q, C, A}, {C, A}}
+            {{S, _, B, A}, {_, _}},
+            {{_, Q, _, _}, {B, A}}
         }),
     Test({
-            {{S, Q, C, B}, {C, B}}
+            {{S, _, B, B}, {_, _}},
+            {{_, Q, _, _}, {B, B}}
         }),
     Test({
-            {{S, Q, C, C}, {C, C}}
-        })
+            {{S, _, B, C}, {_, _}},
+            {{_, Q, _, _}, {B, C}}
+        }),
+
+    Test({
+            {{S, _, C, A}, {_, _}},
+            {{_, Q, _, _}, {C, A}}
+        }),
+    Test({
+            {{S, _, C, B}, {_, _}},
+            {{_, Q, _, _}, {C, B}}
+        }),
+    Test({
+            {{S, _, C, C}, {_, _}},
+            {{_, Q, _, _}, {C, C}}
+        }),
 };
 
 const size_t nsteps = []() {
