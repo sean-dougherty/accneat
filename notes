@@ -77,5 +77,26 @@ Go back to simpler experiments
 --------------------------------------------------------------------------------
 simple direct mapping from in to out all at once
 
-solved in 21 generations.
+s0: solved in 21 generations.
+s1: solved in 21 generations.
+s2: solved in 27 generations.
+s3: solved in 44 generations.
 
+--------------------------------------------------------------------------------
+use create 4th frequency state for null
+
+took too long to solve, but can't remember how many generations :(
+
+--------------------------------------------------------------------------------
+introduce "signal" neuron
+
+s0: solved in 23 generations
+s1: solved in 28 generations
+s1: solved in 31 generations
+
+--------------------------------------------------------------------------------
+introduce "query" neuron
+
+s0: 10 gens
+s1: 28 gens
+s1: 23 gens

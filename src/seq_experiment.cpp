@@ -53,35 +53,43 @@ struct Test {
     }
 };
 
+const float S = 1.0; // Signal
+const float Q = 1.0; // Query
+const float N = 0.0; // Null
+
+const float A = 0.0;
+const float B = 0.5;
+const float C = 1.0;
+
 vector<Test> tests = {
-    Test({  // in0  in1  out0  out1
-            {{0.0, 0.0}, {0.0, 0.0}}
+    Test({
+            {{S, Q, A, A}, {A, A}}
         }),
-    Test({  // in0  in1  out0  out1
-            {{0.0, 0.5}, {0.0, 0.5}}
+    Test({
+            {{S, Q, A, B}, {A, B}}
         }),
-    Test({  // in0  in1  out0  out1
-            {{0.0, 1.0}, {0.0, 1.0}}
-        }),
-
-    Test({  // in0  in1  out0  out1
-            {{0.5, 0.0}, {0.5, 0.0}}
-        }),
-    Test({  // in0  in1  out0  out1
-            {{0.5, 0.5}, {0.5, 0.5}}
-        }),
-    Test({  // in0  in1  out0  out1
-            {{0.5, 1.0}, {0.5, 1.0}}
+    Test({
+            {{S, Q, A, C}, {A, C}}
         }),
 
-    Test({  // in0  in1  out0  out1
-            {{1.0, 0.0}, {1.0, 0.0}}
+    Test({
+            {{S, Q, B, A}, {B, A}}
         }),
-    Test({  // in0  in1  out0  out1
-            {{1.0, 0.5}, {1.0, 0.5}}
+    Test({
+            {{S, Q, B, B}, {B, B}}
         }),
-    Test({  // in0  in1  out0  out1
-            {{1.0, 1.0}, {1.0, 1.0}}
+    Test({
+            {{S, Q, B, C}, {B, C}}
+        }),
+
+    Test({
+            {{S, Q, C, A}, {C, A}}
+        }),
+    Test({
+            {{S, Q, C, B}, {C, B}}
+        }),
+    Test({
+            {{S, Q, C, C}, {C, C}}
         })
 };
 
