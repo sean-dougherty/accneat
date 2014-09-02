@@ -27,8 +27,8 @@ fi
 
 mkdir -p $run_dir
 touch $run_dir/neat_out
-rm -f $neat_dir/neat_out
-ln -s $run_dir/neat_out $neat_dir/neat_out
+rm -f $neat_dir/out
+ln -s $run_dir/neat_out $neat_dir/out
 
 echo "$comment" > $run_dir/comment.txt
 submit_script=$run_dir/pbs_submit.sh

@@ -115,3 +115,57 @@ delayed "query" w/ AB
 s0: solved in 66 generations
 s1: solved in 64 generations
 s2: solved in 86 generations
+
+--------------------------------------------------------------------------------
+3-element delayed query
+
+[simple/delayed-3el]:
+
+s0: solved in 230 generations
+s1: solved in 132 generations
+s1: solved in 164 generations
+
+--------------------------------------------------------------------------------
+2-element AB, big delay
+
+[simple/bigdelay]
+
+s0: solved in 175 gens
+s1: solved in 373 gens
+
+--------------------------------------------------------------------------------
+use 2 steps to present sequence, but use separate sensor for each element
+
+[simple/2step2sensor]
+
+s0: solved in 169 gens
+s1: solved in 212 gens
+
+--------------------------------------------------------------------------------
+Use only 1 sensor for freq
+
+[simple/2step1freqsens]
+
+s0: solved in 204 gens
+s1: solved in 204 gens
+
+--------------------------------------------------------------------------------
+silence after each element, 2 separate signal sensors
+
+[simple/silence-2sigsens]
+
+s0: 412
+s1: 319
+
+--------------------------------------------------------------------------------
+1 signal sensor
+
+[simple/silence-1sigsens]
+
+s0: 276
+s1: 385
+
+--------------------------------------------------------------------------------
+3 elements
+
+[simple/silence-1sigsens-3el]
