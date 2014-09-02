@@ -361,8 +361,8 @@ int epoch(Population *pop,
     size_t i_best;
 
     const size_t n = pop->organisms.size();
-    float details_act[n * nouts];
-    float details_err[n * nouts];
+    float *details_act = new float[n * nouts];
+    float *details_err = new float[n * nouts];
 #pragma omp parallel for
     for(size_t i = 0; i < n; i++) {
         Organism *org = pop->organisms[i];
@@ -406,6 +406,9 @@ int epoch(Population *pop,
             printf("---\n");
         }
     }
+
+    delete [] details_act;
+    delete [] details_err;
   
     //Average and max their fitnesses for dumping to file and snapshot
     for(curspecies=(pop->species).begin();curspecies!=(pop->species).end();++curspecies) {
