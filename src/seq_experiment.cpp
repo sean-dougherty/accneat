@@ -58,8 +58,7 @@ const float Q = 1.0; // Query
 const float _ = 0.0; // Null
 
 const float A = 0.0;
-const float B = 0.5;
-const float C = 1.0;
+const float B = 1.0;
 
 vector<Test> tests = {
     Test({
@@ -70,10 +69,6 @@ vector<Test> tests = {
             {{S, _, A, B}, {_, _}},
             {{_, Q, _, _}, {A, B}}
         }),
-    Test({
-            {{S, _, A, C}, {_, _}},
-            {{_, Q, _, _}, {A, C}}
-        }),
 
     Test({
             {{S, _, B, A}, {_, _}},
@@ -82,23 +77,6 @@ vector<Test> tests = {
     Test({
             {{S, _, B, B}, {_, _}},
             {{_, Q, _, _}, {B, B}}
-        }),
-    Test({
-            {{S, _, B, C}, {_, _}},
-            {{_, Q, _, _}, {B, C}}
-        }),
-
-    Test({
-            {{S, _, C, A}, {_, _}},
-            {{_, Q, _, _}, {C, A}}
-        }),
-    Test({
-            {{S, _, C, B}, {_, _}},
-            {{_, Q, _, _}, {C, B}}
-        }),
-    Test({
-            {{S, _, C, C}, {_, _}},
-            {{_, Q, _, _}, {C, C}}
         }),
 };
 

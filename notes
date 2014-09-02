@@ -100,3 +100,18 @@ introduce "query" neuron
 s0: 10 gens
 s1: 28 gens
 s1: 23 gens
+
+--------------------------------------------------------------------------------
+delayed "query"
+
+[simple/delayed-query]: HALTED after 2408 gens. fitness=0.989442. Seemed to struggle
+distinguishing betwen "B" (0.5) and "C" (1.0). Moving to only 2 frequencies.
+
+--------------------------------------------------------------------------------
+delayed "query" w/ AB
+
+[simple/delayed-ab]:
+
+s0: solved in 66 generations
+s1: solved in 64 generations
+s2: solved in 86 generations
