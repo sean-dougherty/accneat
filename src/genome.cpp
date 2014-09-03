@@ -711,13 +711,10 @@ Network *Genome::genesis(int id) {
 	}
 
 	//Create the new network
-	newnet=new Network(inlist,outlist,all_list,id);
+	newnet = new Network(inlist, outlist, all_list, id, false, maxweight);
 
 	//Attach genotype and phenotype together
-	newnet->genotype=this;
 	phenotype=newnet;
-
-	newnet->maxweight=maxweight;
 
 	return newnet;
 

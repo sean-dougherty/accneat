@@ -22,31 +22,18 @@
 
 using namespace NEAT;
 
-Network::Network(std::vector<NNode*> in,std::vector<NNode*> out,std::vector<NNode*> all,int netid) {
-  inputs=in;
-  outputs=out;
-  all_nodes=all;
-  net_id=netid;
-  adaptable=false;
-}
-
-Network::Network(std::vector<NNode*> in,std::vector<NNode*> out,std::vector<NNode*> all,int netid, bool adaptval) {
-  inputs=in;
-  outputs=out;
-  all_nodes=all;
-  net_id=netid;
-  adaptable=adaptval;
-}
-
-
-Network::Network(int netid) {
-    net_id=netid;
-    adaptable=false;
-}
-
-Network::Network(int netid, bool adaptval) {
-  net_id=netid;
-  adaptable=adaptval;
+Network::Network(std::vector<NNode*> in,
+                 std::vector<NNode*> out,
+                 std::vector<NNode*> all,
+                 int netid,
+                 bool adaptval,
+                 double maxweight_) {
+  inputs = in;
+  outputs = out;
+  all_nodes = all;
+  net_id = netid;
+  adaptable = adaptval;
+  maxweight = maxweight_;
 }
 
 

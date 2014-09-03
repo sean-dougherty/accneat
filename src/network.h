@@ -23,42 +23,26 @@
 
 namespace NEAT {
 
-    class Genome;
-
 	// ----------------------------------------------------------------------- 
 	// A NETWORK is a LIST of input NODEs and a LIST of output NODEs           
 	//   The point of the network is to define a single entity which can evolve
 	//   or learn on its own, even though it may be part of a larger framework 
 	class Network {
-
-		friend class Genome;
-
-	//protected:
-	private:
+    private:
 		std::vector<NNode*> all_nodes;  // A list of all the nodes
 		std::vector<NNode*> inputs;  // NNodes that input into the network
 		std::vector<NNode*> outputs; // Values output by the network
-		Genome *genotype;  // Allows Network to be matched with its Genome
-
-	public:
 		int net_id; // Allow for a network id
-
+		bool adaptable; // Tells whether network can adapt or not
 		double maxweight; // Maximum weight in network for adaptation purposes
 
-		bool adaptable; // Tells whether network can adapt or not
-
-		// This constructor allows the input and output lists to be supplied
-		// Defaults to not using adaptation
-		Network(std::vector<NNode*> in,std::vector<NNode*> out,std::vector<NNode*> all,int netid);
-
-		//Same as previous constructor except the adaptibility can be set true or false with adaptval
-		Network(std::vector<NNode*> in,std::vector<NNode*> out,std::vector<NNode*> all,int netid, bool adaptval);
-
-		// This constructs a net with empty input and output lists
-		Network(int netid);
-
-		//Same as previous constructor except the adaptibility can be set true or false with adaptval
-		Network(int netid, bool adaptval);
+	public:
+		Network(std::vector<NNode*> in,
+                std::vector<NNode*> out,
+                std::vector<NNode*> all,
+                int netid, 
+                bool adaptval,
+                double maxweight);
 
 		// Copy Constructor
 		Network(const Network& network);
