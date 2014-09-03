@@ -15,15 +15,13 @@ struct Step {
     vector<double> input;
     vector<double> output;
 
-    double err(vector<NNode*> &netout,
+    double err(Network *net,
                float **details_act,
                float **details_err) {
-        assert(netout.size() == output.size());
-
         double result = 0.0;
 
-        for(size_t i = 0; i < netout.size(); i++) {
-            double diff = netout[i]->activation - output[i];
+        for(size_t i = 0; i < output.size(); i++) {
+            double diff = net->get_output(i) - output[i];
             double err = diff * diff;
 
             if(err < (0.05 * 0.05)) {
@@ -32,7 +30,7 @@ struct Step {
 
             result += err;
 
-            **details_act = netout[i]->activation;
+            **details_act = net->get_output(i);
             **details_err = err;
 
             (*details_act)++;
@@ -311,8 +309,6 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
         for(int relax=0; relax <= net_depth; relax++) {
             net->activate();
         }
-
-        return (*(net->outputs.begin()))->activation;        
     };
 
     float errorsum = 0.0;
@@ -320,10 +316,8 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
     {
         for(auto &test: tests) {
             for(auto &step: test.steps) {
-                double activation = activate(step.input);
-                double err = step.err( net->outputs, &details_act, &details_err );
-                errorsum += err;
-                
+                activate(step.input);
+                errorsum += step.err( net, &details_act, &details_err );
             }
 
             net->flush();

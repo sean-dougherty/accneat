@@ -296,19 +296,6 @@ double Network::get_output(size_t index) {
 }
 
 
-// Takes and array of output activations and OVERRIDES 
-// the outputs' actual activations with these values (for adaptation)
-void Network::override_outputs(double* outvals) {
-
-	std::vector<NNode*>::iterator outPtr;
-
-	for(outPtr=outputs.begin();outPtr!=outputs.end();++outPtr) {
-		(*outPtr)->override_output(*outvals);
-		outvals++;
-	}
-
-}
-
 // This checks a POTENTIAL link between a potential in_node and potential out_node to see if it must be recurrent 
 bool Network::is_recur(NNode *potin_node,NNode *potout_node,int &count,int thresh) {
 	++count;  //Count the node as visited

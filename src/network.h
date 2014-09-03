@@ -37,10 +37,10 @@ namespace NEAT {
 	private:
 		std::vector<NNode*> all_nodes;  // A list of all the nodes
 		std::vector<NNode*> inputs;  // NNodes that input into the network
+		std::vector<NNode*> outputs; // Values output by the network
 		Genome *genotype;  // Allows Network to be matched with its Genome
 
 	public:
-		std::vector<NNode*> outputs; // Values output by the network
 		int net_id; // Allow for a network id
 
 		double maxweight; // Maximum weight in network for adaptation purposes
@@ -79,10 +79,6 @@ namespace NEAT {
 		void load_sensors(const std::vector<double> &sensvals);
 
         double get_output(size_t index);
-
-		// Takes and array of output activations and OVERRIDES the outputs' actual 
-		// activations with these values (for adaptation)
-		void override_outputs(double*);
 
 		// This checks a POTENTIAL link between a potential in_node
 		// and potential out_node to see if it must be recurrent 
