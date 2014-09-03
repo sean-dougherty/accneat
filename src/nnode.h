@@ -99,8 +99,7 @@ namespace NEAT {
 
 		double params[NEAT::num_trait_params];
 
-		std::vector<Link*> incoming; // A list of pointers to incoming weighted signals from other nodes
-		std::vector<Link*> outgoing;  // A list of pointers to links carrying this node's signal
+		std::vector<Link> incoming; // A list of pointers to incoming weighted signals from other nodes
 
 		// These members are used for graphing with GTK+/GDK
 		std::vector<double> rowlevels;  // Depths from output where this node appears
@@ -154,9 +153,6 @@ namespace NEAT {
 
 		// Recursively deactivate backwards through the network
 		void flushback();
-
-		// Verify flushing for debugging
-		void flushback_check(std::vector<NNode*> &seenlist);
 
 		// Print the node to a file
         void  print_to_file(std::ostream &outFile);

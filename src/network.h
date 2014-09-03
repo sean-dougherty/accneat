@@ -34,29 +34,13 @@ namespace NEAT {
 		friend class Genome;
 
 	//protected:
-	public:
-
-		int numnodes; // The number of nodes in the net (-1 means not yet counted)
-		int numlinks; //The number of links in the net (-1 means not yet counted)
-
+	private:
 		std::vector<NNode*> all_nodes;  // A list of all the nodes
-
-		std::vector<NNode*>::iterator input_iter;  // For GUILE network inputting  
-
-		void destroy();  // Kills all nodes and links within
-		void destroy_helper(NNode *curnode,std::vector<NNode*> &seenlist); // helper for above
-
-		void nodecounthelper(NNode *curnode,int &counter,std::vector<NNode*> &seenlist);
-		void linkcounthelper(NNode *curnode,int &counter,std::vector<NNode*> &seenlist);
-
-	public:
-
+		std::vector<NNode*> inputs;  // NNodes that input into the network
 		Genome *genotype;  // Allows Network to be matched with its Genome
 
-		char *name; // Every Network or subNetwork can have a name
-		std::vector<NNode*> inputs;  // NNodes that input into the network
+	public:
 		std::vector<NNode*> outputs; // Values output by the network
-
 		int net_id; // Allow for a network id
 
 		double maxweight; // Maximum weight in network for adaptation purposes
@@ -84,48 +68,26 @@ namespace NEAT {
 		// Puts the network back into an inactive state
 		void flush();
 		
-		// Verify flushedness for debugging
-		void flush_check();
-
 		// Activates the net such that all outputs are active
 		bool activate();
 
 		// Prints the values of its outputs
 		void show_activation();
 
-		void show_input();
-
-		// Add a new input node
-		void add_input(NNode*);
-
-		// Add a new output node
-		void add_output(NNode*);
-
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
-		void load_sensors(double*);
-		void load_sensors(const std::vector<float> &sensvals);
+		void load_sensors(const double*);
+		void load_sensors(const std::vector<double> &sensvals);
+
+        double get_output(size_t index);
 
 		// Takes and array of output activations and OVERRIDES the outputs' actual 
 		// activations with these values (for adaptation)
 		void override_outputs(double*);
 
-		// Name the network
-		void give_name(char*);
-
-		// Counts the number of nodes in the net if not yet counted
-		int nodecount();
-
-		// Counts the number of links in the net if not yet counted
-		int linkcount();
-
 		// This checks a POTENTIAL link between a potential in_node
 		// and potential out_node to see if it must be recurrent 
 		// Use count and thresh to jump out in the case of an infinite loop 
 		bool is_recur(NNode *potin_node,NNode *potout_node,int &count,int thresh); 
-
-		// Some functions to help GUILE input into Networks   
-		int input_start();
-		int load_in(double d);
 
 		// If all output are not active then return true
 		bool outputsoff();

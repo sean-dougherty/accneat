@@ -12,8 +12,8 @@ using namespace NEAT;
 using namespace std;
 
 struct Step {
-    vector<float> input;
-    vector<float> output;
+    vector<double> input;
+    vector<double> output;
 
     double err(vector<NNode*> &netout,
                float **details_act,
@@ -301,7 +301,7 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
     numnodes=((org->gnome)->nodes).size();
     net_depth=net->max_depth();
 
-    auto activate = [net, net_depth] (vector<float> &input) {
+    auto activate = [net, net_depth] (vector<double> &input) {
         net->load_sensors(input);
 
         //Relax net and get output

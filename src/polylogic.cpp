@@ -142,7 +142,7 @@ bool polylogic_evaluate(Organism *org) {
     int relax; //Activates until relaxation
 
     struct Test {
-        vector<float> input;
+        vector<double> input;
         float output;
     };
 
@@ -185,7 +185,7 @@ bool polylogic_evaluate(Organism *org) {
             success=net->activate();
         }
 
-        out[i]=(*(net->outputs.begin()))->activation;
+        out[i] = net->get_output(0);
 
         net->flush();
     }

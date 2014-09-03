@@ -640,7 +640,6 @@ Network *Genome::genesis(int id) {
 	NNode *newnode;
 	Trait *curtrait;
 	Link *curlink;
-	Link *newlink;
 
 	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
 	double weight_mag; //Measures absolute value of weights
@@ -690,22 +689,22 @@ Network *Genome::genesis(int id) {
 			curlink=(*curgene)->lnk;
 			inode=(curlink->in_node)->analogue;
 			onode=(curlink->out_node)->analogue;
+
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
-			newlink=new Link(curlink->weight,inode,onode,curlink->is_recurrent);
+			Link newlink(curlink->weight,inode,onode,curlink->is_recurrent);
 
 			(onode->incoming).push_back(newlink);
-			(inode->outgoing).push_back(newlink);
 
 			//Derive link's parameters from its Trait pointer
 			curtrait=(curlink->linktrait);
 
-			newlink->derive_trait(curtrait);
+			newlink.derive_trait(curtrait);
 
 			//Keep track of maximum weight
-			if (newlink->weight>0)
-				weight_mag=newlink->weight;
-			else weight_mag=-newlink->weight;
+			if (newlink.weight>0)
+				weight_mag=newlink.weight;
+			else weight_mag=-newlink.weight;
 			if (weight_mag>maxweight)
 				maxweight=weight_mag;
 		}

@@ -26,9 +26,6 @@ Network::Network(std::vector<NNode*> in,std::vector<NNode*> out,std::vector<NNod
   inputs=in;
   outputs=out;
   all_nodes=all;
-  name=0;   //Defaults to no name  ..NOTE: TRYING TO PRINT AN EMPTY NAME CAN CAUSE A CRASH
-  numnodes=-1;
-  numlinks=-1;
   net_id=netid;
   adaptable=false;
 }
@@ -37,26 +34,17 @@ Network::Network(std::vector<NNode*> in,std::vector<NNode*> out,std::vector<NNod
   inputs=in;
   outputs=out;
   all_nodes=all;
-  name=0;   //Defaults to no name  ..NOTE: TRYING TO PRINT AN EMPTY NAME CAN CAUSE A CRASH                                    
-  numnodes=-1;
-  numlinks=-1;
   net_id=netid;
   adaptable=adaptval;
 }
 
 
 Network::Network(int netid) {
-			name=0; //Defaults to no name
-			numnodes=-1;
-			numlinks=-1;
-			net_id=netid;
-			adaptable=false;
-		}
+    net_id=netid;
+    adaptable=false;
+}
 
 Network::Network(int netid, bool adaptval) {
-  name=0; //Defaults to no name                                                                                               
-  numnodes=-1;
-  numlinks=-1;
   net_id=netid;
   adaptable=adaptval;
 }
@@ -80,77 +68,38 @@ Network::Network(const Network& network)
 		all_nodes.push_back(n);
 	}
 
-	if(network.name)
-		name = strdup(network.name);
-	else
-		name = 0;
-
-	numnodes = network.numnodes;
-	numlinks = network.numlinks;
 	net_id = network.net_id;
 	adaptable = network.adaptable;
 }
 
 Network::~Network() {
-			if (name!=0)
-				delete [] name;
-
-			destroy();  // Kill off all the nodes and links
-
-		}
+    for(NNode *node: all_nodes)
+        delete node;
+}
 
 // Puts the network back into an initial state
 void Network::flush() {
-	std::vector<NNode*>::iterator curnode;
-
-	for(curnode=outputs.begin();curnode!=outputs.end();++curnode) {
-		(*curnode)->flushback();
-	}
-}
-
-// Debugger: Checks network state
-void Network::flush_check() {
-	std::vector<NNode*>::iterator curnode;
-	std::vector<NNode*>::iterator location;
-	std::vector<NNode*> seenlist;  //List of nodes not to doublecount
-
-	for(curnode=outputs.begin();curnode!=outputs.end();++curnode) {    
-        location= std::find(seenlist.begin(),seenlist.end(),(*curnode));
-		if (location==seenlist.end()) {
-			seenlist.push_back(*curnode);
-			(*curnode)->flushback_check(seenlist);
-		}
-	}
+    for(NNode *node: outputs)
+        node->flushback();
 }
 
 // If all output are not active then return true
 bool Network::outputsoff() {
-	std::vector<NNode*>::iterator curnode;
+    for(NNode *node: outputs)
+        if(node->activation_count == 0)
+            return true;
 
-	for(curnode=outputs.begin();curnode!=outputs.end();++curnode) {
-		if (((*curnode)->activation_count)==0) return true;
-	}
-
-	return false;
+    return false;
 }
 
 // Print the connections weights to a file separated by only carriage returns
 void Network::print_links_tofile(char *filename) {
-	std::vector<NNode*>::iterator curnode;
-	std::vector<Link*>::iterator curlink;
-
     std::ofstream oFile(filename);
 
-	//Make sure it worked
-	//if (!oFile) {
-	//	cerr<<"Can't open "<<filename<<" for output"<<endl;
-		//return 0;
-	//}
-
-	for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
-		if (((*curnode)->type)!=SENSOR) {
-			for(curlink=((*curnode)->incoming).begin(); curlink!=((*curnode)->incoming).end(); ++curlink) {
-                oFile << (*curlink)->in_node->node_id << " -> " <<( *curlink)->out_node->node_id << " : " << (*curlink)->weight << std::endl;
+    for(NNode* node: all_nodes) {
+		if ((node->type)!=SENSOR) {
+			for(Link &link: node->incoming) {
+                oFile << link.in_node->node_id << " -> " << link.out_node->node_id << " : " << link.weight << std::endl;
 			} // end for loop on links
 		} //end if
 	} //end for loop on nodes
@@ -166,8 +115,6 @@ bool Network::activate() {
 	bool onetime; //Make sure we at least activate once
 	int abortcount=0;  //Used in case the output is somehow truncated from the network
 
-	//cout<<"Activating network: "<<this->genotype<<endl;
-
 	//Keep activating until all the outputs have become active 
 	//(This only happens on the first activation, because after that they
 	// are always active)
@@ -176,33 +123,28 @@ bool Network::activate() {
 
 	while(outputsoff()||!onetime) {
 
-		++abortcount;
-
-		if (abortcount==20) {
+		if(++abortcount==20) {
 			return false;
-			//cout<<"Inputs disconnected from output!"<<endl;
 		}
-		//std::cout<<"Outputs are off"<<std::endl;
 
 		// For each node, compute the sum of its incoming activation 
 		for(NNode *node: all_nodes) {
-			if ((node->type)!=SENSOR) {
+			if(node->type != SENSOR) {
 				node->activesum=0;
 				node->active_flag=false;  //This will tell us if it has any active inputs
 
 				// For each incoming connection, add the activity from the connection to the activesum 
-				for(Link *link: node->incoming) {
+				for(Link &link: node->incoming) {
 					//Handle possible time delays
-					if (!(link->time_delay)) {
-						add_amount=(link->weight)*((link->in_node)->get_active_out());
-						if (((link->in_node)->active_flag)||
-							((link->in_node)->type==SENSOR)) node->active_flag=true;
+					if (!(link.time_delay)) {
+						add_amount=(link.weight)*((link.in_node)->get_active_out());
+						if (((link.in_node)->active_flag)||
+							((link.in_node)->type==SENSOR)) node->active_flag=true;
 						node->activesum+=add_amount;
-						//std::cout<<"Node "<<node->node_id<<" adding "<<add_amount<<" from node "<<(link->in_node)->node_id<<std::endl;
 					}
 					else {
 						//Input over a time delayed connection
-						add_amount=(link->weight)*((link->in_node)->get_active_out_td());
+						add_amount=(link.weight)*((link.in_node)->get_active_out_td());
 						node->activesum+=add_amount;
 					}
 
@@ -252,30 +194,30 @@ bool Network::activate() {
             if ((node->type)!=SENSOR) {
 	      
                 // For each incoming connection, perform adaptation based on the trait of the connection 
-                for(Link *link: node->incoming) {
+                for(Link &link: node->incoming) {
 		
-                    if ((link->trait_id==2)||
-                        (link->trait_id==3)||
-                        (link->trait_id==4)) {
+                    if ((link.trait_id==2)||
+                        (link.trait_id==3)||
+                        (link.trait_id==4)) {
 		  
                         //In the recurrent case we must take the last activation of the input for calculating hebbian changes
-                        if (link->is_recurrent) {
-                            link->weight=
-                                hebbian(link->weight,maxweight,
-                                        link->in_node->last_activation, 
-                                        link->out_node->get_active_out(),
-                                        link->params[0],link->params[1],
-                                        link->params[2]);
+                        if (link.is_recurrent) {
+                            link.weight=
+                                hebbian(link.weight,maxweight,
+                                        link.in_node->last_activation, 
+                                        link.out_node->get_active_out(),
+                                        link.params[0],link.params[1],
+                                        link.params[2]);
 		    
 		    
                         }
                         else { //non-recurrent case
-                            link->weight=
-                                hebbian(link->weight,maxweight,
-                                        link->in_node->get_active_out(), 
-                                        link->out_node->get_active_out(),
-                                        link->params[0],link->params[1],
-                                        link->params[2]);
+                            link.weight=
+                                hebbian(link.weight,maxweight,
+                                        link.in_node->get_active_out(), 
+                                        link.out_node->get_active_out(),
+                                        link.params[0],link.params[1],
+                                        link.params[2]);
                         }
                     }
 		
@@ -336,61 +278,21 @@ void Network::show_activation() {
 	//cout<<")"<<endl;
 }
 
-void Network::show_input() {
-	std::vector<NNode*>::iterator curnode;
-	int count;
-
-	//if (name!=0)
-	//  cout<<"Network "<<name<<" with id "<<net_id<<" inputs: (";
-	//else cout<<"Network id "<<net_id<<" outputs: (";
-
-	count=1;
-	for(curnode=inputs.begin();curnode!=inputs.end();++curnode) {
-		//cout<<"[Input #"<<count<<": "<<(*curnode)<<"] ";
-		count++;
-	}
-
-	//cout<<")"<<endl;
-}
-
-// Add an input
-void Network::add_input(NNode *in_node) {
-	inputs.push_back(in_node);
-}
-
-// Add an output
-void Network::add_output(NNode *out_node) {
-	outputs.push_back(out_node);
-}
-
 // Takes an array of sensor values and loads it into SENSOR inputs ONLY
-void Network::load_sensors(double *sensvals) {
-	//int counter=0;  //counter to move through array
-	std::vector<NNode*>::iterator sensPtr;
-
-	for(sensPtr=inputs.begin();sensPtr!=inputs.end();++sensPtr) {
-		//only load values into SENSORS (not BIASes)
-		if (((*sensPtr)->type)==SENSOR) {
-			(*sensPtr)->sensor_load(*sensvals);
-			sensvals++;
-		}
-	}
+void Network::load_sensors(const double *sensvals) {
+    for(size_t i = 0; i < inputs.size(); i++) {
+        inputs[i]->sensor_load(sensvals[i]);
+    }
 }
 
-void Network::load_sensors(const std::vector<float> &sensvals) {
-	//int counter=0;  //counter to move through array
-	std::vector<NNode*>::iterator sensPtr;
-	std::vector<float>::const_iterator valPtr;
-
+void Network::load_sensors(const std::vector<double> &sensvals) {
     assert(sensvals.size() == inputs.size());
 
-	for(valPtr = sensvals.begin(), sensPtr = inputs.begin(); sensPtr != inputs.end() && valPtr != sensvals.end(); ++sensPtr, ++valPtr) {
-		//only load values into SENSORS (not BIASes)
-		if (((*sensPtr)->type)==SENSOR) {
-			(*sensPtr)->sensor_load(*valPtr);
-			//sensvals++;
-		}
-	}
+    load_sensors(sensvals.data());
+}
+
+double Network::get_output(size_t index) {
+    return outputs[index]->activation;
 }
 
 
@@ -407,193 +309,27 @@ void Network::override_outputs(double* outvals) {
 
 }
 
-void Network::give_name(char *newname) {
-	char *temp;
-	char *temp2;
-	temp=new char[strlen(newname)+1];
-	strcpy(temp,newname);
-	if (name==0) name=temp;
-	else {
-		temp2=name;
-		delete temp2;
-		name=temp;
-	}
-}
-
-// The following two methods recurse through a network from outputs
-// down in order to count the number of nodes and links in the network.
-// This can be useful for debugging genotype->phenotype spawning 
-// (to make sure their counts correspond)
-
-int Network::nodecount() {
-	int counter=0;
-	std::vector<NNode*>::iterator curnode;
-	std::vector<NNode*>::iterator location;
-	std::vector<NNode*> seenlist;  //List of nodes not to doublecount
-
-	for(curnode=outputs.begin();curnode!=outputs.end();++curnode) {
-
-        location = std::find(seenlist.begin(),seenlist.end(),(*curnode));
-		if (location==seenlist.end()) {
-			counter++;
-			seenlist.push_back(*curnode);
-			nodecounthelper((*curnode),counter,seenlist);
-		}
-	}
-
-	numnodes=counter;
-
-	return counter;
-
-}
-
-void Network::nodecounthelper(NNode *curnode,int &counter,std::vector<NNode*> &seenlist) {
-	std::vector<Link*> innodes=curnode->incoming;
-	std::vector<Link*>::iterator curlink;
-	std::vector<NNode*>::iterator location;
-
-	if (!((curnode->type)==SENSOR)) {
-		for(curlink=innodes.begin();curlink!=innodes.end();++curlink) {
-            location= std::find(seenlist.begin(),seenlist.end(),((*curlink)->in_node));
-			if (location==seenlist.end()) {
-				counter++;
-				seenlist.push_back((*curlink)->in_node);
-				nodecounthelper((*curlink)->in_node,counter,seenlist);
-			}
-		}
-
-	}
-
-}
-
-int Network::linkcount() {
-	int counter=0;
-	std::vector<NNode*>::iterator curnode;
-	std::vector<NNode*> seenlist;  //List of nodes not to doublecount
-
-	for(curnode=outputs.begin();curnode!=outputs.end();++curnode) {
-		linkcounthelper((*curnode),counter,seenlist);
-	}
-
-	numlinks=counter;
-
-	return counter;
-
-}
-
-void Network::linkcounthelper(NNode *curnode,int &counter,std::vector<NNode*> &seenlist) {
-	std::vector<Link*> inlinks=curnode->incoming;
-	std::vector<Link*>::iterator curlink;
-	std::vector<NNode*>::iterator location;
-
-    location = std::find(seenlist.begin(),seenlist.end(),curnode);
-	if ((!((curnode->type)==SENSOR))&&(location==seenlist.end())) {
-		seenlist.push_back(curnode);
-
-		for(curlink=inlinks.begin();curlink!=inlinks.end();++curlink) {
-			counter++;
-			linkcounthelper((*curlink)->in_node,counter,seenlist);
-		}
-
-	}
-
-}
-
-// Destroy will find every node in the network and subsequently
-// delete them one by one.  Since deleting a node deletes its incoming
-// links, all nodes and links associated with a network will be destructed
-// Note: Traits are parts of genomes and not networks, so they are not
-//       deleted here
-void Network::destroy() {
-	std::vector<NNode*>::iterator curnode;
-	std::vector<NNode*>::iterator location;
-	std::vector<NNode*> seenlist;  //List of nodes not to doublecount
-
-	// Erase all nodes from all_nodes list 
-
-	for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
-		delete (*curnode);
-	}
-
-
-	// ----------------------------------- 
-
-	//  OLD WAY-the old way collected the nodes together and then deleted them
-
-	//for(curnode=outputs.begin();curnode!=outputs.end();++curnode) {
-	//cout<<seenstd::vector<<endl;
-	//cout<<curnode<<endl;
-	//cout<<curnode->node_id<<endl;
-
-	//  location=find(seenlist.begin(),seenlist.end(),(*curnode));
-	//  if (location==seenlist.end()) {
-	//    seenlist.push_back(*curnode);
-	//    destroy_helper((*curnode),seenlist);
-	//  }
-	//}
-
-	//Now destroy the seenlist, which is all the NNodes in the network
-	//for(curnode=seenlist.begin();curnode!=seenlist.end();++curnode) {
-	//  delete (*curnode);
-	//}
-}
-
-void Network::destroy_helper(NNode *curnode,std::vector<NNode*> &seenlist) {
-	std::vector<Link*> innodes=curnode->incoming;
-	std::vector<Link*>::iterator curlink;
-	std::vector<NNode*>::iterator location;
-
-	if (!((curnode->type)==SENSOR)) {
-		for(curlink=innodes.begin();curlink!=innodes.end();++curlink) {
-            location = std::find(seenlist.begin(),seenlist.end(),((*curlink)->in_node));
-			if (location==seenlist.end()) {
-				seenlist.push_back((*curlink)->in_node);
-				destroy_helper((*curlink)->in_node,seenlist);
-			}
-		}
-
-	}
-
-}
-
 // This checks a POTENTIAL link between a potential in_node and potential out_node to see if it must be recurrent 
 bool Network::is_recur(NNode *potin_node,NNode *potout_node,int &count,int thresh) {
-	std::vector<Link*>::iterator curlink;
-
-
 	++count;  //Count the node as visited
 
 	if (count>thresh) {
-		//cout<<"returning false"<<endl;
 		return false;  //Short out the whole thing- loop detected
 	}
 
 	if (potin_node==potout_node) return true;
 	else {
 		//Check back on all links...
-		for(curlink=(potin_node->incoming).begin();curlink!=(potin_node->incoming).end();curlink++) {
+        for(Link &link: potin_node->incoming) {
 			//But skip links that are already recurrent
 			//(We want to check back through the forward flow of signals only
-			if (!((*curlink)->is_recurrent)) {
-				if (is_recur((*curlink)->in_node,potout_node,count,thresh)) return true;
+			if (!link.is_recurrent) {
+				if (is_recur(link.in_node,potout_node,count,thresh)) return true;
 			}
 		}
 		return false;
 	}
 }
-
-int Network::input_start() {
-	input_iter=inputs.begin();
-	return 1;
-}
-
-int Network::load_in(double d) {
-	(*input_iter)->sensor_load(d);
-	input_iter++;
-	if (input_iter==inputs.end()) return 0;
-	else return 1;
-}
-
 
 //Find the maximum number of neurons between an ouput and an input
 int Network::max_depth() {

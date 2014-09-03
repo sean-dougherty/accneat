@@ -182,10 +182,10 @@ bool xor_evaluate(Organism *org) {
     //use depth to ensure relaxation
     for (relax=0;relax<=net_depth;relax++) {
       success=net->activate();
-      this_out=(*(net->outputs.begin()))->activation;
+      this_out = net->get_output(0);
     }
 
-    out[count]=(*(net->outputs.begin()))->activation;
+    out[count] = net->get_output(0);
 
     net->flush();
 
@@ -527,10 +527,8 @@ int go_cart(Network *net,int max_steps,int thresh)
        if (!(net->activate())) return 1;
 
       /*-- decide which way to push via which output unit is greater --*/
-       out_iter=net->outputs.begin();
-       out1=(*out_iter)->activation;
-       ++out_iter;
-       out2=(*out_iter)->activation;
+       out1 = net->get_output(0);
+       out2 = net->get_output(1);
        if (out1 > out2)
 	 y = 0;
        else
@@ -1201,7 +1199,7 @@ double CartPole::evalNet(Network *net,int thresh)
       //If it loops, exit returning only fitness of 1 step
       if (!(net->activate())) return 1.0;
       
-      output=(*(net->outputs.begin()))->activation;
+      output = net->get_output(0);
       
       performAction(output,steps);
       
@@ -1246,7 +1244,7 @@ double CartPole::evalNet(Network *net,int thresh)
       //If it loops, exit returning only fitness of 1 step
       if (!(net->activate())) return 0.0001;
       
-      output=(*(net->outputs.begin()))->activation;
+      output = net->get_output(0);
 
       //cout<<"output: "<<output<<endl;
 

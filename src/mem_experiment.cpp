@@ -160,7 +160,7 @@ bool evaluate(Organism *org) {
     int net_depth; //The max depth of the network to be activated
 
     struct Test {
-        vector<float> input;
+        vector<double> input;
         float output;
     };
 
@@ -169,9 +169,9 @@ bool evaluate(Organism *org) {
         {{1.0, 0.0, 1.0, 0.0}, 0.5},
         {{1.0, 1.0, 0.0, 0.0}, 1.0}
     };
-    vector<float> input_delay =
+    vector<double> input_delay =
         {1.0, 0.0, 0.0, 0.0};
-    vector<float> input_query =
+    vector<double> input_query =
         {1.0, 0.0, 0.0, 1.0};
 
     net=org->net;
@@ -180,7 +180,7 @@ bool evaluate(Organism *org) {
 
     double errorsum = 0.0;
 
-    auto activate = [net, net_depth] (vector<float> &input) {
+    auto activate = [net, net_depth] (vector<double> &input) {
         net->load_sensors(input);
 
         //Relax net and get output
@@ -191,11 +191,11 @@ bool evaluate(Organism *org) {
             net->activate();
         }
 
-        return (*(net->outputs.begin()))->activation;        
+        return net->get_output(0);
     };
 
-    auto err = [] (float expected, float actual) {
-        float diff = abs(expected - actual);
+    auto err = [] (double expected, double actual) {
+        double diff = abs(expected - actual);
         if(diff < 0.01) {
             diff = 0.0;
         }
