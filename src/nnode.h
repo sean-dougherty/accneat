@@ -127,8 +127,12 @@ namespace NEAT {
 
 		~NNode();
 
-		// Just return activation for step
-		double get_active_out();
+        // Return activation currently in node, if it has been activated
+        inline double get_active_out() {
+            if (activation_count>0)
+                return activation;
+            else return 0.0;
+        }
 
 		// Return activation from PREVIOUS time step
 		double get_active_out_td();

@@ -23,13 +23,22 @@
 #include "polylogic.h"
 using namespace std;
 
+#if false
+#define MAX_GENS 1000000
+#define RAND_SEED (unsigned)time( NULL )
+#else
+#define MAX_GENS 20
+#define RAND_SEED 0
+#endif
+
+
 
 int main(int argc, char *argv[]) {
     NEAT::Population *p = nullptr;
 
     /* Seed the random-number generator with current time so that
        the numbers will be different every time we run.    */
-    srand( (unsigned)time( NULL ) );
+    srand( RAND_SEED );
 
     if (argc != 3) {
         cerr << "usage: neat ne_path startgenes_path" << endl;
@@ -39,7 +48,7 @@ int main(int argc, char *argv[]) {
     //Load in the params
     NEAT::load_neat_params(argv[1],true);
 
-    p = seq_experiment(1000000, argv[2]);
+    p = seq_experiment(MAX_GENS, argv[2]);
 /*
   int choice;
 

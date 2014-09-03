@@ -162,8 +162,6 @@ void Network::print_links_tofile(char *filename) {
 // Activates the net such that all outputs are active
 // Returns true on success;
 bool Network::activate() {
-	std::vector<NNode*>::iterator curnode;
-	std::vector<Link*>::iterator curlink;
 	double add_amount;  //For adding to the activesum
 	bool onetime; //Make sure we at least activate once
 	int abortcount=0;  //Used in case the output is somehow truncated from the network
@@ -187,65 +185,60 @@ bool Network::activate() {
 		//std::cout<<"Outputs are off"<<std::endl;
 
 		// For each node, compute the sum of its incoming activation 
-		for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
-			//Ignore SENSORS
-
-			//cout<<"On node "<<(*curnode)->node_id<<endl;
-
-			if (((*curnode)->type)!=SENSOR) {
-				(*curnode)->activesum=0;
-				(*curnode)->active_flag=false;  //This will tell us if it has any active inputs
+		for(NNode *node: all_nodes) {
+			if ((node->type)!=SENSOR) {
+				node->activesum=0;
+				node->active_flag=false;  //This will tell us if it has any active inputs
 
 				// For each incoming connection, add the activity from the connection to the activesum 
-				for(curlink=((*curnode)->incoming).begin();curlink!=((*curnode)->incoming).end();++curlink) {
+				for(Link *link: node->incoming) {
 					//Handle possible time delays
-					if (!((*curlink)->time_delay)) {
-						add_amount=((*curlink)->weight)*(((*curlink)->in_node)->get_active_out());
-						if ((((*curlink)->in_node)->active_flag)||
-							(((*curlink)->in_node)->type==SENSOR)) (*curnode)->active_flag=true;
-						(*curnode)->activesum+=add_amount;
-						//std::cout<<"Node "<<(*curnode)->node_id<<" adding "<<add_amount<<" from node "<<((*curlink)->in_node)->node_id<<std::endl;
+					if (!(link->time_delay)) {
+						add_amount=(link->weight)*((link->in_node)->get_active_out());
+						if (((link->in_node)->active_flag)||
+							((link->in_node)->type==SENSOR)) node->active_flag=true;
+						node->activesum+=add_amount;
+						//std::cout<<"Node "<<node->node_id<<" adding "<<add_amount<<" from node "<<(link->in_node)->node_id<<std::endl;
 					}
 					else {
 						//Input over a time delayed connection
-						add_amount=((*curlink)->weight)*(((*curlink)->in_node)->get_active_out_td());
-						(*curnode)->activesum+=add_amount;
+						add_amount=(link->weight)*((link->in_node)->get_active_out_td());
+						node->activesum+=add_amount;
 					}
 
 				} //End for over incoming links
 
-			} //End if (((*curnode)->type)!=SENSOR) 
+			} //End if ((node->type)!=SENSOR) 
 
 		} //End for over all nodes
 
 		// Now activate all the non-sensor nodes off their incoming activation 
-		for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
-
-			if (((*curnode)->type)!=SENSOR) {
+		for(NNode *node: all_nodes) {
+			if ((node->type)!=SENSOR) {
 				//Only activate if some active input came in
-				if ((*curnode)->active_flag) {
-					//cout<<"Activating "<<(*curnode)->node_id<<" with "<<(*curnode)->activesum<<": ";
+				if (node->active_flag) {
+					//cout<<"Activating "<<node->node_id<<" with "<<node->activesum<<": ";
 
 					//Keep a memory of activations for potential time delayed connections
-					(*curnode)->last_activation2=(*curnode)->last_activation;
-					(*curnode)->last_activation=(*curnode)->activation;
+					node->last_activation2=node->last_activation;
+					node->last_activation=node->activation;
 
 					//If the node is being overrided from outside,
 					//stick in the override value
-					if ((*curnode)->overridden()) {
+					if (node->overridden()) {
 						//Set activation to the override value and turn off override
-						(*curnode)->activate_override();
+						node->activate_override();
 					}
 					else {
 						//Now run the net activation through an activation function
-						if ((*curnode)->ftype==SIGMOID)
-							(*curnode)->activation=NEAT::fsigmoid((*curnode)->activesum,4.924273,2.4621365);  //Sigmoidal activation- see comments under fsigmoid
+						if (node->ftype==SIGMOID)
+							node->activation=NEAT::fsigmoid(node->activesum,4.924273,2.4621365);  //Sigmoidal activation- see comments under fsigmoid
 					}
-					//cout<<(*curnode)->activation<<endl;
+					//cout<<node->activation<<endl;
 
 					//Increment the activation_count
 					//First activation cannot be from nothing!!
-					(*curnode)->activation_count++;
+					node->activation_count++;
 				}
 			}
 		}
@@ -254,50 +247,43 @@ bool Network::activate() {
 	}
 
 	if (adaptable) {
-
-	  //std::cout << "ADAPTING" << std:endl;
-
-	  // ADAPTATION:  Adapt weights based on activations 
-	  for(curnode=all_nodes.begin();curnode!=all_nodes.end();++curnode) {
-	    //Ignore SENSORS
-	    
-	    //cout<<"On node "<<(*curnode)->node_id<<endl;
-	    
-	    if (((*curnode)->type)!=SENSOR) {
+        // ADAPTATION:  Adapt weights based on activations 
+        for(NNode *node: all_nodes) {
+            if ((node->type)!=SENSOR) {
 	      
-	      // For each incoming connection, perform adaptation based on the trait of the connection 
-	      for(curlink=((*curnode)->incoming).begin();curlink!=((*curnode)->incoming).end();++curlink) {
+                // For each incoming connection, perform adaptation based on the trait of the connection 
+                for(Link *link: node->incoming) {
 		
-		if (((*curlink)->trait_id==2)||
-		    ((*curlink)->trait_id==3)||
-		    ((*curlink)->trait_id==4)) {
+                    if ((link->trait_id==2)||
+                        (link->trait_id==3)||
+                        (link->trait_id==4)) {
 		  
-		  //In the recurrent case we must take the last activation of the input for calculating hebbian changes
-		  if ((*curlink)->is_recurrent) {
-		    (*curlink)->weight=
-		      hebbian((*curlink)->weight,maxweight,
-			      (*curlink)->in_node->last_activation, 
-			      (*curlink)->out_node->get_active_out(),
-			      (*curlink)->params[0],(*curlink)->params[1],
-			      (*curlink)->params[2]);
+                        //In the recurrent case we must take the last activation of the input for calculating hebbian changes
+                        if (link->is_recurrent) {
+                            link->weight=
+                                hebbian(link->weight,maxweight,
+                                        link->in_node->last_activation, 
+                                        link->out_node->get_active_out(),
+                                        link->params[0],link->params[1],
+                                        link->params[2]);
 		    
 		    
-		  }
-		  else { //non-recurrent case
-		    (*curlink)->weight=
-		      hebbian((*curlink)->weight,maxweight,
-			      (*curlink)->in_node->get_active_out(), 
-			      (*curlink)->out_node->get_active_out(),
-			      (*curlink)->params[0],(*curlink)->params[1],
-			      (*curlink)->params[2]);
-		  }
-		}
+                        }
+                        else { //non-recurrent case
+                            link->weight=
+                                hebbian(link->weight,maxweight,
+                                        link->in_node->get_active_out(), 
+                                        link->out_node->get_active_out(),
+                                        link->params[0],link->params[1],
+                                        link->params[2]);
+                        }
+                    }
 		
-	      }
+                }
 	      
-	    }
+            }
 	    
-	  }
+        }
 	  
 	} //end if (adaptable)
 

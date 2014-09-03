@@ -209,12 +209,6 @@ void NNode::add_incoming(NNode *feednode,double weight) {
 	(feednode->outgoing).push_back(newlink);
 }
 
-// Return activation currently in node, if it has been activated
-double NNode::get_active_out() {
-	if (activation_count>0)
-		return activation;
-	else return 0.0;
-}
 
 // Return activation currently in node from PREVIOUS (time-delayed) time step,
 // if there is one
