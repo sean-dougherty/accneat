@@ -1015,37 +1015,14 @@ void Genome::mutate_random_trait() {
 }
 
 void Genome::mutate_link_trait(int times) {
-	int traitnum;
-	int genenum;
-	std::vector<Gene*>::iterator thegene;     //Link to be mutated
-	std::vector<Trait*>::iterator thetrait; //Trait to be attached
-	int count;
-	int loop;
-
-	for(loop=1;loop<=times;loop++) {
-
-		//Choose a random traitnum
-		traitnum=randint(0,(traits.size())-1);
-
-		//Choose a random linknum
-		genenum=randint(0,genes.size()-1);
-
-		//set the link to point to the new trait
-		thegene=genes.begin();
-		for(count=0;count<genenum;count++)
-			++thegene;
-
-		//Do not alter frozen genes
-		if (!((*thegene)->frozen)) {
-			thetrait=traits.begin();
-
-			((*thegene)->lnk)->linktrait=thetrait[traitnum];
-
-		}
-		//TRACK INNOVATION- future use
-		//(*thegene)->mutation_num+=randposneg()*randfloat()*linktrait_mut_sig;
-
-	}
+    for(int i = 0; i < times; i++) {
+        Trait *trait = traits[ randint(0,(traits.size())-1) ];
+        Gene *gene = genes[ randint(0,genes.size()-1) ];
+        
+        if(!gene->frozen) {
+            gene->lnk->linktrait = trait;
+        }
+    }
 }
 
 void Genome::mutate_node_trait(int times) {
