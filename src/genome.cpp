@@ -1104,39 +1104,29 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 }
 
 void Genome::mutate_toggle_enable(int times) {
-	int genenum;
-	int count;
-	std::vector<Gene*>::iterator thegene;  //Gene to toggle
-	std::vector<Gene*>::iterator checkgene;  //Gene to check
-	int genecount;
+    for(int i = 0; i < times; i++) {
+        Gene *gene = genes[ randint(0,genes.size()-1) ];
 
-	for (count=1;count<=times;count++) {
-
-		//Choose a random genenum
-		genenum=randint(0,genes.size()-1);
-
-		//find the gene
-		thegene=genes.begin();
-		for(genecount=0;genecount<genenum;genecount++)
-			++thegene;
-
-		//Toggle the enable on this gene
-		if (((*thegene)->enable)==true) {
+        if(!gene->enable) {
+            gene->enable = true;
+        } else {
 			//We need to make sure that another gene connects out of the in-node
 			//Because if not a section of network will break off and become isolated
-			checkgene=genes.begin();
-			while((checkgene!=genes.end())&&
-				(((((*checkgene)->lnk)->in_node)!=(((*thegene)->lnk)->in_node))||
-				(((*checkgene)->enable)==false)||
-				((*checkgene)->innovation_num==(*thegene)->innovation_num)))
-				++checkgene;
+            bool found = false;
+            for(Gene *checkgene: genes) {
+                if( (checkgene->lnk->in_node == gene->lnk->in_node)
+                    && checkgene->enable
+                    && (checkgene->innovation_num != gene->innovation_num) ) {
+                    found = true;
+                    break;
+                }
+            }
 
 			//Disable the gene if it's safe to do so
-			if (checkgene!=genes.end())
-				(*thegene)->enable=false;
-		}
-		else (*thegene)->enable=true;
-	}
+			if(found)
+				gene->enable = false;
+        }
+    }
 }
 
 void Genome::mutate_gene_reenable() {
