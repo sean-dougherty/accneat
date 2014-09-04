@@ -15,6 +15,7 @@
 */
 #include "genome.h"
 
+#include <assert.h>
 #include <iostream>
 #include <cmath>
 #include <sstream>
@@ -1470,284 +1471,108 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 
 }
 
-bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,double &curinnov,int tries) {
+bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
+                             double &curinnov,
+                             int tries) {
 
-	int nodenum1,nodenum2;  //Random node numbers
-	std::vector<NNode*>::iterator thenode1,thenode2;  //Random node iterators
-	int nodecount;  //Counter for finding nodes
-	int trycount; //Iterates over attempts to find an unconnected pair of nodes
-	NNode *nodep1; //Pointers to the nodes
-	NNode *nodep2; //Pointers to the nodes
-	std::vector<Gene*>::iterator thegene; //Searches for existing link
-	bool found=false;  //Tells whether an open pair was found
-	std::vector<Innovation*>::iterator theinnov; //For finding a historical match
-	int recurflag; //Indicates whether proposed link is recurrent
-	Gene *newgene;  //The new Gene
-
-	int traitnum;  //Random trait finder
-	std::vector<Trait*>::iterator thetrait;
-
-	double newweight;  //The new weight for the new link
-
-	bool done;
-	bool do_recur;
-	bool loop_recur;
-	int first_nonsensor;
-
-	//These are used to avoid getting stuck in an infinite loop checking
-	//for recursion
-	//Note that we check for recursion to control the frequency of
-	//adding recurrent links rather than to prevent any paricular
-	//kind of error
-	int thresh=(nodes.size())*(nodes.size());
-	int count=0;
-
-	//Make attempts to find an unconnected pair
-	trycount=0;
-
+	NNode *in_node; //Pointers to the nodes
+	NNode *out_node; //Pointers to the nodes
 
 	//Decide whether to make this recurrent
-	if (randfloat()<NEAT::recur_only_prob) 
-		do_recur=true;
-	else do_recur=false;
+	bool do_recur = randfloat() < NEAT::recur_only_prob;
 
-	//Find the first non-sensor so that the to-node won't look at sensors as
-	//possible destinations
-	first_nonsensor=0;
-	thenode1=nodes.begin();
-	while(((*thenode1)->get_type())==SENSOR) {
-		first_nonsensor++;
-		++thenode1;
-	}
+    // Try to find nodes for link.
+    {
+        bool found_nodes = false;
 
-	//Here is the recurrent finder loop- it is done separately
-	if (do_recur) {
+        //Find the first non-sensor so that the to-node won't look at sensors as
+        //possible destinations
+        int first_nonsensor = 0;
+        for(; nodes[first_nonsensor]->get_type() == SENSOR; first_nonsensor++) {
+        }
 
-		while(trycount<tries) {
+        for(int trycount = 0; !found_nodes && (trycount < tries); trycount++) {
+            //Here is the recurrent finder loop- it is done separately
+            if(do_recur) {
+                //Some of the time try to make a recur loop
+                // todo: make this an NE parm?
+                if (randfloat() > 0.5) {
+                    in_node = nodes[ randint(first_nonsensor,nodes.size()-1) ];
+                    out_node = in_node;
+                }
+                else {
+                    //Choose random nodenums
+                    in_node = nodes[ randint(0,nodes.size()-1) ];
+                    out_node = nodes[ randint(first_nonsensor,nodes.size()-1) ];
+                }
+            } else {
+                //Choose random nodenums
+                in_node = nodes[ randint(0,nodes.size()-1) ];
+                out_node = nodes[ randint(first_nonsensor,nodes.size()-1) ];
+            }
 
-			//Some of the time try to make a recur loop
-			if (randfloat()>0.5) {
-				loop_recur=true;
-			}
-			else loop_recur=false;
+            found_nodes = !link_exists(in_node, out_node, do_recur)
+                && (do_recur == is_recur(in_node, out_node));
+        }
 
-			if (loop_recur) {
-				nodenum1=randint(first_nonsensor,nodes.size()-1);
-				nodenum2=nodenum1;
-			}
-			else {
-				//Choose random nodenums
-				nodenum1=randint(0,nodes.size()-1);
-				nodenum2=randint(first_nonsensor,nodes.size()-1);
-			}
+        assert( out_node->type != SENSOR );
 
-			//Find the first node
-			thenode1=nodes.begin();
-			for(nodecount=0;nodecount<nodenum1;nodecount++)
-				++thenode1;
+        //Continue only if an open link was found
+        if(!found_nodes) {
+            return false;
+        }
+    }
 
-			//Find the second node
-			thenode2=nodes.begin();
-			for(nodecount=0;nodecount<nodenum2;nodecount++)
-				++thenode2;
+	Gene *newgene = nullptr;
 
-			nodep1=(*thenode1);
-			nodep2=(*thenode2);
+    for(Innovation *innov: innovs) {
+        if( (innov->innovation_type == NEWLINK) &&
+            (innov->node_in_id == in_node->node_id) &&
+            (innov->node_out_id == out_node->node_id) &&
+            (innov->recur_flag == do_recur)) {
 
-			//See if a recur link already exists  ALSO STOP AT END OF GENES!!!!
-			thegene=genes.begin();
-			while ((thegene!=genes.end()) && 
-				((nodep2->type)!=SENSOR) &&   //Don't allow SENSORS to get input
-				(!((((*thegene)->lnk)->in_node==nodep1)&&
-				(((*thegene)->lnk)->out_node==nodep2)&&
-				((*thegene)->lnk)->is_recurrent))) {
-					++thegene;
-				}
+            //Create new gene using existing innovation.
+            newgene = new Gene(traits[innov->new_traitnum],
+                               innov->new_weight,
+                               in_node,
+                               out_node,
+                               do_recur,
+                               innov->innovation_num1,
+                               0);
+        }
+    }
 
-				if (thegene!=genes.end())
-					trycount++;
-				else {
-					count=0;
-					recurflag=phenotype->is_recur(nodep1->analogue,nodep2->analogue,count,thresh);
+    if(!newgene) {
+        //The innovation is totally novel
 
-					//ADDED: CONSIDER connections out of outputs recurrent
-					if (((nodep1->gen_node_label)==OUTPUT)||
-						((nodep2->gen_node_label)==OUTPUT))
-						recurflag=true;
+        //Choose a random trait
+        int traitnum = randint(0, (traits.size())-1);
 
-					//Exit if the network is faulty (contains an infinite loop)
-					//NOTE: A loop doesn't really matter
-					//if (count>thresh) {
-					//  cout<<"LOOP DETECTED DURING A RECURRENCY CHECK"<<std::endl;
-					//  return false;
-					//}
+        //Choose the new weight
+        //newweight=(gaussrand())/1.5;  //Could use a gaussian
+        double newweight = randposneg() * randfloat() * 1.0; //used to be 10.0
 
-					//Make sure it finds the right kind of link (recur)
-					if (!(recurflag))
-						trycount++;
-					else {
-						trycount=tries;
-						found=true;
-					}
+        //Create the new gene
+        newgene = new Gene(traits[traitnum],
+                           newweight,
+                           in_node,
+                           out_node,
+                           do_recur,
+                           curinnov,
+                           newweight);
 
-				}
+        //Add the innovation
+        innovs.push_back(new Innovation(in_node->node_id,
+                                        out_node->node_id,
+                                        curinnov,
+                                        newweight,
+                                        traitnum));
+        curinnov += 1.0;
+    }
 
-		}
-	}
-	else {
-		//Loop to find a nonrecurrent link
-		while(trycount<tries) {
+    add_gene(genes,newgene);  //Adds the gene in correct order
 
-			//cout<<"TRY "<<trycount<<std::endl;
-
-			//Choose random nodenums
-			nodenum1=randint(0,nodes.size()-1);
-			nodenum2=randint(first_nonsensor,nodes.size()-1);
-
-			//Find the first node
-			thenode1=nodes.begin();
-			for(nodecount=0;nodecount<nodenum1;nodecount++)
-				++thenode1;
-
-			//cout<<"RETRIEVED NODE# "<<(*thenode1)->node_id<<std::endl;
-
-			//Find the second node
-			thenode2=nodes.begin();
-			for(nodecount=0;nodecount<nodenum2;nodecount++)
-				++thenode2;
-
-			nodep1=(*thenode1);
-			nodep2=(*thenode2);
-
-			//See if a link already exists  ALSO STOP AT END OF GENES!!!!
-			thegene=genes.begin();
-			while ((thegene!=genes.end()) && 
-				((nodep2->type)!=SENSOR) &&   //Don't allow SENSORS to get input
-				(!((((*thegene)->lnk)->in_node==nodep1)&&
-				(((*thegene)->lnk)->out_node==nodep2)&&
-				(!(((*thegene)->lnk)->is_recurrent))))) {
-					++thegene;
-				}
-
-				if (thegene!=genes.end())
-					trycount++;
-				else {
-
-					count=0;
-					recurflag=phenotype->is_recur(nodep1->analogue,nodep2->analogue,count,thresh);
-
-					//ADDED: CONSIDER connections out of outputs recurrent
-					if (((nodep1->gen_node_label)==OUTPUT)||
-						((nodep2->gen_node_label)==OUTPUT))
-						recurflag=true;
-
-					//Exit if the network is faulty (contains an infinite loop)
-					if (count>thresh) {
-						//cout<<"LOOP DETECTED DURING A RECURRENCY CHECK"<<std::endl;
-						//return false;
-					}
-
-					//Make sure it finds the right kind of link (recur or not)
-					if (recurflag)
-						trycount++;
-					else {
-						trycount=tries;
-						found=true;
-					}
-
-				}
-
-		} //End of normal link finding loop
-	}
-
-	//Continue only if an open link was found
-	if (found) {
-
-		//Check to see if this innovation already occured in the population
-		theinnov=innovs.begin();
-
-		//If it was supposed to be recurrent, make sure it gets labeled that way
-		if (do_recur) recurflag=1;
-
-		done=false;
-
-		while(!done) {
-
-			//The innovation is totally novel
-			if (theinnov==innovs.end()) {
-
-				//If the phenotype does not exist, exit on false,print error
-				//Note: This should never happen- if it does there is a bug
-				if (phenotype==0) {
-					//cout<<"ERROR: Attempt to add link to genome with no phenotype"<<std::endl;
-					return false;
-				}
-
-				//Useful for debugging
-				//cout<<"nodep1 id: "<<nodep1->node_id<<std::endl;
-				//cout<<"nodep1: "<<nodep1<<std::endl;
-				//cout<<"nodep1 analogue: "<<nodep1->analogue<<std::endl;
-				//cout<<"nodep2 id: "<<nodep2->node_id<<std::endl;
-				//cout<<"nodep2: "<<nodep2<<std::endl;
-				//cout<<"nodep2 analogue: "<<nodep2->analogue<<std::endl;
-				//cout<<"recurflag: "<<recurflag<<std::endl;
-
-				//NOTE: Something like this could be used for time delays,
-				//      which are not yet supported.  However, this does not
-				//      have an application with recurrency.
-				//If not recurrent, randomize recurrency
-				//if (!recurflag) 
-				//  if (randfloat()<recur_prob) recurflag=1;
-
-				//Choose a random trait
-				traitnum=randint(0,(traits.size())-1);
-				thetrait=traits.begin();
-
-				//Choose the new weight
-				//newweight=(gaussrand())/1.5;  //Could use a gaussian
-				newweight=randposneg()*randfloat()*1.0; //used to be 10.0
-
-				//Create the new gene
-				newgene=new Gene(((thetrait[traitnum])),newweight,nodep1,nodep2,recurflag,curinnov,newweight);
-
-				//Add the innovation
-				innovs.push_back(new Innovation(nodep1->node_id,nodep2->node_id,curinnov,newweight,traitnum));
-
-				curinnov=curinnov+1.0;
-
-				done=true;
-			}
-			//OTHERWISE, match the innovation in the innovs list
-			else if (((*theinnov)->innovation_type==NEWLINK)&&
-				((*theinnov)->node_in_id==(nodep1->node_id))&&
-				((*theinnov)->node_out_id==(nodep2->node_id))&&
-				((*theinnov)->recur_flag==(bool)recurflag)) {
-
-					thetrait=traits.begin();
-
-					//Create new gene
-					newgene=new Gene(((thetrait[(*theinnov)->new_traitnum])),(*theinnov)->new_weight,nodep1,nodep2,recurflag,(*theinnov)->innovation_num1,0);
-
-					done=true;
-
-				}
-			else {
-				//Keep looking for a matching innovation from this generation
-				++theinnov;
-			}
-		}
-
-		//Now add the new Genes to the Genome
-		//genes.push_back(newgene);  //Old way - could result in out-of-order innovation numbers in rtNEAT
-		add_gene(genes,newgene);  //Adds the gene in correct order
-
-
-		return true;
-	}
-	else {
-		return false;
-	}
-
+    return true;
 }
 
 
@@ -3011,6 +2836,44 @@ void Genome::randomize_traits() {
 		//if ((*curtrait)==0) cout<<"ERROR: Random trait empty"<<std::endl;
 	}
 
+}
+
+bool Genome::link_exists(NNode *in_node, NNode *out_node, bool is_recurrent) {
+    for(Gene *g: genes) {
+        Link *lnk = g->lnk;
+        if( (lnk->in_node == in_node)
+            && (lnk->out_node == out_node)
+            && (lnk->is_recurrent == is_recurrent) ) {
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Genome::is_recur(NNode *in_node, NNode *out_node) {
+    //These are used to avoid getting stuck in an infinite loop checking
+    //for recursion
+    //Note that we check for recursion to control the frequency of
+    //adding recurrent links rather than to prevent any paricular
+    //kind of error
+    int thresh=(nodes.size())*(nodes.size());
+    int count = 0;
+
+    if( phenotype->is_recur(in_node->analogue, out_node->analogue, count, thresh) ) {
+        return true;
+    }
+
+    //ADDED: CONSIDER connections out of outputs recurrent
+    //todo: this was fixed to use gen_node_label instead of type,
+    //      but not clear if this logic is desirable. Shouldn't it
+    //      just be checking if the output node is OUTPUT?
+    if (((in_node->gen_node_label)==OUTPUT)||
+        ((out_node->gen_node_label)==OUTPUT))
+        return true;
+
+    return false;
 }
 
 //Calls special constructor that creates a Genome of 3 possible types:

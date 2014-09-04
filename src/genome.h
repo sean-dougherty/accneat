@@ -194,6 +194,9 @@ namespace NEAT {
 		//*correct order* into the list of genes in the genome
 		void add_gene(std::vector<Gene*> &glist,Gene *g);
 
+    private:
+        bool link_exists(NNode *in_node, NNode *out_node, bool is_recurrent);
+        bool is_recur(NNode *in_node, NNode *out_node);
 	};
 
 	//Calls special constructor that creates a Genome of 3 possible types:
