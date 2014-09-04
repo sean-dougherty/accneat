@@ -1523,54 +1523,57 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
         }
     }
 
-	Gene *newgene = nullptr;
+    // Create the gene.
+    {
+        Gene *newgene = nullptr;
 
-    for(Innovation *innov: innovs) {
-        if( (innov->innovation_type == NEWLINK) &&
-            (innov->node_in_id == in_node->node_id) &&
-            (innov->node_out_id == out_node->node_id) &&
-            (innov->recur_flag == do_recur)) {
+        // Try to find existing innovation.
+        for(Innovation *innov: innovs) {
+            if( (innov->innovation_type == NEWLINK) &&
+                (innov->node_in_id == in_node->node_id) &&
+                (innov->node_out_id == out_node->node_id) &&
+                (innov->recur_flag == do_recur)) {
 
-            //Create new gene using existing innovation.
-            newgene = new Gene(traits[innov->new_traitnum],
-                               innov->new_weight,
+                //Create new gene using existing innovation.
+                newgene = new Gene(traits[innov->new_traitnum],
+                                   innov->new_weight,
+                                   in_node,
+                                   out_node,
+                                   do_recur,
+                                   innov->innovation_num1,
+                                   0);
+            }
+        }
+
+        //The innovation is totally novel
+        if(!newgene) {
+            //Choose a random trait
+            int traitnum = randint(0, (traits.size())-1);
+
+            //Choose the new weight
+            //newweight=(gaussrand())/1.5;  //Could use a gaussian
+            double newweight = randposneg() * randfloat() * 1.0; //used to be 10.0
+
+            //Create the new gene
+            newgene = new Gene(traits[traitnum],
+                               newweight,
                                in_node,
                                out_node,
                                do_recur,
-                               innov->innovation_num1,
-                               0);
+                               curinnov,
+                               newweight);
+
+            //Add the innovation
+            innovs.push_back(new Innovation(in_node->node_id,
+                                            out_node->node_id,
+                                            curinnov,
+                                            newweight,
+                                            traitnum));
+            curinnov += 1.0;
         }
+
+        add_gene(genes,newgene);  //Adds the gene in correct order
     }
-
-    if(!newgene) {
-        //The innovation is totally novel
-
-        //Choose a random trait
-        int traitnum = randint(0, (traits.size())-1);
-
-        //Choose the new weight
-        //newweight=(gaussrand())/1.5;  //Could use a gaussian
-        double newweight = randposneg() * randfloat() * 1.0; //used to be 10.0
-
-        //Create the new gene
-        newgene = new Gene(traits[traitnum],
-                           newweight,
-                           in_node,
-                           out_node,
-                           do_recur,
-                           curinnov,
-                           newweight);
-
-        //Add the innovation
-        innovs.push_back(new Innovation(in_node->node_id,
-                                        out_node->node_id,
-                                        curinnov,
-                                        newweight,
-                                        traitnum));
-        curinnov += 1.0;
-    }
-
-    add_gene(genes,newgene);  //Adds the gene in correct order
 
     return true;
 }

@@ -365,13 +365,10 @@ vector<Organism *> Species::reproduce(int generation,
 	Organism *baby;  //The new Organism
 
 	Genome *new_genome;  //For holding baby's genes
-
-	std::vector<Species*>::iterator curspecies;  //For adding baby
 	Species *newspecies; //For babies in new Species
 	Organism *comporg;  //For Species determination through comparison
 
 	Network *net_analogue;  //For adding link to test for recurrency
-	int pause;
 
 	bool outside;
 
@@ -389,8 +386,6 @@ vector<Organism *> Species::reproduce(int generation,
 
 	//Roulette wheel variables
 	double total_fitness=0.0;
-	double marble;  //The marble will have a number between 0 and total_fitness
-	double spin;  //0Fitness total while the wheel is spinning
 
 	//Check for a mistake
 	if ((expected_offspring>0) && (organisms.size()==0)) {
