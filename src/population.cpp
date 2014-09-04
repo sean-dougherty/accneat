@@ -821,36 +821,38 @@ bool Population::epoch(int generation) {
 
 	//Remove all empty Species and age ones that survive
 	//As this happens, create master organism list for the new generation
-	curspecies=species.begin();
-	orgcount=0;
-	while(curspecies!=species.end()) {
-		if (((*curspecies)->organisms.size())==0) {
-			delete (*curspecies);
+    {
+        Species *retained_species[species.size()];
+        size_t nretained = 0;
 
-			deadspecies=curspecies;
-			++curspecies;
+        orgcount = 0;
 
-			curspecies=species.erase(deadspecies);
-		}
-		//Age surviving Species and 
-		//Rebuild master Organism list: NUMBER THEM as they are added to the list
-		else {
-			//Age any Species that is not newly created in this generation
-			if ((*curspecies)->novel) {
-				(*curspecies)->novel=false;
-			}
-			else ++((*curspecies)->age);
+        for(Species *s: species) {
+            if(s->organisms.empty()) {
+                delete s;
+            } else {
+                retained_species[nretained++] = s;
 
-			//Go through the organisms of the curspecies and add them to 
-			//the master list
-			for(curorg=((*curspecies)->organisms).begin();curorg!=((*curspecies)->organisms).end();++curorg) {
-				((*curorg)->gnome)->genome_id=orgcount++;
-				organisms.push_back(*curorg);
-			}
-			++curspecies;
+                //Age surviving Species and 
+                //Rebuild master Organism list: NUMBER THEM as they are added to the list
+                if(s->novel) {
+                    s->novel = false;
+                } else {
+                    s->age++;
+                }
+                
+                //Go through the organisms of the curspecies and add them to 
+                //the master list
+                for(Organism *org: s->organisms) {
+                    org->gnome->genome_id = orgcount++;
+                    organisms.push_back(org);
+                }
+            }
+        }
 
-		}
-	}      
+        species.resize(nretained);
+        copy(retained_species, retained_species + nretained, species.begin());
+    }
 
 	//Remove the innovations of the current generation
 	curinnov=innovations.begin();
