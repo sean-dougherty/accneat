@@ -420,6 +420,7 @@ vector<Organism *> Species::reproduce(int generation,
                     new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
                 else {
                     //Sometimes we add a link to a superchamp
+                    // todo: we shouldn't need to instantiate a phenotype for this operation.
                     net_analogue=new_genome->genesis(generation);
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
                     delete net_analogue;
@@ -465,7 +466,6 @@ vector<Organism *> Species::reproduce(int generation,
             //various mutations
 
             if (randfloat()<NEAT::mutate_add_node_prob) {
-                //std::cout<<"mutate add node"<<std::endl;
                 new_genome->mutate_add_node(pop->innovations,pop->cur_node_id,pop->cur_innov_num);
                 mut_struct_baby=true;
             }
