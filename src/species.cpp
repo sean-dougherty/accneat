@@ -339,8 +339,19 @@ double Species::count_offspring(double skim) {
 
 }
 
-inline Organism *get_random(const vector<Organism *> &organisms) {
+static Organism *get_random(const vector<Organism *> &organisms) {
     return organisms[ randint(0, organisms.size() - 1) ];
+}
+
+static Organism *get_random(Species *thiz, const vector<Species *> &sorted_species) {
+    Species *result = thiz;
+    for(int i = 0; (result == thiz) && (i < 5); i++) {
+        double randmult = std::min(1.0, gaussrand() / 4);
+        int randspeciesnum = (int)floor((randmult*(sorted_species.size()-1.0))+0.5);
+        result = sorted_species[randspeciesnum];
+    }
+
+    return result->first();
 }
 
 vector<Organism *> Species::reproduce(int generation,
@@ -359,12 +370,6 @@ vector<Organism *> Species::reproduce(int generation,
 	Species *newspecies; //For babies in new Species
 	Organism *comporg;  //For Species determination through comparison
 
-	Species *randspecies;  //For mating outside the Species
-	double randmult;
-	int randspeciesnum;
-	int spcount;  
-	std::vector<Species*>::iterator cursp;
-
 	Network *net_analogue;  //For adding link to test for recurrency
 	int pause;
 
@@ -375,8 +380,6 @@ vector<Organism *> Species::reproduce(int generation,
 	bool champ_done=false; //Flag the preservation of the champion  
 
 	Organism *thechamp;
-
-	int giveup; //For giving up finding a mate outside the species
 
 	bool mut_struct_baby;
 	bool mate_baby;
@@ -525,32 +528,7 @@ vector<Organism *> Species::reproduce(int generation,
                 //Mate within Species
                 dad = get_random(organisms);
             } else {
-
-                //Mate outside Species  
-                randspecies=this;
-
-                //Select a random species
-                giveup=0;  //Give up if you cant find a different Species
-                while((randspecies==this)&&(giveup<5)) {
-
-                    //This old way just chose any old species
-                    //randspeciesnum=randint(0,(pop->species).size()-1);
-
-                    //Choose a random species tending towards better species
-                    randmult=gaussrand()/4;
-                    if (randmult>1.0) randmult=1.0;
-                    //This tends to select better species
-                    randspeciesnum=(int) floor((randmult*(sorted_species.size()-1.0))+0.5);
-                    cursp=(sorted_species.begin());
-                    for(spcount=0;spcount<randspeciesnum;spcount++)
-                        ++cursp;
-                    randspecies=(*cursp);
-
-                    ++giveup;
-                }
-
-                dad=(*((randspecies->organisms).begin()));
-
+                dad = get_random(this, sorted_species);
                 outside=true;	
             }
 
