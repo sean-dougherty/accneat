@@ -18,7 +18,9 @@
 #include <iostream>
 #include <cmath>
 #include <sstream>
+
 using namespace NEAT;
+using std::vector;
 
 Genome::Genome(int id, std::vector<Trait*> t, std::vector<NNode*> n, std::vector<Gene*> g) {
 	genome_id=id;
@@ -1337,9 +1339,19 @@ void Genome::mutate_gene_reenable() {
 
 }
 
+static Gene *get_random(const vector<Gene *> &genes) {
+
+    for(int i = 0; i < 20; i++) {
+        Gene *gene = genes[ randint(0,genes.size()-1) ];
+        //If either the gene is disabled, or it has a bias input, try again
+        if( gene->enable && (gene->lnk->in_node->gen_node_label != BIAS) )
+            return gene;
+    }
+
+    return nullptr;
+}
+
 bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,double &curinnov) {
-	std::vector<Gene*>::iterator thegene;  //random gene containing the original link
-	int genenum;  //The random gene number
 	NNode *in_node; //Here are the nodes connected by the gene
 	NNode *out_node; 
 	Link *thelink;  //The link inside the random gene
@@ -1355,85 +1367,18 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 	//double splitweight;  //If used, Set to sqrt(oldweight of oldlink)
 	double oldweight;  //The weight of the original link
 
-	int trycount;  //Take a few tries to find an open node
-	bool found;
-
-	//First, find a random gene already in the genome  
-	trycount=0;
-	found=false;
-
-	//Split next link with a bias towards older links
-	//NOTE: 7/2/01 - for robots, went back to random split
-	//        because of large # of inputs
-	if (false) {
-		thegene=genes.begin();
-		while (((thegene!=genes.end())
-			&&(!((*thegene)->enable)))||
-			((thegene!=genes.end())
-			&&(((*thegene)->lnk->in_node)->gen_node_label==BIAS)))
-			++thegene;
-
-		//Now randomize which node is chosen at this point
-		//We bias the search towards older genes because 
-		//this encourages splitting to distribute evenly
-		while (((thegene!=genes.end())&&
-			(randfloat()<0.3))||
-			((thegene!=genes.end())
-			&&(((*thegene)->lnk->in_node)->gen_node_label==BIAS)))
-		{
-			++thegene;
-		}
-
-		if ((!(thegene==genes.end()))&&
-			((*thegene)->enable))
-		{
-			found=true;
-		}
-	}
-	//In this else:
-	//Alternative random gaussian choice of genes NOT USED in this
-	//version of NEAT
-	//NOTE: 7/2/01 now we use this after all
-	else {
-		while ((trycount<20)&&(!found)) {
-
-			//Choose a random genenum
-			//randmult=gaussrand()/4;
-			//if (randmult>1.0) randmult=1.0;
-
-			//This tends to select older genes for splitting
-			//genenum=(int) floor((randmult*(genes.size()-1.0))+0.5);
-
-			//This old totally random selection is bad- splitting
-			//inside something recently splitted adds little power
-			//to the system (should use a gaussian if doing it this way)
-			genenum=randint(0,genes.size()-1);
-
-			//find the gene
-			thegene=genes.begin();
-			for(int genecount=0;genecount<genenum;genecount++)
-				++thegene;
-
-			//If either the gene is disabled, or it has a bias input, try again
-			if (!(((*thegene)->enable==false)||
-				(((((*thegene)->lnk)->in_node)->gen_node_label)==BIAS)))
-				found=true;
-
-			++trycount;
-
-		}
-	}
-
+    Gene *thegene = get_random(genes);
 	//If we couldn't find anything so say goodbye
-	if (!found) 
+	if (!thegene) {
 		return false;
+    }
 
 	//Disabled the gene
-	(*thegene)->enable=false;
+	thegene->enable=false;
 
 	//Extract the link
-	thelink=(*thegene)->lnk;
-	oldweight=(*thegene)->lnk->weight;
+	thelink=thegene->lnk;
+	oldweight=thegene->lnk->weight;
 
 	//Extract the nodes
 	in_node=thelink->in_node;
@@ -1449,7 +1394,6 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 	while(!done) {
 
 		if (theinnov==innovs.end()) {
-
 			//The innovation is totally novel
 
 			//Get the old link's trait
@@ -1473,7 +1417,7 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 			}
 
 			//Add the innovations (remember what was done)
-			innovs.push_back(new Innovation(in_node->node_id,out_node->node_id,curinnov-2.0,curinnov-1.0,newnode->node_id,(*thegene)->innovation_num));      
+			innovs.push_back(new Innovation(in_node->node_id,out_node->node_id,curinnov-2.0,curinnov-1.0,newnode->node_id,thegene->innovation_num));      
 
 			done=true;
 		}
@@ -1489,7 +1433,7 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 		else if (((*theinnov)->innovation_type==NEWNODE)&&
 			((*theinnov)->node_in_id==(in_node->node_id))&&
 			((*theinnov)->node_out_id==(out_node->node_id))&&
-			((*theinnov)->old_innov_num==(*thegene)->innovation_num)) 
+			((*theinnov)->old_innov_num==thegene->innovation_num)) 
 		{
 			//Here, the innovation has been done before
 

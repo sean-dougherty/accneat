@@ -24,10 +24,8 @@
 using namespace std;
 
 #if false
-#define MAX_GENS 1000000
 #define RAND_SEED (unsigned)time( NULL )
 #else
-#define MAX_GENS 20
 #define RAND_SEED 0
 #endif
 
@@ -40,15 +38,17 @@ int main(int argc, char *argv[]) {
        the numbers will be different every time we run.    */
     srand( RAND_SEED );
 
-    if (argc != 3) {
-        cerr << "usage: neat ne_path startgenes_path" << endl;
+    if (argc != 4) {
+        cerr << "usage: maxgens neat ne_path startgenes_path" << endl;
         return -1;
     }
 
-    //Load in the params
-    NEAT::load_neat_params(argv[1],true);
+    int maxgens = atoi(argv[1]);
 
-    p = seq_experiment(MAX_GENS, argv[2]);
+    //Load in the params
+    NEAT::load_neat_params(argv[2],true);
+
+    p = seq_experiment(maxgens, argv[3]);
 /*
   int choice;
 

@@ -145,6 +145,7 @@ namespace NEAT {
 
 	bool load_neat_params(const char *filename, bool output = false);
 
+#define trap(msg) {std::cout << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; abort();}
 } // namespace NEAT
 
 #endif
