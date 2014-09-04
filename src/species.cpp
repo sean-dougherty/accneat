@@ -339,6 +339,10 @@ double Species::count_offspring(double skim) {
 
 }
 
+inline Organism *get_random(const vector<Organism *> &organisms, int poolsize) {
+    return organisms[ randint(0, poolsize) ];
+}
+
 vector<Organism *> Species::reproduce(int generation,
                                       Population *pop,
                                       vector<Species*> &sorted_species) {
@@ -472,29 +476,7 @@ vector<Organism *> Species::reproduce(int generation,
                  poolsize== 0) {
 
             //Choose the random parent
-
-            //RANDOM PARENT CHOOSER
-            orgnum=randint(0,poolsize);
-            curorg=organisms.begin();
-            for(orgcount=0;orgcount<orgnum;orgcount++)
-                ++curorg;                       
-
-
-
-            ////Roulette Wheel
-            //marble=randfloat()*total_fitness;
-            //curorg=organisms.begin();
-            //spin=(*curorg)->fitness;
-            //while(spin<marble) {
-            //++curorg;
-
-            ////Keep the wheel spinning
-            //spin+=(*curorg)->fitness;
-            //}
-            ////Finished roulette
-            //
-
-            mom=(*curorg);
+            mom = get_random(organisms, poolsize);
 
             new_genome=(mom->gnome)->duplicate(count);
 
@@ -553,55 +535,13 @@ vector<Organism *> Species::reproduce(int generation,
         else {
 
             //Choose the random mom
-            orgnum=randint(0,poolsize);
-            curorg=organisms.begin();
-            for(orgcount=0;orgcount<orgnum;orgcount++)
-                ++curorg;
-
-
-            ////Roulette Wheel
-            //marble=randfloat()*total_fitness;
-            //curorg=organisms.begin();
-            //spin=(*curorg)->fitness;
-            //while(spin<marble) {
-            //++curorg;
-
-            ////Keep the wheel spinning
-            //spin+=(*curorg)->fitness;
-            //}
-            ////Finished roulette
-            //
-
-            mom=(*curorg);         
+            mom = get_random(organisms, poolsize);
 
             //Choose random dad
-
             if ((randfloat()>NEAT::interspecies_mate_rate)) {
                 //Mate within Species
-
-                orgnum=randint(0,poolsize);
-                curorg=organisms.begin();
-                for(orgcount=0;orgcount<orgnum;orgcount++)
-                    ++curorg;
-
-
-                ////Use a roulette wheel
-                //marble=randfloat()*total_fitness;
-                //curorg=organisms.begin();
-                //spin=(*curorg)->fitness;
-                //while(spin<marble) {
-                //++curorg;
-                //}
-
-                ////Keep the wheel spinning
-                //spin+=(*curorg)->fitness;
-                //}
-                ////Finished roulette
-                //
-
-                dad=(*curorg);
-            }
-            else {
+                dad = get_random(organisms, poolsize);
+            } else {
 
                 //Mate outside Species  
                 randspecies=this;
