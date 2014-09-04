@@ -404,28 +404,18 @@ bool Population::print_to_file_by_species(std::ostream& outFile) {
 }
 
 bool Population::epoch(int generation) {
-
-	std::vector<Species*>::iterator curspecies;
-	std::vector<Species*>::iterator deadspecies;  //For removing empty Species
-
-	std::vector<Organism*>::iterator curorg;
-	std::vector<Organism*>::iterator deadorg;
-
-	std::vector<Innovation*>::iterator curinnov;  
-	std::vector<Innovation*>::iterator deadinnov;  //For removing old Innovs
+    std::vector<Species *>::iterator curspecies;
 
 	double total=0.0; //Used to compute average fitness over all Organisms
 
 	double overall_average;  //The average modified fitness among ALL organisms
-
-	int orgcount;
 
 	//The fractional parts of expected offspring that can be 
 	//Used only when they accumulate above 1 for the purposes of counting
 	//Offspring
 	double skim; 
 	int total_expected;  //precision checking
-	int total_organisms=organisms.size();
+	int total_organisms = organisms.size();
 	int max_expected;
 	Species *best_species;
 	int final_expected;
@@ -443,9 +433,6 @@ bool Population::epoch(int generation) {
 	int stolen_babies; //Babies taken from the bad species and given to the champs
 
 	int half_pop;
-
-	int best_species_num;  //Used in debugging to see why (if) best species dies
-	bool best_ok;
 
 	//We can try to keep the number of species constant at this number
 	int num_species_target=4;
@@ -472,7 +459,7 @@ bool Population::epoch(int generation) {
 
 
 	//Stick the Species pointers into a new Species list for sorting
-	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
+	for(auto curspecies=species.begin();curspecies!=species.end();++curspecies) {
 		sorted_species.push_back(*curspecies);
 	}
 
@@ -483,18 +470,17 @@ bool Population::epoch(int generation) {
 
 	//Flag the lowest performing species over age 20 every 30 generations 
 	//NOTE: THIS IS FOR COMPETITIVE COEVOLUTION STAGNATION DETECTION
-
-	curspecies=sorted_species.end();
-	curspecies--;
-	while((curspecies!=sorted_species.begin())&&
-		((*curspecies)->age<20))
-		--curspecies;
-	if ((generation%30)==0)
-		(*curspecies)->obliterate=true;
-
+    if(generation % 30 == 0) {
+        for(size_t i = sorted_species.size(); i > 0; i--) {
+            Species *s = sorted_species[i - 1];
+            if(s->age >= 20) {
+                s->obliterate = true;
+                break;
+            }
+        }
+    }
 
 	std::cout<<"Number of Species: "<<num_species<<std::endl;
-	std::cout<<"compat_thresh: "<<compat_threshold<<std::endl;
 
 	//Use Species' ages to modify the objective fitness of organisms
 	// in other words, make it more fair for younger species
@@ -504,30 +490,30 @@ bool Population::epoch(int generation) {
 	//within a species.
 	//Then, within each Species, mark for death 
 	//those below survival_thresh*average
-	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-		(*curspecies)->adjust_fitness();
-	}
+    for(Species *s: species) {
+        s->adjust_fitness();
+    }
 
 	//Go through the organisms and add up their fitnesses to compute the
 	//overall average
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		total+=(*curorg)->fitness;
-	}
+    for(Organism *o: organisms) {
+        total += o->fitness;
+    }
 	overall_average=total/total_organisms;
 	std::cout<<"Generation "<<generation<<": "<<"overall_average = "<<overall_average<<std::endl;
 
 	//Now compute expected number of offspring for each individual organism
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		(*curorg)->expected_offspring=(((*curorg)->fitness)/overall_average);
+    for(Organism *o: organisms) {
+		o->expected_offspring = o->fitness / overall_average;
 	}
 
 	//Now add those offspring up within each Species to get the number of
 	//offspring per Species
 	skim=0.0;
 	total_expected=0;
-	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-		skim=(*curspecies)->count_offspring(skim);
-		total_expected+=(*curspecies)->expected_offspring;
+    for(Species *s: species) {
+		skim = s->count_offspring(skim);
+		total_expected += s->expected_offspring;
 	}    
 
 	//Need to make up for lost foating point precision in offspring assignment
@@ -536,12 +522,12 @@ bool Population::epoch(int generation) {
 		//Find the Species expecting the most
 		max_expected=0;
 		final_expected=0;
-		for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-			if ((*curspecies)->expected_offspring>=max_expected) {
-				max_expected=(*curspecies)->expected_offspring;
-				best_species=(*curspecies);
+		for(Species *s: species) {
+			if (s->expected_offspring >= max_expected) {
+				max_expected = s->expected_offspring;
+				best_species = s;
 			}
-			final_expected+=(*curspecies)->expected_offspring;
+			final_expected += s->expected_offspring;
 		}
 		//Give the extra offspring to the best species
 		++(best_species->expected_offspring);
@@ -553,13 +539,11 @@ bool Population::epoch(int generation) {
 		//Then the whole population plummets in fitness
 		//If the average fitness is allowed to hit 0, then we no longer have 
 		//an average we can use to assign offspring.
-		if (final_expected<total_organisms) {
-			//      cout<<"Population died!"<<endl;
-			//cin>>pause;
-			for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-				(*curspecies)->expected_offspring=0;
-			}
-			best_species->expected_offspring=total_organisms;
+		if (final_expected < total_organisms) {
+            for(Species *s: species) {
+                s->expected_offspring = 0;
+            }
+			best_species->expected_offspring = total_organisms;
 		}
 	}
 
@@ -567,8 +551,6 @@ bool Population::epoch(int generation) {
 	//These need to use ORIGINAL fitness
 	//sorted_species.qsort(order_species);
     std::sort(sorted_species.begin(), sorted_species.end(), order_species);
-
-	best_species_num=(*(sorted_species.begin()))->id;
 
 #if VERBOSE
 	for(curspecies=sorted_species.begin();curspecies!=sorted_species.end();++curspecies) {
@@ -782,32 +764,25 @@ bool Population::epoch(int generation) {
 
 	//Kill off all Organisms marked for death.  The remainder
 	//will be allowed to reproduce.
-	curorg=organisms.begin();
-	while(curorg!=organisms.end()) {
-		if (((*curorg)->eliminate)) {
-			//Remove the organism from its Species
-			((*curorg)->species)->remove_org(*curorg);
+    {
+        for(Species *s: species) {
+            s->remove_eliminated();
+        }
 
-			//Delete the organism from memory
-			delete (*curorg);
+        size_t n = 0;
+        for(size_t i = 0; i < organisms.size(); i++) {
+            Organism *org = organisms[i];
+            if(org->eliminate) {
+                delete org;
+            } else {
+                organisms[n++] = organisms[i];
+            }
+        }
+        organisms.resize(n);
+    }
 
-			//Remember where we are
-			deadorg=curorg;
-			++curorg;
-
-			//iter2 =  v.erase(iter); 
-
-			//Remove the organism from the master list
-			curorg=organisms.erase(deadorg);
-
-		}
-		else {
-			++curorg;
-		}
-
-	}
-
-    // Perform reproduction within the species
+    // Perform reproduction within the species. Note that new species may
+    // be created as we iterate over the vector.
     for(size_t i = 0; i < species.size(); i++) {
         species[i]->reproduce(generation, this, sorted_species);
     }
@@ -822,16 +797,15 @@ bool Population::epoch(int generation) {
 	//Remove all empty Species and age ones that survive
 	//As this happens, create master organism list for the new generation
     {
-        Species *retained_species[species.size()];
-        size_t nretained = 0;
+        size_t nspecies = 0;
+        int orgcount = 0;
 
-        orgcount = 0;
-
-        for(Species *s: species) {
+        for(size_t i = 0; i < species.size(); i++) {
+            Species *s = species[i];
             if(s->organisms.empty()) {
                 delete s;
             } else {
-                retained_species[nretained++] = s;
+                species[nspecies++] = s;
 
                 //Age surviving Species and 
                 //Rebuild master Organism list: NUMBER THEM as they are added to the list
@@ -850,47 +824,14 @@ bool Population::epoch(int generation) {
             }
         }
 
-        species.resize(nretained);
-        copy(retained_species, retained_species + nretained, species.begin());
+        species.resize(nspecies);
     }
 
 	//Remove the innovations of the current generation
-	curinnov=innovations.begin();
-	while(curinnov!=innovations.end()) {
-		delete (*curinnov);
-
-		deadinnov=curinnov;
-		++curinnov;
-
-		curinnov=innovations.erase(deadinnov);
-	}
-
-	//DEBUG: Check to see if the best species died somehow
-	// We don't want this to happen
-	curspecies=species.begin();
-	best_ok=false;
-	while(curspecies!=species.end()) {
-		if (((*curspecies)->id)==best_species_num) best_ok=true;
-		++curspecies;
-	}
-	if (!best_ok) {
-		//cout<<"ERROR: THE BEST SPECIES DIED!"<<endl;
-	}
-	else {
-		//cout<<"The best survived: "<<best_species_num<<endl;
-	}
-
-	//DEBUG: Checking the top organism's duplicate in the next gen
-	//This prints the champ's child to the screen
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		if ((*curorg)->pop_champ_child) {
-			//cout<<"At end of reproduction cycle, the child of the pop champ is: "<<(*curorg)->gnome<<endl;
-		}
-	}
-
-	//cout<<"babies_stolen at end: "<<babies_stolen<<endl;
-
-	//cout<<"Epoch complete"<<endl; 
+    for(Innovation *innov: innovations) {
+        delete innov;
+    }
+    innovations.clear();
 
 	return true;
 
