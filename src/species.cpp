@@ -17,7 +17,9 @@
 #include "organism.h"
 #include <cmath>
 #include <iostream>
+
 using namespace NEAT;
+using std::vector;
 
 #define VERBOSE false
 
@@ -123,45 +125,6 @@ void Species::remove_eliminated() {
 Organism *Species::first() {
 	return *(organisms.begin());
 }
-/*
-bool Species::print_to_file(std::ostream &outFile) {
-	std::vector<Organism*>::iterator curorg;
-
-	//Print a comment on the Species info
-	//outFile<<endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  *///"<<endl<<endl;
-	//char tempbuf[1024];
-	//sprintf(tempbuf, sizeof(tempbuf), "/* Species #%d : (Size %d) (AF %f) (Age %d)  */\n\n", id, organisms.size(), average_est, age);
-	//sprintf(tempbuf, sizeof(tempbuf), "/* Species #%d : (Size %d) (AF %f) (Age %d)  */\n\n", id, organisms.size(), ave_fitness, age);
-	//outFile.write(strlen(tempbuf), tempbuf);
-
-	//Show user what's going on
-	//cout<<endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<endl;
-
-	//Print all the Organisms' Genomes to the outFile
-	//for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-
-		//Put the fitness for each organism in a comment
-		//outFile<<endl<<"/* Organism #"<<((*curorg)->gnome)->genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<endl;
-
-	//	char tempbuf2[1024];
-	//	sprintf(tempbuf2, sizeof(tempbuf2), "/* Organism #%d Fitness: %f Error: %f */\n", ((*curorg)->gnome)->genome_id, (*curorg)->fitness, (*curorg)->error);
-	//	outFile.write(strlen(tempbuf2), tempbuf2);
-
-		//If it is a winner, mark it in a comment
-	//	if ((*curorg)->winner) {
-	//		char tempbuf3[1024];
-	//		sprintf(tempbuf3, sizeof(tempbuf3), "/* ##------$ WINNER %d SPECIES #%d $------## */\n", ((*curorg)->gnome)->genome_id, id);
-			//outFile<<"/* ##------$ WINNER "<<((*curorg)->gnome)->genome_id<<" SPECIES #"<<id<<" $------## */"<<endl;
-	//	}
-
-	//	((*curorg)->gnome)->print_to_file(outFile);
-		//We can confirm by writing the genome #'s to the screen
-		//cout<<((*curorg)->gnome)->genome_id<<endl;
-	//}
-
-	//return true;
-
-//}*/
 
 //Print Species to a file outFile
 bool Species::print_to_file(std::ofstream &outFile) {
@@ -235,46 +198,6 @@ bool Species::print_to_file(std::ostream &outFile) {
 
 }
 
-
-//Prints the champions of each species to files    
-//starting with directory_prefix
-//The file name are as follows: [prefix]g[generation_num]cs[species_num]
-//Thus, they can be indexed by generation or species
-//bool Population::print_species_champs_tofiles(char *directory_prefix, int generation) {
-//
-//ostrstream *fnamebuf; //File for output
-//std::vector<Species*>::iterator curspecies;
-//Organism *champ;
-//int pause;
-//
-//std::cout<<generation<<std::endl;
-//std::cout<<"Printing species champs to file"<<std::endl;
-////cin>>pause;
-//
-////Step through the Species and print their champs to files
-//for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-//
-//std::cout<<"Printing species "<<(*curspecies)->id<<" champ to file"<<std::endl;
-//
-////cin>>pause;
-//
-////Get the champ of this species
-//champ=(*curspecies)->get_champ();
-//
-////Revise the file name
-//fnamebuf=new ostrstream();
-//(*fnamebuf)<<directory_prefix<<"g"<<generation<<"cs"<<(*curspecies)->id<<ends;  //needs end marker
-//
-////Print to file using organism printing (includes comments)
-//champ->print_to_file(fnamebuf->str());
-//
-////Reset the name
-//fnamebuf->clear();
-//delete fnamebuf;
-//}
-//return true;
-//}
-
 void Species::adjust_fitness() {
 	std::vector<Organism*>::iterator curorg;
 
@@ -282,8 +205,6 @@ void Species::adjust_fitness() {
 	int count;
 
 	int age_debt; 
-
-	//std::cout<<"Species "<<id<<" last improved "<<(age-age_of_last_improvement)<<" steps ago when it moved up to "<<max_fitness_ever<<std::endl;
 
 	age_debt=(age-age_of_last_improvement+1)-NEAT::dropoff_age;
 
@@ -418,11 +339,13 @@ double Species::count_offspring(double skim) {
 
 }
 
-bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &sorted_species) {
-	int count;
-	std::vector<Organism*>::iterator curorg;
+vector<Organism *> Species::reproduce(int generation,
+                                      Population *pop,
+                                      vector<Species*> &sorted_species) {
 
-	int poolsize;  //The number of Organisms in the old generation
+    vector<Organism *> offspring;
+
+	std::vector<Organism*>::iterator curorg;
 
 	int orgnum;  //Random variable
 	int orgcount;
@@ -476,19 +399,18 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
 
 	
 	//Check for a mistake
-	if ((expected_offspring>0)&&
-		(organisms.size()==0)) {
-        //    std::cout<<"ERROR:  ATTEMPT TO REPRODUCE OUT OF EMPTY SPECIES"<<std::endl;
-        return false;
+	if ((expected_offspring>0) && (organisms.size()==0)) {
+        return offspring;
     }
 
-    poolsize=organisms.size()-1;
+	//The number of Organisms in the old generation
+    int poolsize = organisms.size()-1;
 
-    thechamp=(*(organisms.begin()));
+    thechamp = organisms[0];
 
     //Create the designated number of offspring for the Species
     //one at a time
-    for (count=0;count<expected_offspring;count++) {
+    for(int count=0; count < expected_offspring; count++) {
 
         mut_struct_baby=false;
         mate_baby=false;
@@ -801,54 +723,10 @@ bool Species::reproduce(int generation, Population *pop,std::vector<Species*> &s
         baby->mut_struct_baby=mut_struct_baby;
         baby->mate_baby=mate_baby;
 
-        curspecies=(pop->species).begin();
-        if (curspecies==(pop->species).end()){
-            //Create the first species
-            newspecies=new Species(++(pop->last_species),true);
-            (pop->species).push_back(newspecies);
-            newspecies->add_Organism(baby);  //Add the baby
-            baby->species=newspecies;  //Point the baby to its species
-        } 
-        else {
-            comporg=(*curspecies)->first();
-            found=false;
-            while((curspecies!=(pop->species).end())&&
-                  (!found)) {	
-                if (comporg==0) {
-                    //Keep searching for a matching species
-                    ++curspecies;
-                    if (curspecies!=(pop->species).end())
-                        comporg=(*curspecies)->first();
-                }
-                else if (((baby->gnome)->compatibility(comporg->gnome))<NEAT::compat_threshold) {
-                    //Found compatible species, so add this organism to it
-                    (*curspecies)->add_Organism(baby);
-                    baby->species=(*curspecies);  //Point organism to its species
-                    found=true;  //Note the search is over
-                }
-                else {
-                    //Keep searching for a matching species
-                    ++curspecies;
-                    if (curspecies!=(pop->species).end()) 
-                        comporg=(*curspecies)->first();
-                }
-            }
-
-            //If we didn't find a match, create a new species
-            if (found==false) {
-                newspecies=new Species(++(pop->last_species),true);
-                //std::std::cout<<"CREATING NEW SPECIES "<<pop->last_species<<std::std::endl;
-                (pop->species).push_back(newspecies);
-                newspecies->add_Organism(baby);  //Add the baby
-                baby->species=newspecies;  //Point baby to its species
-            }
-
-
-        } //end else 
-
+        offspring.push_back(baby);
     }
 
-    return true;
+    return offspring;
 }
 
 bool NEAT::order_species(Species *x, Species *y) { 

@@ -15,10 +15,13 @@
 */
 #include "population.h"
 #include "organism.h"
+#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
+
 using namespace NEAT;
+using std::vector;
 
 #define VERBOSE false
 
@@ -784,7 +787,28 @@ bool Population::epoch(int generation) {
     // Perform reproduction within the species. Note that new species may
     // be created as we iterate over the vector.
     for(size_t i = 0; i < species.size(); i++) {
-        species[i]->reproduce(generation, this, sorted_species);
+        vector<Organism *> offspring = species[i]->reproduce(generation, this, sorted_species);
+
+        for(Organism *org: offspring) {
+            assert(org->species == nullptr);
+
+            for(Species *s: species) {
+                if(s->size()) {
+                    double comp = org->gnome->compatibility(s->first()->gnome);
+                    if(comp < NEAT::compat_threshold) {
+                        org->species = s;
+                        break;
+                    }
+                }
+            }
+
+            if(!org->species) {
+                org->species = new Species(++last_species, true);
+                species.push_back(org->species);
+            }
+            org->species->add_Organism(org);
+        }
+
     }
 
 	//Destroy and remove the old generation from the organisms and species
