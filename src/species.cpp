@@ -558,46 +558,37 @@ vector<Organism *> Species::reproduce(int generation,
                     new_genome->mutate_add_node(pop->innovations,pop->cur_node_id,pop->cur_innov_num);
                     //  std::cout<<"mutate_add_node: "<<new_genome<<std::endl;
                     mut_struct_baby=true;
-                }
-                else if (randfloat()<NEAT::mutate_add_link_prob) {
+                } else if (randfloat()<NEAT::mutate_add_link_prob) {
                     net_analogue=new_genome->genesis(generation);
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
                     delete net_analogue;
                     //std::cout<<"mutate_add_link: "<<new_genome<<std::endl;
                     mut_struct_baby=true;
-                }
-                else {
+                } else {
                     //Only do other mutations when not doing sturctural mutations
 
                     if (randfloat()<NEAT::mutate_random_trait_prob) {
                         new_genome->mutate_random_trait();
-                        //std::cout<<"..mutate random trait: "<<new_genome<<std::endl;
                     }
                     if (randfloat()<NEAT::mutate_link_trait_prob) {
                         new_genome->mutate_link_trait(1);
-                        //std::cout<<"..mutate link trait: "<<new_genome<<std::endl;
                     }
                     if (randfloat()<NEAT::mutate_node_trait_prob) {
                         new_genome->mutate_node_trait(1);
-                        //std::cout<<"mutate_node_trait: "<<new_genome<<std::endl;
                     }
                     if (randfloat()<NEAT::mutate_link_weights_prob) {
                         new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
-                        //std::cout<<"mutate_link_weights: "<<new_genome<<std::endl;
                     }
                     if (randfloat()<NEAT::mutate_toggle_enable_prob) {
                         new_genome->mutate_toggle_enable(1);
-                        //std::cout<<"mutate_toggle_enable: "<<new_genome<<std::endl;
                     }
                     if (randfloat()<NEAT::mutate_gene_reenable_prob) {
                         new_genome->mutate_gene_reenable(); 
-                        //std::cout<<"mutate_gene_reenable: "<<new_genome<<std::endl;
                     }
                 }
 
                 //Create the baby
-                baby=new Organism(0.0,new_genome,generation);
-
+                baby = new Organism(0.0,new_genome,generation);
             }
             else {
                 //Create the baby without mutating first
