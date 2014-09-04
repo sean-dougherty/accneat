@@ -339,20 +339,16 @@ double Species::count_offspring(double skim) {
 
 }
 
-inline Organism *get_random(const vector<Organism *> &organisms, int poolsize) {
-    return organisms[ randint(0, poolsize) ];
+inline Organism *get_random(const vector<Organism *> &organisms) {
+    return organisms[ randint(0, organisms.size() - 1) ];
 }
 
 vector<Organism *> Species::reproduce(int generation,
                                       Population *pop,
                                       vector<Species*> &sorted_species) {
 
-    vector<Organism *> offspring;
+    vector<Organism *> offspring; // The result
 
-	std::vector<Organism*>::iterator curorg;
-
-	int orgnum;  //Random variable
-	int orgcount;
 	Organism *mom; //Parent Organisms
 	Organism *dad;
 	Organism *baby;  //The new Organism
@@ -393,22 +389,10 @@ vector<Organism *> Species::reproduce(int generation,
 	double marble;  //The marble will have a number between 0 and total_fitness
 	double spin;  //0Fitness total while the wheel is spinning
 
-	//Compute total fitness of species for a roulette wheel
-	//Note: You don't get much advantage from a roulette here
-	// because the size of a species is relatively small.
-	// But you can use it by using the roulette code here
-	//for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-	//  total_fitness+=(*curorg)->fitness;
-	//}
-
-	
 	//Check for a mistake
 	if ((expected_offspring>0) && (organisms.size()==0)) {
         return offspring;
     }
-
-	//The number of Organisms in the old generation
-    int poolsize = organisms.size()-1;
 
     thechamp = organisms[0];
 
@@ -472,11 +456,10 @@ vector<Organism *> Species::reproduce(int generation,
         }
         //First, decide whether to mate or mutate
         //If there is only one organism in the pool, then always mutate
-        else if ((randfloat()<NEAT::mutate_only_prob)||
-                 poolsize== 0) {
+        else if( (randfloat() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
 
             //Choose the random parent
-            mom = get_random(organisms, poolsize);
+            mom = get_random(organisms);
 
             new_genome=(mom->gnome)->duplicate(count);
 
@@ -535,12 +518,12 @@ vector<Organism *> Species::reproduce(int generation,
         else {
 
             //Choose the random mom
-            mom = get_random(organisms, poolsize);
+            mom = get_random(organisms);
 
             //Choose random dad
             if ((randfloat()>NEAT::interspecies_mate_rate)) {
                 //Mate within Species
-                dad = get_random(organisms, poolsize);
+                dad = get_random(organisms);
             } else {
 
                 //Mate outside Species  
@@ -566,18 +549,6 @@ vector<Organism *> Species::reproduce(int generation,
                     ++giveup;
                 }
 
-                //OLD WAY: Choose a random dad from the random species
-                //Select a random dad from the random Species
-                //NOTE:  It is possible that a mating could take place
-                //       here between the mom and a baby from the NEW
-                //       generation in some other Species
-                //orgnum=randint(0,(randspecies->organisms).size()-1);
-                //curorg=(randspecies->organisms).begin();
-                //for(orgcount=0;orgcount<orgnum;orgcount++)
-                //  ++curorg;
-                //dad=(*curorg);            
-
-                //New way: Make dad be a champ from the random species
                 dad=(*((randspecies->organisms).begin()));
 
                 outside=true;	
