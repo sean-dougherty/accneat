@@ -786,8 +786,10 @@ bool Population::epoch(int generation) {
 
     // Perform reproduction within the species. Note that new species may
     // be created as we iterate over the vector.
-    for(size_t i = 0; i < species.size(); i++) {
-        vector<Organism *> offspring = species[i]->reproduce(generation, this, sorted_species);
+    for(size_t i = 0, n = species.size(); i < n; i++) {
+        vector<Organism *> offspring = species[i]->reproduce(generation,
+                                                             this,
+                                                             sorted_species);
 
         for(Organism *org: offspring) {
             assert(org->species == nullptr);
@@ -808,7 +810,6 @@ bool Population::epoch(int generation) {
             }
             org->species->add_Organism(org);
         }
-
     }
 
 	//Destroy and remove the old generation from the organisms and species

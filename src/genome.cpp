@@ -1344,8 +1344,6 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 	NNode *out_node; 
 	Link *thelink;  //The link inside the random gene
 
-	//double randmult;  //using a gaussian to find the random gene
-
 	std::vector<Innovation*>::iterator theinnov; //For finding a historical match
 	bool done=false;
 
@@ -1493,7 +1491,6 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 			((*theinnov)->node_out_id==(out_node->node_id))&&
 			((*theinnov)->old_innov_num==(*thegene)->innovation_num)) 
 		{
-
 			//Here, the innovation has been done before
 
 			//Get the old link's trait
@@ -1521,15 +1518,13 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,do
 	}
 
 	//Now add the new NNode and new Genes to the Genome
-	//genes.push_back(newgene1);   //Old way to add genes- may result in genes becoming out of order
-	//genes.push_back(newgene2);
 	add_gene(genes,newgene1);  //Add genes in correct order
 	add_gene(genes,newgene2);
 	node_insert(nodes,newnode);
 
 	return true;
 
-} 
+}
 
 bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,double &curinnov,int tries) {
 
