@@ -16,6 +16,7 @@
 #ifndef _NERO_NEAT_H_
 #define _NERO_NEAT_H_
 
+#include <cmath>
 #include <cstdlib>
 #include <cstring>
 
@@ -108,7 +109,10 @@ namespace NEAT {
 	// the old output and some other node. 
 	// When not right-shifted, the steepened slope is closest to a linear
 	// ascent as possible between -0.5 and 0.5
-	extern double fsigmoid(double,double,double);
+    inline double fsigmoid(double activesum,double slope,double constant) {
+        //NON-SHIFTED STEEPENED
+        return (1/(1+(exp(-(slope*activesum))))); //Compressed
+    }
 
 	// Hebbian Adaptation Function
 	// Based on equations in Floreano & Urzelai 2000

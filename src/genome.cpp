@@ -1632,8 +1632,8 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,double &curinnov,i
 					recurflag=phenotype->is_recur(nodep1->analogue,nodep2->analogue,count,thresh);
 
 					//ADDED: CONSIDER connections out of outputs recurrent
-					if (((nodep1->type)==OUTPUT)||
-						((nodep2->type)==OUTPUT))
+					if (((nodep1->gen_node_label)==OUTPUT)||
+						((nodep2->gen_node_label)==OUTPUT))
 						recurflag=true;
 
 					//Exit if the network is faulty (contains an infinite loop)
@@ -1698,8 +1698,8 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,double &curinnov,i
 					recurflag=phenotype->is_recur(nodep1->analogue,nodep2->analogue,count,thresh);
 
 					//ADDED: CONSIDER connections out of outputs recurrent
-					if (((nodep1->type)==OUTPUT)||
-						((nodep2->type)==OUTPUT))
+					if (((nodep1->gen_node_label)==OUTPUT)||
+						((nodep2->gen_node_label)==OUTPUT))
 						recurflag=true;
 
 					//Exit if the network is faulty (contains an infinite loop)
@@ -2993,8 +2993,6 @@ double Genome::compatibility(Genome *g) {
 
 
 		//Look at disjointedness and excess in the absolute (ignoring size)
-
-		//cout<<"COMPAT: size = "<<max_genome_size<<" disjoint = "<<num_disjoint<<" excess = "<<num_excess<<" diff = "<<mut_diff_total<<"  TOTAL = "<<(disjoint_coeff*(num_disjoint/1.0)+excess_coeff*(num_excess/1.0)+mutdiff_coeff*(mut_diff_total/num_matching))<<std::endl;
 
 		return (NEAT::disjoint_coeff*(num_disjoint/1.0)+
 			NEAT::excess_coeff*(num_excess/1.0)+

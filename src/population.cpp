@@ -807,73 +807,17 @@ bool Population::epoch(int generation) {
 
 	}
 
-	//cout<<"Reproducing"<<endl;
+    // Perform reproduction within the species
+    for(size_t i = 0; i < species.size(); i++) {
+        species[i]->reproduce(generation, this, sorted_species);
+    }
 
-	//Perform reproduction.  Reproduction is done on a per-Species
-	//basis.  (So this could be paralellized potentially.)
-	//	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-
-	//KENHACK                                                                      
-	//		for(std::vector<Species*>::iterator curspecies2=species.begin();curspecies2!=species.end();++curspecies2) {
-	//		  std::cout<<"PRE in repro specloop SPEC EXISTING number "<<(*curspecies2)->id<<std::endl;
-	//	}
-
-	//	(*curspecies)->reproduce(generation,this,sorted_species);
-
-
-	//}    
-
-
-	curspecies=species.begin();
-	int last_id=(*curspecies)->id;
-	while(curspecies!=species.end()) {
-        (*curspecies)->reproduce(generation,this,sorted_species);
-
-        //Set the current species to the id of the last species checked
-        //(the iterator must be reset because there were possibly vector insertions during reproduce)
-        std::vector<Species*>::iterator curspecies2=species.begin();
-        while(curspecies2!=species.end()) {
-            if (((*curspecies2)->id)==last_id)
-                curspecies=curspecies2;
-            curspecies2++;
-        }
-
-        //Move to the next on the list
-        curspecies++;
-	  
-        //Record where we are
-        if (curspecies!=species.end())
-            last_id=(*curspecies)->id;
-
-	}
-
-	//cout<<"Reproduction Complete"<<endl;
-
-
-	//Destroy and remove the old generation from the organisms and species  
-	curorg=organisms.begin();
-	while(curorg!=organisms.end()) {
-
-	  //Remove the organism from its Species
-	  ((*curorg)->species)->remove_org(*curorg);
-
-	  //std::cout<<"deleting org # "<<(*curorg)->gnome->genome_id<<std::endl;
-
-	  //Delete the organism from memory
-	  delete (*curorg);
-	  
-	  //Remember where we are
-	  deadorg=curorg;
-	  ++curorg;
-	  
-	  //std::cout<<"next org #  "<<(*curorg)->gnome->genome_id<<std::endl;
-
-	  //Remove the organism from the master list
-	  curorg=organisms.erase(deadorg);
-
-	  //std::cout<<"nnext org # "<<(*curorg)->gnome->genome_id<<std::endl;
-
-	}
+	//Destroy and remove the old generation from the organisms and species
+    for(Organism *org: organisms) {
+        org->species->remove_org(org);
+        delete org;
+    }
+    organisms.clear();
 
 	//Remove all empty Species and age ones that survive
 	//As this happens, create master organism list for the new generation

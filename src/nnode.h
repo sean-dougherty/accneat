@@ -128,9 +128,7 @@ namespace NEAT {
 
         // Return activation currently in node, if it has been activated
         inline double get_active_out() {
-            if (activation_count>0)
-                return activation;
-            else return 0.0;
+            return (activation_count > 0) ? activation : 0.0;
         }
 
 		// Return activation from PREVIOUS time step
@@ -156,7 +154,7 @@ namespace NEAT {
 
 		// Print the node to a file
         void  print_to_file(std::ostream &outFile);
-	void print_to_file(std::ofstream &outFile);
+        void print_to_file(std::ofstream &outFile);
 
 		// Have NNode gain its properties from the trait
 		void derive_trait(Trait *curtrait);
