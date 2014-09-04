@@ -2678,10 +2678,11 @@ bool Genome::is_recur(NNode *in_node, NNode *out_node) {
     //todo: this was fixed to use gen_node_label instead of type,
     //      but not clear if this logic is desirable. Shouldn't it
     //      just be checking if the output node is OUTPUT?
+/*
     if (((in_node->gen_node_label)==OUTPUT)||
         ((out_node->gen_node_label)==OUTPUT))
         return true;
-
+*/
     return false;
 }
 
