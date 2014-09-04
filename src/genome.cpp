@@ -1000,18 +1000,8 @@ Genome *Genome::duplicate(int new_id) {
 }
 
 void Genome::mutate_random_trait() {
-	std::vector<Trait*>::iterator thetrait; //Trait to be mutated
-	int traitnum;
-
-	//Choose a random traitnum
-	traitnum=randint(0,(traits.size())-1);
-
-	//Retrieve the trait and mutate it
-	thetrait=traits.begin();
-	(*(thetrait[traitnum])).mutate();
-
+    traits[ randint(0,(traits.size())-1) ]->mutate();
 	//TRACK INNOVATION? (future possibility)
-
 }
 
 void Genome::mutate_link_trait(int times) {
@@ -1026,68 +1016,32 @@ void Genome::mutate_link_trait(int times) {
 }
 
 void Genome::mutate_node_trait(int times) {
-	int traitnum;
-	int nodenum;
-	std::vector<NNode*>::iterator thenode;     //Link to be mutated
-	std::vector<Gene*>::iterator thegene;  //Gene to record innovation
-	std::vector<Trait*>::iterator thetrait; //Trait to be attached
-	int count;
-	int loop;
+    for(int i = 0; i < times; i++) {
+        Trait *trait = traits[ randint(0,(traits.size())-1) ];
+        NNode *node = nodes[ randint(0,nodes.size()-1) ];
 
-	for(loop=1;loop<=times;loop++) {
+        if(!node->frozen) {
+            node->nodetrait = trait;
+        }
+    }
 
-		//Choose a random traitnum
-		traitnum=randint(0,(traits.size())-1);
-
-		//Choose a random nodenum
-		nodenum=randint(0,nodes.size()-1);
-
-		//set the link to point to the new trait
-		thenode=nodes.begin();
-		for(count=0;count<nodenum;count++)
-			++thenode;
-
-		//Do not mutate frozen nodes
-		if (!((*thenode)->frozen)) {
-
-			thetrait=traits.begin();
-
-			(*thenode)->nodetrait=thetrait[traitnum];
-
-		}
-		//TRACK INNOVATION! - possible future use
-		//for any gene involving the mutated node, perturb that gene's
-		//mutation number
-		//for(thegene=genes.begin();thegene!=genes.end();++thegene) {
-		//  if (((((*thegene)->lnk)->in_node)==(*thenode))
-		//  ||
-		//  ((((*thegene)->lnk)->out_node)==(*thenode)))
-		//(*thegene)->mutation_num+=randposneg()*randfloat()*nodetrait_mut_sig;
-		//}
-	}
+    //TRACK INNOVATION! - possible future use
+    //for any gene involving the mutated node, perturb that gene's
+    //mutation number
 }
 
 void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
-	double num;  //counts gene placement
-	double gene_total;
-	double powermod; //Modified power by gene number
+	//Go through all the Genes and perturb their link's weights
+
+	double num = 0.0; //counts gene placement
+	double gene_total = (double)genes.size();
+	double endpart = gene_total*0.8; //Signifies the last part of the genome
+	double powermod = 1.0; //Modified power by gene number
 	//The power of mutation will rise farther into the genome
 	//on the theory that the older genes are more fit since
 	//they have stood the test of time
 
-	double randnum;
-	double randchoice; //Decide what kind of mutation to do on a gene
-	double endpart; //Signifies the last part of the genome
-	double gausspoint;
-	double coldgausspoint;
-
 	bool severe = randfloat() > 0.5;  //Once in a while really shake things up
-
-	//Go through all the Genes and perturb their link's weights
-	num=0.0;
-	gene_total=(double) genes.size();
-	endpart=gene_total*0.8;
-	powermod=1.0;
 
 	//Loop on all genes  (ORIGINAL METHOD)
 	for(Gene *gene: genes) {
@@ -1101,6 +1055,8 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 
 		//Don't mutate weights of frozen links
 		if (!(gene->frozen)) {
+            double gausspoint;
+            double coldgausspoint;
 
 			if (severe) {
 				gausspoint=0.3;
@@ -1123,15 +1079,12 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 			}
 
 			//Possible methods of setting the perturbation:
-			//randnum=gaussrand()*powermod;
-			//randnum=gaussrand();
-
-			randnum=randposneg()*randfloat()*power*powermod;
+			double randnum = randposneg()*randfloat()*power*powermod;
 			if (mut_type==GAUSSIAN) {
-				randchoice=randfloat();
-				if (randchoice>gausspoint)
+				double randchoice = randfloat();
+				if (randchoice > gausspoint)
 					(gene->lnk)->weight+=randnum;
-				else if (randchoice>coldgausspoint)
+				else if (randchoice > coldgausspoint)
 					(gene->lnk)->weight=randnum;
 			}
 			else if (mut_type==COLDGAUSSIAN)
@@ -1145,7 +1098,6 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 			gene->mutation_num = (gene->lnk)->weight;
 
 			num+=1.0;
-
 		}
 
 	} //end for loop
