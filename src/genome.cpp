@@ -1130,30 +1130,13 @@ void Genome::mutate_toggle_enable(int times) {
 }
 
 void Genome::mutate_gene_reenable() {
-	std::vector<Gene*>::iterator thegene;  //Gene to enable
-
-	thegene=genes.begin();
-
 	//Search for a disabled gene
-	while((thegene!=genes.end())&&((*thegene)->enable==true))
-		++thegene;
-
-	//Reenable it
-	if (thegene!=genes.end())
-		if (((*thegene)->enable)==false) (*thegene)->enable=true;
-
-}
-
-static Gene *get_random(const vector<Gene *> &genes) {
-
-    for(int i = 0; i < 20; i++) {
-        Gene *gene = genes[ randint(0,genes.size()-1) ];
-        //If either the gene is disabled, or it has a bias input, try again
-        if( gene->enable && (gene->lnk->in_node->gen_node_label != BIAS) )
-            return gene;
+    for(Gene *g: genes) {
+        if(!g->enable) {
+            g->enable = true;
+            break;
+        }
     }
-
-    return nullptr;
 }
 
 bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,
@@ -1174,7 +1157,13 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,
 	//double splitweight;  //If used, Set to sqrt(oldweight of oldlink)
 	double oldweight;  //The weight of the original link
 
-    Gene *thegene = get_random(genes);
+    Gene *thegene = nullptr;
+    for(int i = 0; !thegene && i < 20; i++) {
+        Gene *g = genes[ randint(0,genes.size()-1) ];
+        //If either the gene is disabled, or it has a bias input, try again
+        if( g->enable && (g->lnk->in_node->gen_node_label != BIAS) )
+            thegene = g;
+    }
 	//If we couldn't find anything so say goodbye
 	if (!thegene) {
 		return false;

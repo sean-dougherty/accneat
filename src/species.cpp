@@ -432,7 +432,6 @@ vector<Organism *> Species::reproduce(int generation,
 
             if ((thechamp->super_champ_offspring) == 1) {
                 if (thechamp->pop_champ) {
-                    //std::cout<<"The new org baby's genome is "<<baby->gnome<<std::endl;
                     baby->pop_champ_child=true;
                     baby->high_fit=mom->orig_fitness;
                 }
@@ -482,28 +481,21 @@ vector<Organism *> Species::reproduce(int generation,
                 //If we didn't do a structural mutation, we do the other kinds
 
                 if (randfloat()<NEAT::mutate_random_trait_prob) {
-                    //std::cout<<"mutate random trait"<<std::endl;
                     new_genome->mutate_random_trait();
                 }
                 if (randfloat()<NEAT::mutate_link_trait_prob) {
-                    //std::cout<<"mutate_link_trait"<<std::endl;
                     new_genome->mutate_link_trait(1);
                 }
                 if (randfloat()<NEAT::mutate_node_trait_prob) {
-                    //std::cout<<"mutate_node_trait"<<std::endl;
                     new_genome->mutate_node_trait(1);
                 }
                 if (randfloat()<NEAT::mutate_link_weights_prob) {
-                    //std::cout<<"mutate_link_weights"<<std::endl;
                     new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
                 }
                 if (randfloat()<NEAT::mutate_toggle_enable_prob) {
-                    //std::cout<<"mutate toggle enable"<<std::endl;
                     new_genome->mutate_toggle_enable(1);
-
                 }
                 if (randfloat()<NEAT::mutate_gene_reenable_prob) {
-                    //std::cout<<"mutate gene reenable"<<std::endl;
                     new_genome->mutate_gene_reenable();
                 }
             }
