@@ -146,7 +146,6 @@ static float score(float errorsum) {
     return nouts - errorsum;
 };
 
-static bool evaluate(NEAT::Organism *org);
 static int epoch(NEAT::Population *pop,
                  int generation,
                  char *filename,
@@ -288,15 +287,10 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
 
 bool evaluate(Organism *org, float *details_act, float *details_err) {
     Network *net;
-    int count;
-
-    int numnodes;  /* Used to figure out how many nodes
-                      should be visited during activation */
     int net_depth; //The max depth of the network to be activated
 
 
     net=org->net;
-    numnodes=((org->gnome)->nodes).size();
     net_depth=net->max_depth();
 
     auto activate = [net, net_depth] (vector<double> &input) {
@@ -392,7 +386,7 @@ int epoch(Population *pop,
 
         for(auto &test: tests) {
             for(auto &step: test.steps) {
-                for(auto &out: step.output) {
+                for(size_t i = 0; i < step.output.size(); i++) {
                     printf("%f (%f) ", *best_act++, *best_err++);
                 }
                 printf("\n");

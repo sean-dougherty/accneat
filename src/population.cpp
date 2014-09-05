@@ -72,7 +72,6 @@ Population::Population(std::vector<Genome*> genomeList, float power) {
 	highest_fitness=0.0;
 	highest_last_changed=0;
 		
-	int count;
 	Genome *new_genome;
 	Organism *new_organism;
 
@@ -102,7 +101,6 @@ Population::Population(const char *filename) {
 
 	char curword[128];  //max word size of 128 characters
 	char curline[1024]; //max line size of 1024 characters
-	char delimiters[] = " \n";
 
 	Genome *new_genome;
 
@@ -230,7 +228,7 @@ Population::~Population() {
 bool Population::verify() {
 	std::vector<Organism*>::iterator curorg;
 
-	bool verification;
+	bool verification = false;
 
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 		verification=((*curorg)->gnome)->verify();
@@ -423,8 +421,6 @@ bool Population::epoch(int generation) {
 	Species *best_species;
 	int final_expected;
 
-	int pause;
-
 	//Rights to make babies can be stolen from inferior species
 	//and given to their superiors, in order to concentrate exploration on
 	//the best species
@@ -438,9 +434,7 @@ bool Population::epoch(int generation) {
 	int half_pop;
 
 	//We can try to keep the number of species constant at this number
-	int num_species_target=4;
 	int num_species=species.size();
-	double compat_mod=0.3;  //Modify compat thresh to control speciation
 
 
 	//Keeping species diverse

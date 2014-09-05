@@ -50,27 +50,22 @@ namespace NEAT {
 	//   - If it's a neuron, it has a list of its incoming input signals (List<Link> is used) 
 	// Use an activation count to avoid flushing
 	class NNode {
-
-		friend class Network;
-		friend class Genome;
+    public:
+		int activation_count;  // keeps track of which activation the node is currently in
+		double last_activation; // Holds the previous step's activation for recurrency
+		double last_activation2; // Holds the activation BEFORE the prevous step's
+		NNode *dup;       // Used for Genome duplication
+		int trait_id;  // identify the trait derived by this node
+		NNode *analogue;  // Used for Gene decoding
 
 	protected:
 
         bool in_depth;
-		int activation_count;  // keeps track of which activation the node is currently in
-		double last_activation; // Holds the previous step's activation for recurrency
-		double last_activation2; // Holds the activation BEFORE the prevous step's
 		// This is necessary for a special recurrent case when the innode
 		// of a recurrent link is one time step ahead of the outnode.
 		// The innode then needs to send from TWO time steps ago
 
 		Trait *nodetrait; // Points to a trait of parameters
-
-		int trait_id;  // identify the trait derived by this node
-
-		NNode *dup;       // Used for Genome duplication
-
-		NNode *analogue;  // Used for Gene decoding
 
 		bool override; // The NNode cannot compute its own output- something is overriding it
 
@@ -127,9 +122,11 @@ namespace NEAT {
 		~NNode();
 
         // Return activation currently in node, if it has been activated
-        inline double get_active_out() {
-            return (activation_count > 0) ? activation : 0.0;
-        }
+        inline double get_active_out() {return (activation_count > 0) ? activation : 0.0;}
+
+        inline void set_trait(Trait *t) {nodetrait = t;}
+
+        inline Trait *get_trait() {return nodetrait;}
 
 		// Return activation from PREVIOUS time step
 		double get_active_out_td();

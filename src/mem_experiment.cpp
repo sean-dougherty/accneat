@@ -152,11 +152,6 @@ Population *mem_experiment(int gens) {
 
 bool evaluate(Organism *org) {
     Network *net;
-    int count;
-
-    int numnodes;  /* Used to figure out how many nodes
-                      should be visited during activation */
-
     int net_depth; //The max depth of the network to be activated
 
     struct Test {
@@ -175,7 +170,6 @@ bool evaluate(Organism *org) {
         {1.0, 0.0, 0.0, 1.0};
 
     net=org->net;
-    numnodes=((org->gnome)->nodes).size();
     net_depth=net->max_depth();
 
     double errorsum = 0.0;
