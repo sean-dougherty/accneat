@@ -141,8 +141,6 @@ namespace NEAT {
 		// Mutate the genome by adding a new link between 2 random NNodes 
 		bool mutate_add_link(std::vector<Innovation*> &innovs,double &curinnov,int tries); 
 
-		void mutate_add_sensor(std::vector<Innovation*> &innovs, double &curinnov);
-
 		// ****** MATING METHODS ***** 
 
 		// This method mates this Genome with another Genome g.  

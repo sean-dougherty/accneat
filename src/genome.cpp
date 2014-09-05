@@ -232,7 +232,6 @@ Genome::Genome(int new_id,int i, int o, int n,int nmax, bool r, double linkprob)
 	int count;
 
 	int ncount; //Node and connection counters
-	int ccount;
 
 	int row;  //For navigating the matrix
 	int col;
@@ -307,9 +306,6 @@ Genome::Genome(int new_id,int i, int o, int n,int nmax, bool r, double linkprob)
 	}
 
 	//cout<<"Built nodes"<<endl;
-
-	//Connect the nodes 
-	ccount=1;  //Start the connection counter
 
 	//Step through the connection matrix, creating connection genes
 	cmp=cm;
@@ -389,7 +385,7 @@ Genome::Genome(int num_in,int num_out,int num_hidden,int type) {
 	std::vector<NNode*> inputs;
 	std::vector<NNode*> outputs;
 	std::vector<NNode*> hidden;
-	NNode *bias; //Remember the bias
+	NNode *bias = nullptr; //Remember the bias
 
 	std::vector<NNode*>::iterator curnode1; //Node iterator1
 	std::vector<NNode*>::iterator curnode2; //Node iterator2
@@ -1270,8 +1266,8 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
                              double &curinnov,
                              int tries) {
 
-	NNode *in_node; //Pointers to the nodes
-	NNode *out_node; //Pointers to the nodes
+	NNode *in_node = nullptr; //Pointers to the nodes
+	NNode *out_node = nullptr; //Pointers to the nodes
 
 	//Decide whether to make this recurrent
 	bool do_recur = randfloat() < NEAT::recur_only_prob;
@@ -1373,150 +1369,10 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
     return true;
 }
 
-
-void Genome::mutate_add_sensor(std::vector<Innovation*> &innovs,double &curinnov) {
-
-	std::vector<NNode*> sensors;
-	std::vector<NNode*> outputs;
-	NNode *node;	
-	NNode *sensor;
-	NNode *output;
-	Gene *gene;
-
-	double newweight = 0.0;
-	Gene* newgene;
-
-	int i,j; //counters
-	bool found;
-
-	bool done;	
-
-	int outputConnections;
-
-	std::vector<Trait*>::iterator thetrait;
-	int traitnum;
-
-	std::vector<Innovation*>::iterator theinnov; //For finding a historical match
-
-	//Find all the sensors and outputs
-	for (i = 0; i < nodes.size(); i++) {
-		node=nodes[i];
-
-		if ((node->type) == SENSOR)
-			sensors.push_back(node);
-		else if (node->gen_node_label == OUTPUT)
-			outputs.push_back(node);
-	}
-
-	// eliminate from contention any sensors that are already connected
-    std::vector<NNode*>::iterator iter;
-	for (iter = sensors.begin(); iter != sensors.end(); ++iter) {	
-		sensor = *iter;
-
-		outputConnections=0;
-
-
-		for (int j = 0; j < genes.size(); j++) {
-			gene=genes[j];
-
-			if ((gene->lnk)->out_node->gen_node_label == OUTPUT)
-				outputConnections++;	
-
-		}
-
-		if (outputConnections == outputs.size()) {
-			iter = sensors.erase(iter); //Does this work? remove by number from a vector?
-		}
-
-	}
-
-	//If all sensors are connected, quit
-	if (sensors.size() == 0)
-		return;
-
-	//Pick randomly from remaining sensors
-	sensor=sensors[randint(0,sensors.size()-1)];
-
-	//Add new links to chosen sensor, avoiding redundancy
-	for (int i = 0; i < outputs.size(); i++) {
-		output=outputs[i];
-
-		found=false;
-		for (j = 0; j < genes.size(); j++) {
-			gene=genes[j];
-			if ((gene->lnk->in_node==sensor)&&
-				(gene->lnk->out_node==output))
-				found=true;	
-		}
-
-		//Record the innovation
-		if (!found) {
-			theinnov=innovs.begin();
-			done=false;
-
-			while (!done) {
-				//The innovation is novel
-				if (theinnov==innovs.end()) {
-
-					//Choose a random trait
-					traitnum=randint(0,(traits.size())-1);
-					thetrait=traits.begin();
-
-					//Choose the new weight
-					//newweight=(gaussrand())/1.5;  //Could use a gaussian
-					newweight=randposneg()*randfloat()*3.0; //used to be 10.0
-
-					//Create the new gene
-					newgene=new Gene(((thetrait[traitnum])),
-						newweight,sensor,output,false,
-						curinnov,newweight);
-
-					//Add the innovation
-					innovs.push_back(new Innovation(sensor->node_id,
-						output->node_id,curinnov,newweight,traitnum));
-
-					curinnov=curinnov+1.0;
-
-					done=true;
-				} //end novel innovation case
-				//OTHERWISE, match the innovation in the innovs list
-				else if (((*theinnov)->innovation_type==NEWLINK)&&
-					((*theinnov)->node_in_id==(sensor->node_id))&&
-					((*theinnov)->node_out_id==(output->node_id))&&
-					((*theinnov)->recur_flag==false)) {
-
-						thetrait=traits.begin();
-
-						//Create new gene
-						newgene=
-							new Gene(((thetrait[(*theinnov)->new_traitnum])),
-							(*theinnov)->new_weight,sensor,output,
-							false,(*theinnov)->innovation_num1,0);
-
-						done=true;
-
-					} //end prior innovation case
-					//Keep looking for matching innovation
-				else ++theinnov;
-
-			}  //end while
-
-			//genes.push_back(newgene);
-			add_gene(genes,newgene);  //adds the gene in correct order
-
-
-		} //end case where the gene didn't previously exist
-	}
-
-}
-
-
 //Adds a new gene that has been created through a mutation in the
 //*correct order* into the list of genes in the genome
 void Genome::add_gene(std::vector<Gene*> &glist,Gene *g) {
   std::vector<Gene*>::iterator curgene;
-  double p1innov;
-
   double inum=g->innovation_num;
 
   //std::cout<<"**ADDING GENE: "<<g->innovation_num<<std::endl;
@@ -1553,9 +1409,9 @@ void Genome::node_insert(std::vector<NNode*> &nlist,NNode *n) {
 
 Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fitness2, bool interspec_flag) {
 	//The baby Genome will contain these new Traits, NNodes, and Genes
-	std::vector<Trait*> newtraits; 
-	std::vector<NNode*> newnodes;   
-	std::vector<Gene*> newgenes;    
+	vector<Trait*> newtraits;
+	vector<NNode*> newnodes;   
+	vector<Gene*> newgenes;    
 	Genome *new_genome;
 
 	std::vector<Gene*>::iterator curgene2;  //Checks for link duplication
@@ -1563,14 +1419,13 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	//iterators for moving through the two parents' traits
 	std::vector<Trait*>::iterator p1trait;
 	std::vector<Trait*>::iterator p2trait;
-	Trait *newtrait;
 
 	//iterators for moving through the two parents' genes
 	std::vector<Gene*>::iterator p1gene;
 	std::vector<Gene*>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	Gene *chosengene;  //Gene chosen for baby to inherit
+	Gene *chosengene = nullptr;  //Gene chosen for baby to inherit
 	int traitnum;  //Number of trait new gene points to
 	NNode *inode;  //NNodes connected to the chosen Gene
 	NNode *onode;
@@ -1591,12 +1446,10 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	//First, average the Traits from the 2 parents to form the baby's Traits
 	//It is assumed that trait lists are the same length
 	//In the future, may decide on a different method for trait mating
-	p2trait=(g->traits).begin();
-	for(p1trait=traits.begin();p1trait!=traits.end();++p1trait) {
-		newtrait=new Trait(*p1trait,*p2trait);  //Construct by averaging
-		newtraits.push_back(newtrait);
-		++p2trait;
-	}
+    assert(traits.size() == g->traits.size());
+    for(size_t i = 0, n = traits.size(); i < n; i++) {
+        newtraits.push_back( new Trait(traits[i], g->traits[i]) );
+    }
 
 	//Figure out which genome is better
 	//The worse genome should not be allowed to add extra structural baggage
@@ -1611,25 +1464,23 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	else 
 		p1better=false;
 
-	//NEW 3/17/03 Make sure all sensors and outputs are included
-	for(curnode=(g->nodes).begin();curnode!=(g->nodes).end();++curnode) {
-		if ((((*curnode)->gen_node_label)==INPUT)||
-			(((*curnode)->gen_node_label)==BIAS)||
-			(((*curnode)->gen_node_label)==OUTPUT)) {
-				if (!((*curnode)->nodetrait)) nodetraitnum=0;
-				else
-					nodetraitnum=(((*curnode)->nodetrait)->trait_id)-(*(traits.begin()))->trait_id;
+	//Make sure all sensors and outputs are included
+    for(NNode *node: g->nodes) {
+		if( (node->gen_node_label == INPUT)
+            || (node->gen_node_label == BIAS)
+            || (node->gen_node_label == OUTPUT)) {
 
-				//Create a new node off the sensor or output
-				new_onode=new NNode((*curnode),newtraits[nodetraitnum]);
+            int traitnum = node->nodetrait != 0
+                ? node->nodetrait->trait_id - traits[0]->trait_id
+                : 0;
 
-				//Add the new node
-				node_insert(newnodes,new_onode);
+            //Create a new node off the sensor or output
+            NNode *new_node = new NNode(node, newtraits[traitnum]);
 
-			}
-
-	}
-
+            //Add the new node
+            node_insert(newnodes, new_node);
+        }
+    }
 
 	//Now move through the Genes of each parent until both genomes end
 	p1gene=genes.begin();
@@ -1861,7 +1712,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	std::vector<Gene*>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	Gene *chosengene;  //Gene chosen for baby to inherit
+	Gene *chosengene = nullptr;  //Gene chosen for baby to inherit
 	int traitnum;  //Number of trait new gene points to
 	NNode *inode;  //NNodes connected to the chosen Gene
 	NNode *onode;
@@ -2203,7 +2054,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 	std::vector<Gene*>::iterator p1stop;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	Gene *chosengene;  //Gene chosen for baby to inherit
+	Gene *chosengene = nullptr;  //Gene chosen for baby to inherit
 	int traitnum;  //Number of trait new gene points to
 	NNode *inode;  //NNodes connected to the chosen Gene
 	NNode *onode;
@@ -2494,13 +2345,6 @@ double Genome::compatibility(Genome *g) {
 	double num_excess=0.0;
 	double mut_diff_total=0.0;
 	double num_matching=0.0;  //Used to normalize mutation_num differences
-
-	double max_genome_size; //Size of larger Genome
-
-	//Get the length of the longest Genome for percentage computations
-	if (genes.size()<(g->genes).size()) 
-		max_genome_size=(g->genes).size();
-	else max_genome_size=genes.size();
 
 	//Now move through the Genes of each potential parent 
 	//until both Genomes end
