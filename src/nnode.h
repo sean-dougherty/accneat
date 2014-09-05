@@ -50,12 +50,12 @@ namespace NEAT {
 	//   - If it's a neuron, it has a list of its incoming input signals (List<Link> is used) 
 	// Use an activation count to avoid flushing
 	class NNode {
+		int trait_id;  // identify the trait derived by this node
     public:
 		int activation_count;  // keeps track of which activation the node is currently in
 		double last_activation; // Holds the previous step's activation for recurrency
 		double last_activation2; // Holds the activation BEFORE the prevous step's
 		NNode *dup;       // Used for Genome duplication
-		int trait_id;  // identify the trait derived by this node
 		NNode *analogue;  // Used for Gene decoding
 
 	protected:
@@ -64,8 +64,6 @@ namespace NEAT {
 		// This is necessary for a special recurrent case when the innode
 		// of a recurrent link is one time step ahead of the outnode.
 		// The innode then needs to send from TWO time steps ago
-
-		Trait *nodetrait; // Points to a trait of parameters
 
 		bool override; // The NNode cannot compute its own output- something is overriding it
 
@@ -111,7 +109,7 @@ namespace NEAT {
 		NNode(nodetype ntype,int nodeid, nodeplace placement);
 
 		// Construct a NNode off another NNode for genome purposes
-		NNode(NNode *n,Trait *t);
+		NNode(NNode *n, int trait_id);
 
 		// Construct the node out of a file specification using given list of traits
 		NNode (const char *argline, std::vector<Trait*> &traits);
@@ -124,9 +122,13 @@ namespace NEAT {
         // Return activation currently in node, if it has been activated
         inline double get_active_out() {return (activation_count > 0) ? activation : 0.0;}
 
-        inline void set_trait(Trait *t) {nodetrait = t;}
+        inline void set_trait_id(int id) { trait_id = id; }
 
-        inline Trait *get_trait() {return nodetrait;}
+        inline int get_trait_id() {
+            return trait_id;
+        }
+
+    public:
 
 		// Return activation from PREVIOUS time step
 		double get_active_out_td();

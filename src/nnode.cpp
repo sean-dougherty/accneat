@@ -32,7 +32,6 @@ NNode::NNode(nodetype ntype,int nodeid) {
 	activation_count=0; //Inactive upon creation
 	node_id=nodeid;
 	ftype=SIGMOID;
-	nodetrait=0;
 	gen_node_label=HIDDEN;
 	dup=0;
 	analogue=0;
@@ -53,7 +52,6 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	activation_count=0; //Inactive upon creation
 	node_id=nodeid;
 	ftype=SIGMOID;
-	nodetrait=0;
 	gen_node_label=placement;
 	dup=0;
 	analogue=0;
@@ -62,7 +60,7 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	override=false;
 }
 
-NNode::NNode(NNode *n,Trait *t) {
+NNode::NNode(NNode *n, int trait_id_) {
     in_depth = false;
 	active_flag=false;
 	activation=0;
@@ -73,58 +71,28 @@ NNode::NNode(NNode *n,Trait *t) {
 	activation_count=0; //Inactive upon creation
 	node_id=n->node_id;
 	ftype=SIGMOID;
-	nodetrait=0;
 	gen_node_label=n->gen_node_label;
 	dup=0;
 	analogue=0;
-	nodetrait=t;
 	frozen=false;
-	if (t!=0)
-		trait_id=t->trait_id;
-	else trait_id=1;
+    trait_id = trait_id_;
 	override=false;
 }
 
 NNode::NNode (const char *argline, std::vector<Trait*> &traits) {
     in_depth = false;
-	int traitnum;
-	std::vector<Trait*>::iterator curtrait;
 
 	activesum=0;
 
     std::stringstream ss(argline);
-	//char curword[128];
-	//char delimiters[] = " \n";
-	//int curwordnum = 0;
-
-	//Get the node parameters
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//node_id = atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//traitnum = atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//type = (nodetype)atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//gen_node_label = (nodeplace)atoi(curword);
-
     int nodety, nodepl;
-    ss >> node_id >> traitnum >> nodety >> nodepl;
+    ss >> node_id >> trait_id >> nodety >> nodepl;
     type = (nodetype)nodety;
     gen_node_label = (nodeplace)nodepl;
 
 	// Get the Sensor Identifier and Parameter String
 	// mySensor = SensorRegistry::getSensor(id, param);
 	frozen=false;  //TODO: Maybe change
-
-	//Get a pointer to the trait this node points to
-	if (traitnum==0) nodetrait=0;
-	else {
-		curtrait=traits.begin();
-		while(((*curtrait)->trait_id)!=traitnum)
-			++curtrait;
-		nodetrait=(*curtrait);
-		trait_id=nodetrait->trait_id;
-	}
 
 	override=false;
 }
@@ -143,7 +111,6 @@ NNode::NNode (const NNode& nnode)
 	activation_count = nnode.activation_count; //Inactive upon creation
 	node_id = nnode.node_id;
 	ftype = nnode.ftype;
-	nodetrait = nnode.nodetrait;
 	gen_node_label = nnode.gen_node_label;
 	dup = nnode.dup;
 	analogue = nnode.dup;
@@ -283,8 +250,7 @@ void NNode::activate_override() {
 
 void NNode::print_to_file(std::ofstream &outFile) {
   outFile<<"node "<<node_id<<" ";
-  if (nodetrait!=0) outFile<<nodetrait->trait_id<<" ";
-  else outFile<<"0 ";
+  outFile<<trait_id<<" ";
   outFile<<type<<" ";
   outFile<<gen_node_label<<std::endl;
 }
@@ -301,12 +267,11 @@ void NNode::print_to_file(std::ostream &outFile) {
 	sprintf(tempbuf, "node %d ", node_id);
 	outFile << tempbuf;
 
-	if (nodetrait != 0) {
+    {
 		char tempbuf2[128];
-		sprintf(tempbuf2, "%d ", nodetrait->trait_id);
+		sprintf(tempbuf2, "%d ", trait_id);
 		outFile << tempbuf2;
 	}
-	else outFile << "0 ";
 
 	char tempbuf2[128];
 	sprintf(tempbuf2, "%d %d\n", type, gen_node_label);
