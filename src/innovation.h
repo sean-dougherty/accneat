@@ -46,7 +46,7 @@ namespace NEAT {
 		double innovation_num2;  // If this is a new node innovation, then there are 2 innovations (links) added for the new node 
 
 		double new_weight;   //  If a link is added, this is its weight 
-		int new_traitnum; // If a link is added, this is its connected trait 
+		int new_trait_id; // If a link is added, this is its connected trait 
 
 		int newnode_id;  // If a new node was created, this is its node_id 
 
