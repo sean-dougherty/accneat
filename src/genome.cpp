@@ -16,12 +16,111 @@
 #include "genome.h"
 
 #include <assert.h>
+#include <algorithm>
 #include <iostream>
 #include <cmath>
 #include <sstream>
 
 using namespace NEAT;
 using std::vector;
+
+
+class Topology {
+private:
+    size_t nnodes;
+    Gene **genes;
+    size_t ngenes;
+
+    static bool cmp_sort(const Gene *x, const Gene *y) {
+        return x->lnk->out_node->node_id < y->lnk->out_node->node_id;
+    }
+
+    static bool cmp_find(const Gene *x, int node_id) {
+        return x->lnk->out_node->node_id < node_id;
+    }
+
+    bool find(int node_id, Gene ***curr) {
+        if(*curr == nullptr) {
+            auto it = std::lower_bound(genes, genes + ngenes, node_id, cmp_find);
+            if(it == genes + ngenes) return false;
+            if((*it)->lnk->out_node->node_id != node_id) return false;
+
+            *curr = it;
+            return true;
+        } else {
+            (*curr)++;
+            if(*curr >= (genes + ngenes)) return false;
+            if((**curr)->lnk->out_node->node_id != node_id) return false;
+            return true;
+        }
+    }
+
+    // This checks a POTENTIAL link between a potential in_node and potential out_node to see if it must be recurrent 
+    bool is_recur(int in_id, int out_id, int &count, int thresh) {
+        ++count;  //Count the node as visited
+        if(count > thresh) {
+            return false;  //Short out the whole thing- loop detected
+        }
+
+        if (in_id==out_id) return true;
+        else {
+            Gene **gene = nullptr;
+            while( find(in_id, &gene) ) {
+                Link *link = (*gene)->lnk;
+                //But skip links that are already recurrent
+                //(We want to check back through the forward flow of signals only
+                if(!link->is_recurrent) {
+                    if( is_recur(link->in_node->node_id, out_id, count, thresh) )
+                        return true;
+                }
+            }
+            return false;
+        }
+    }
+
+public:
+    Topology(size_t nnodes_,
+             vector<Gene *> &genome_genes,
+             Gene **buf_genes) {
+        nnodes = nnodes_;
+        genes = buf_genes;
+
+        ngenes = 0;
+        for(size_t i = 0; i < genome_genes.size(); i++) {
+            Gene *g = genome_genes[i];
+            if(g->enable) {
+                genes[ngenes++] = g;
+            }
+        }
+        std::sort(genes, genes + ngenes, cmp_sort);
+    }
+
+    bool is_recur(NNode *in_node, NNode *out_node) {
+        //These are used to avoid getting stuck in an infinite loop checking
+        //for recursion
+        //Note that we check for recursion to control the frequency of
+        //adding recurrent links rather than to prevent any paricular
+        //kind of error
+        int thresh=nnodes*nnodes;
+        int count = 0;
+
+        if(is_recur(in_node->node_id, out_node->node_id, count, thresh)) {
+            return true;
+        }
+
+        //ADDED: CONSIDER connections out of outputs recurrent
+        //todo: this was fixed to use gen_node_label instead of type,
+        //      but not clear if this logic is desirable. Shouldn't it
+        //      just be checking if the output node is OUTPUT?
+        /*
+          if (((in_node->gen_node_label)==OUTPUT)||
+          ((out_node->gen_node_label)==OUTPUT))
+          return true;
+        */
+        return false;
+    }
+    
+};
 
 Genome::Genome(int id, std::vector<Trait*> t, std::vector<NNode*> n, std::vector<Gene*> g) {
 	genome_id=id;
@@ -849,6 +948,8 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,
 bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
                              double &curinnov,
                              int tries) {
+    Gene *topology_buf[genes.size()];
+    Topology topology(nodes.size(), genes, topology_buf);
 
 	NNode *in_node = nullptr; //Pointers to the nodes
 	NNode *out_node = nullptr; //Pointers to the nodes
@@ -887,7 +988,7 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
             }
 
             found_nodes = !link_exists(in_node, out_node, do_recur)
-                && (do_recur == is_recur(in_node, out_node));
+                && (do_recur == topology.is_recur(in_node, out_node));
         }
 
         assert( out_node->type != SENSOR );
@@ -1975,31 +2076,6 @@ bool Genome::link_exists(NNode *in_node, NNode *out_node, bool is_recurrent) {
         }
     }
 
-    return false;
-}
-
-bool Genome::is_recur(NNode *in_node, NNode *out_node) {
-    //These are used to avoid getting stuck in an infinite loop checking
-    //for recursion
-    //Note that we check for recursion to control the frequency of
-    //adding recurrent links rather than to prevent any paricular
-    //kind of error
-    int thresh=(nodes.size())*(nodes.size());
-    int count = 0;
-
-    if( phenotype->is_recur(in_node->analogue, out_node->analogue, count, thresh) ) {
-        return true;
-    }
-
-    //ADDED: CONSIDER connections out of outputs recurrent
-    //todo: this was fixed to use gen_node_label instead of type,
-    //      but not clear if this logic is desirable. Shouldn't it
-    //      just be checking if the output node is OUTPUT?
-/*
-    if (((in_node->gen_node_label)==OUTPUT)||
-        ((out_node->gen_node_label)==OUTPUT))
-        return true;
-*/
     return false;
 }
 

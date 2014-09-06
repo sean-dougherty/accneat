@@ -368,8 +368,6 @@ vector<Organism *> Species::reproduce(int generation,
 	Species *newspecies; //For babies in new Species
 	Organism *comporg;  //For Species determination through comparison
 
-	Network *net_analogue;  //For adding link to test for recurrency
-
 	bool outside;
 
 	bool found;  //When a Species is found
@@ -420,10 +418,7 @@ vector<Organism *> Species::reproduce(int generation,
                     new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
                 else {
                     //Sometimes we add a link to a superchamp
-                    // todo: we shouldn't need to instantiate a phenotype for this operation.
-                    net_analogue=new_genome->genesis(generation);
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
-                    delete net_analogue;
                     mut_struct_baby=true;
                 }
             }
@@ -469,10 +464,7 @@ vector<Organism *> Species::reproduce(int generation,
                 mut_struct_baby=true;
             }
             else if (randfloat()<NEAT::mutate_add_link_prob) {
-                //std::cout<<"mutate add link"<<std::endl;
-                net_analogue=new_genome->genesis(generation);
                 new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
-                delete net_analogue;
                 mut_struct_baby=true;
             }
             //NOTE:  A link CANNOT be added directly after a node was added because the phenotype
@@ -546,10 +538,7 @@ vector<Organism *> Species::reproduce(int generation,
                     //  std::cout<<"mutate_add_node: "<<new_genome<<std::endl;
                     mut_struct_baby=true;
                 } else if (randfloat()<NEAT::mutate_add_link_prob) {
-                    net_analogue=new_genome->genesis(generation);
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
-                    delete net_analogue;
-                    //std::cout<<"mutate_add_link: "<<new_genome<<std::endl;
                     mut_struct_baby=true;
                 } else {
                     //Only do other mutations when not doing sturctural mutations

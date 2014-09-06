@@ -29,6 +29,8 @@ namespace NEAT {
 	//   or learn on its own, even though it may be part of a larger framework 
 	class Network {
     private:
+        friend class Genome; // todo: remove friend. just for testing genome topology
+
 		std::vector<NNode*> all_nodes;  // A list of all the nodes
 		std::vector<NNode*> inputs;  // NNodes that input into the network
 		std::vector<NNode*> outputs; // Values output by the network
