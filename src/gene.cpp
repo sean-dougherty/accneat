@@ -138,8 +138,8 @@ Gene::~Gene() {
 void Gene::print_to_file(std::ofstream &outFile) {
   outFile<<"gene ";
   //Start off with the trait number for this gene
-  if ((lnk->linktrait)==0) outFile<<"0 ";
-  else outFile<<((lnk->linktrait)->trait_id)<<" ";
+  if ((lnk->get_trait())==0) outFile<<"0 ";
+  else outFile<<((lnk->get_trait())->trait_id)<<" ";
   outFile<<(lnk->in_node)->node_id<<" ";
   outFile<<(lnk->out_node)->node_id<<" ";
   outFile<<(lnk->weight)<<" ";
@@ -155,14 +155,14 @@ void Gene::print_to_file(std::ostream &outFile) {
 	//outFile.write(5, "gene ");
 
 	//Start off with the trait number for this gene
-	if ((lnk->linktrait)==0) {
+	if ((lnk->get_trait())==0) {
 		outFile<<"0 ";
 		//outFile.write(2, "0 ");
 	}
 	else {
-		outFile<<((lnk->linktrait)->trait_id)<<" ";
+		outFile<<((lnk->get_trait())->trait_id)<<" ";
 		//char tempbuf2[128];
-		//sprintf(tempbuf2, sizeof(tempbuf2),"%d ", (lnk->linktrait)->trait_id);
+		//sprintf(tempbuf2, sizeof(tempbuf2),"%d ", (lnk->get_trait())->trait_id);
 		//outFile.write(strlen(tempbuf2),tempbuf2);
 	}
 	//char tempbuf[1024];

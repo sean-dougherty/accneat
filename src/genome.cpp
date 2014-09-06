@@ -42,7 +42,7 @@ Genome::Genome(int id, std::vector<Trait*> t, std::vector<NNode*> n, std::vector
 	//We go through the links and turn them into original genes
 	for(curlink=links.begin();curlink!=links.end();++curlink) {
 		//Create genes one at a time
-		tempgene=new Gene((*curlink)->linktrait, (*curlink)->weight,(*curlink)->in_node,(*curlink)->out_node,(*curlink)->is_recurrent,1.0,0.0);
+		tempgene=new Gene((*curlink)->get_trait(), (*curlink)->weight,(*curlink)->in_node,(*curlink)->out_node,(*curlink)->is_recurrent,1.0,0.0);
 		genes.push_back(tempgene);
 	}
 
@@ -82,7 +82,7 @@ Genome::Genome(const Genome& genome)
 		onode=(((*curgene)->lnk)->out_node)->dup;
 
 		//Get a pointer to the trait expressed by this gene
-		traitptr=((*curgene)->lnk)->linktrait;
+		traitptr=((*curgene)->lnk)->get_trait();
 		if (traitptr==0) assoc_trait=0;
 		else {
 			curtrait=traits.begin();
@@ -688,7 +688,7 @@ Network *Genome::genesis(int id) {
 			(onode->incoming).push_back(newlink);
 
 			//Derive link's parameters from its Trait pointer
-			newlink.derive_trait( curlink->linktrait );
+			newlink.derive_trait( curlink->get_trait() );
 
 			//Keep track of maximum weight
 			if (newlink.weight>0)
@@ -955,7 +955,7 @@ Genome *Genome::duplicate(int new_id) {
 		onode=(((*curgene)->lnk)->out_node)->dup;
 
 		//Get a pointer to the trait expressed by this gene
-		traitptr=((*curgene)->lnk)->linktrait;
+		traitptr=((*curgene)->lnk)->get_trait();
 		if (traitptr==0) assoc_trait=0;
 		else {
 			curtrait=traits_dup.begin();
@@ -987,7 +987,7 @@ void Genome::mutate_link_trait(int times) {
         Gene *gene = genes[ randint(0,genes.size()-1) ];
         
         if(!gene->frozen) {
-            gene->lnk->linktrait = trait;
+            gene->lnk->set_trait(trait);
         }
     }
 }
@@ -1170,7 +1170,7 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,
 			//The innovation is totally novel
 
 			//Get the old link's trait
-			traitptr=thelink->linktrait;
+			traitptr=thelink->get_trait();
 
 			//Create the new NNode
 			//By convention, it will point to the first trait
@@ -1211,7 +1211,7 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,
 			//Here, the innovation has been done before
 
 			//Get the old link's trait
-			traitptr=thelink->linktrait;
+			traitptr=thelink->get_trait();
 
 			//Create the new NNode
 			newnode=new NNode(NEURON,(*theinnov)->newnode_id,HIDDEN);      
@@ -1549,9 +1549,9 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 				//Now add the chosengene to the baby
 
 				//First, get the trait pointer
-				if ((((chosengene->lnk)->linktrait))==0) traitnum=(*(traits.begin()))->trait_id - 1; 
+				if ((((chosengene->lnk)->get_trait()))==0) traitnum=(*(traits.begin()))->trait_id - 1; 
 				else
-					traitnum=(((chosengene->lnk)->linktrait)->trait_id)-(*(traits.begin()))->trait_id;  //The subtracted number normalizes depending on whether traits start counting at 1 or 0
+					traitnum=(((chosengene->lnk)->get_trait())->trait_id)-(*(traits.begin()))->trait_id;  //The subtracted number normalizes depending on whether traits start counting at 1 or 0
 
 				//Next check for the nodes, add them if not in the baby Genome already
 				inode=(chosengene->lnk)->in_node;
@@ -1797,8 +1797,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
 				if (p1innov==p2innov) {
 					//Average them into the avgene
-					if (randfloat()>0.5) (avgene->lnk)->linktrait=((*p1gene)->lnk)->linktrait;
-					else (avgene->lnk)->linktrait=((*p2gene)->lnk)->linktrait;
+					if (randfloat()>0.5) (avgene->lnk)->set_trait(((*p1gene)->lnk)->get_trait());
+					else (avgene->lnk)->set_trait(((*p2gene)->lnk)->get_trait());
 
 					//WEIGHTS AVERAGED HERE
 					(avgene->lnk)->weight=(((*p1gene)->lnk)->weight+((*p2gene)->lnk)->weight)/2.0;
@@ -1897,9 +1897,9 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 				//Now add the chosengene to the baby
 
 				//First, get the trait pointer
-				if ((((chosengene->lnk)->linktrait))==0) traitnum=(*(traits.begin()))->trait_id - 1;
+				if ((((chosengene->lnk)->get_trait()))==0) traitnum=(*(traits.begin()))->trait_id - 1;
 				else
-					traitnum=(((chosengene->lnk)->linktrait)->trait_id)-(*(traits.begin()))->trait_id;  //The subtracted number normalizes depending on whether traits start counting at 1 or 0
+					traitnum=(((chosengene->lnk)->get_trait())->trait_id)-(*(traits.begin()))->trait_id;  //The subtracted number normalizes depending on whether traits start counting at 1 or 0
 
 				//Next check for the nodes, add them if not in the baby Genome already
 				inode=(chosengene->lnk)->in_node;
@@ -2120,8 +2120,8 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 				else {
 
 					//Average them into the avgene
-					if (randfloat()>0.5) (avgene->lnk)->linktrait=((*p1gene)->lnk)->linktrait;
-					else (avgene->lnk)->linktrait=((*p2gene)->lnk)->linktrait;
+					if (randfloat()>0.5) (avgene->lnk)->set_trait(((*p1gene)->lnk)->get_trait());
+					else (avgene->lnk)->set_trait(((*p2gene)->lnk)->get_trait());
 
 					//WEIGHTS AVERAGED HERE
 					(avgene->lnk)->weight=(((*p1gene)->lnk)->weight+((*p2gene)->lnk)->weight)/2.0;
@@ -2191,9 +2191,9 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 			//Now add the chosengene to the baby
 
 			//First, get the trait pointer
-			if ((((chosengene->lnk)->linktrait))==0) traitnum=(*(traits.begin()))->trait_id - 1;
+			if ((((chosengene->lnk)->get_trait()))==0) traitnum=(*(traits.begin()))->trait_id - 1;
 			else
-				traitnum=(((chosengene->lnk)->linktrait)->trait_id)-(*(traits.begin()))->trait_id;  //The subtracted number normalizes depending on whether traits start counting at 1 or 0
+				traitnum=(((chosengene->lnk)->get_trait())->trait_id)-(*(traits.begin()))->trait_id;  //The subtracted number normalizes depending on whether traits start counting at 1 or 0
 
 			//Next check for the nodes, add them if not in the baby Genome already
 			inode=(chosengene->lnk)->in_node;
@@ -2349,7 +2349,7 @@ double Genome::compatibility(Genome *g) {
 					num_matching+=1.0;
 					mut_diff=((*p1gene)->mutation_num)-((*p2gene)->mutation_num);
 					if (mut_diff<0.0) mut_diff=0.0-mut_diff;
-					//mut_diff+=trait_compare((*p1gene)->lnk->linktrait,(*p2gene)->lnk->linktrait); //CONSIDER TRAIT DIFFERENCES
+					//mut_diff+=trait_compare((*p1gene)->lnk->get_trait(),(*p2gene)->lnk->get_trait()); //CONSIDER TRAIT DIFFERENCES
 					mut_diff_total+=mut_diff;
 
 					++p1gene;
@@ -2452,7 +2452,7 @@ void Genome::randomize_traits() {
 		curtrait=traits.begin();
 		while(((*curtrait)->trait_id)!=traitnum)
 			++curtrait;
-		(*curgene)->lnk->linktrait=(*curtrait);
+		(*curgene)->lnk->set_trait((*curtrait));
 
 		//if ((*curtrait)==0) cout<<"ERROR: Random trait empty"<<std::endl;
 	}
