@@ -204,47 +204,23 @@ Genome::Genome(int id, std::ifstream &iFile) {
 
 Genome* Genome::new_Genome_load(char *filename) {
 	Genome *newgenome;
-
 	int id;
 
-	//char curline[1024];
 	char curword[20];  //max word size of 20 characters
-	//char delimiters[] = " \n";
-	//int curwordnum = 0;
-
 	std::ifstream iFile(filename);
-
-	//Make sure it worked
-	//if (!iFile) {
-	//	cerr<<"Can't open "<<filename<<" for input"<<endl;
-	//	return 0;
-	//}
-
 	iFile>>curword;
-	//iFile.getline(curline, sizeof(curline));
-	//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
 
 	//Bypass initial comment
 	if (strcmp(curword,"/*")==0) {
-		//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
 		iFile>>curword;
 		while (strcmp(curword,"*/")!=0) {
 			printf("%s ",curword);
-			//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
 			iFile>>curword;
 		}
-
-		//cout<<endl;
 		iFile>>curword;
-		//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
 	}
-
-	//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
-	//id = atoi(curword);
 	iFile>>id;
-
 	newgenome=new Genome(id,iFile);
-
 	iFile.close();
 
 	return newgenome;
