@@ -616,7 +616,7 @@ void Genome::mutate_link_trait(int times) {
         Gene *gene = genes[ randint(0,genes.size()-1) ];
         
         if(!gene->frozen) {
-            gene->lnk->set_trait(trait);
+            gene->lnk->set_trait_id(trait->trait_id);
         }
     }
 }
@@ -1424,8 +1424,11 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
 				if (p1innov==p2innov) {
 					//Average them into the avgene
-					if (randfloat()>0.5) (avgene->lnk)->set_trait(get_trait((*p1gene)->lnk));
-					else (avgene->lnk)->set_trait(get_trait((*p2gene)->lnk));
+					if (randfloat()>0.5) {
+                        avgene->lnk->set_trait_id((*p1gene)->lnk->get_trait_id());
+					} else {
+                        avgene->lnk->set_trait_id((*p2gene)->lnk->get_trait_id());
+                    }
 
 					//WEIGHTS AVERAGED HERE
 					(avgene->lnk)->weight=(((*p1gene)->lnk)->weight+((*p2gene)->lnk)->weight)/2.0;
@@ -1747,8 +1750,11 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 				else {
 
 					//Average them into the avgene
-					if (randfloat()>0.5) (avgene->lnk)->set_trait(get_trait((*p1gene)->lnk));
-					else (avgene->lnk)->set_trait(get_trait((*p2gene)->lnk));
+					if (randfloat()>0.5) {
+                        avgene->lnk->set_trait_id((*p1gene)->lnk->get_trait_id());
+                    } else {
+                        avgene->lnk->set_trait_id((*p2gene)->lnk->get_trait_id());
+                    }
 
 					//WEIGHTS AVERAGED HERE
 					(avgene->lnk)->weight=(((*p1gene)->lnk)->weight+((*p2gene)->lnk)->weight)/2.0;
@@ -2051,39 +2057,17 @@ int Genome::extrons() {
 
 void Genome::randomize_traits() {
 
-	int numtraits=traits.size();
-	int traitnum; //number of selected random trait
-	std::vector<NNode*>::iterator curnode;
-	std::vector<Gene*>::iterator curgene;
-	std::vector<Trait*>::iterator curtrait;
+	int numtraits = (int)traits.size();
 
-	//Go through all nodes and randomize their trait pointers
-	for(curnode=nodes.begin();curnode!=nodes.end();++curnode) {
-		traitnum=randint(1,numtraits); //randomize trait
-		(*curnode)->set_trait_id(traitnum);
-
-		curtrait=traits.begin();
-		while(((*curtrait)->trait_id)!=traitnum)
-			++curtrait;
-		(*curnode)->set_trait_id((*curtrait)->trait_id);
-
-		//if ((*curtrait)==0) cout<<"ERROR: Random trait empty"<<std::endl;
-
+    for(NNode *node: nodes) {
+		int trait_id = randint(1,numtraits); //randomize trait
+		node->set_trait_id(trait_id);
 	}
 
-	//Go through all connections and randomize their trait pointers
-	for(curgene=genes.begin();curgene!=genes.end();++curgene) {
-		traitnum=randint(1,numtraits); //randomize trait
-		(*curgene)->lnk->trait_id=traitnum;
-
-		curtrait=traits.begin();
-		while(((*curtrait)->trait_id)!=traitnum)
-			++curtrait;
-		(*curgene)->lnk->set_trait((*curtrait));
-
-		//if ((*curtrait)==0) cout<<"ERROR: Random trait empty"<<std::endl;
+    for(Gene *gene: genes) {
+		int trait_id = randint(1,numtraits); //randomize trait
+		gene->lnk->set_trait_id(trait_id);
 	}
-
 }
 
 inline Trait *get_trait(const vector<Trait *> &traits, int trait_id) {

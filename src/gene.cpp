@@ -58,7 +58,6 @@ Gene::Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*>
 	NNode *onode;
 	double weight;
 	int recur;
-	Trait *traitptr;
 
 	std::vector<Trait*>::iterator curtrait;
 	std::vector<NNode*>::iterator curnode;
