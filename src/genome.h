@@ -70,21 +70,6 @@ namespace NEAT {
 		//This constructor assumes that some routine has already read in GENOMESTART
         Genome(int id, std::ifstream &iFile);
 
-		// This special constructor creates a Genome
-		// with i inputs, o outputs, n out of nmax hidden units, and random
-		// connectivity.  If r is true then recurrent connections will
-		// be included. 
-		// The last input is a bias
-		// Linkprob is the probability of a link  
-		Genome(int new_id,int i, int o, int n,int nmax, bool r, double linkprob);
-
-		//Special constructor that creates a Genome of 3 possible types:
-		//0 - Fully linked, no hidden nodes
-		//1 - Fully linked, one hidden node splitting each link
-		//2 - Fully connected with a hidden layer, recurrent 
-		//num_hidden is only used in type 2
-		Genome(int num_in,int num_out,int num_hidden,int type);
-
 		// Loads a new Genome from a file (doesn't require knowledge of Genome's id)
 		static Genome *new_Genome_load(char *filename);
 
@@ -198,14 +183,6 @@ namespace NEAT {
         bool link_exists(NNode *in_node, NNode *out_node, bool is_recurrent);
         bool is_recur(NNode *in_node, NNode *out_node);
 	};
-
-	//Calls special constructor that creates a Genome of 3 possible types:
-	//0 - Fully linked, no hidden nodes
-	//1 - Fully linked, one hidden node splitting each link
-	//2 - Fully connected with a hidden layer 
-	//num_hidden is only used in type 2
-	//Saves to file "auto_genome"
-	Genome *new_Genome_auto(int num_in,int num_out,int num_hidden,int type, const char *filename);
 
 	void print_Genome_tofile(Genome *g,const char *filename);
 

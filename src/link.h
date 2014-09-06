@@ -29,8 +29,6 @@ namespace NEAT {
 	// It can be marked as recurrent 
 	// Its parameters are made public for efficiency 
 	class Link {
-		Trait *linktrait; // Points to a trait of parameters for genetic creation
-
 	public: 
 		double weight; // Weight of connection
 		NNode *in_node; // NNode inputting into the link
@@ -50,7 +48,7 @@ namespace NEAT {
 		Link(double w,NNode *inode,NNode *onode,bool recur);
 
 		// Including a trait pointer in the Link creation
-		Link(Trait *lt,double w,NNode *inode,NNode *onode,bool recur);
+		Link(int trait_id,double w,NNode *inode,NNode *onode,bool recur);
 
 		// For when you don't know the connections yet
 		Link(double w);
@@ -59,9 +57,9 @@ namespace NEAT {
 		Link(const Link& link);
 
         inline int get_trait_id() {
-            return linktrait ? linktrait->trait_id : trait_id;
+            return trait_id;
         }
-        inline void set_trait(Trait *t) {linktrait = t;}
+        inline void set_trait(Trait *t) {trait_id = t->trait_id;}
 
 		// Derive a trait into link params
 		void derive_trait(Trait *curtrait);

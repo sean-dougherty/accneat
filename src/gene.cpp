@@ -30,8 +30,8 @@ Gene::Gene(double w, NNode *inode, NNode *onode, bool recur, double innov, doubl
 }
 
 
-Gene::Gene(Trait *tp,double w,NNode *inode,NNode *onode,bool recur,double innov,double mnum) {
-	lnk=new Link(tp,w,inode,onode,recur);
+Gene::Gene(int trait_id,double w,NNode *inode,NNode *onode,bool recur,double innov,double mnum) {
+	lnk=new Link(trait_id,w,inode,onode,recur);
 	innovation_num=innov;
 	mutation_num=mnum;
 
@@ -40,9 +40,8 @@ Gene::Gene(Trait *tp,double w,NNode *inode,NNode *onode,bool recur,double innov,
 	frozen=false;
 }
 
-Gene::Gene(Gene *g,Trait *tp,NNode *inode,NNode *onode) {
-	//cout<<"Trying to attach nodes: "<<inode<<" "<<onode<<endl;
-	lnk=new Link(tp,(g->lnk)->weight,inode,onode,(g->lnk)->is_recurrent);
+Gene::Gene(Gene *g,int trait_id,NNode *inode,NNode *onode) {
+	lnk=new Link(trait_id,(g->lnk)->weight,inode,onode,(g->lnk)->is_recurrent);
 	innovation_num=g->innovation_num;
 	mutation_num=g->mutation_num;
 	enable=g->enable;
@@ -52,7 +51,7 @@ Gene::Gene(Gene *g,Trait *tp,NNode *inode,NNode *onode) {
 
 Gene::Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*> &nodes) {
 	//Gene parameter holders
-	int traitnum;
+	int trait_id;
 	int inodenum;
 	int onodenum;
 	NNode *inode;
@@ -67,43 +66,9 @@ Gene::Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*>
 	//Get the gene parameters
 
     std::stringstream ss(argline);
-
-	//char curword[128];
-	//char delimiters[] = " \n";
-	//int curwordnum = 0;
-
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//traitnum = atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//inodenum = atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//onodenum = atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//weight = atof(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//recur = atoi(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//innovation_num = atof(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//mutation_num = atof(curword);
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
-	//enable = (bool)(atoi(curword));
-
-    ss >> traitnum >> inodenum >> onodenum >> weight >> recur >> innovation_num >> mutation_num >> enable;
-    //std::cout << traitnum << " " << inodenum << " " << onodenum << " ";
-    //std::cout << weight << " " << recur << " " << innovation_num << " ";
-    //std::cout << mutation_num << " " << enable << std::endl;
+    ss >> trait_id >> inodenum >> onodenum >> weight >> recur >> innovation_num >> mutation_num >> enable;
 
 	frozen=false; //TODO: MAYBE CHANGE
-
-	//Get a pointer to the linktrait
-	if (traitnum==0) traitptr=0;
-	else {
-		curtrait=traits.begin();
-		while(((*curtrait)->trait_id)!=traitnum)
-			++curtrait;
-		traitptr=(*curtrait);
-	}
 
 	//Get a pointer to the input node
 	curnode=nodes.begin();
@@ -117,7 +82,7 @@ Gene::Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*>
 		++curnode;
 	onode=(*curnode);
 
-	lnk=new Link(traitptr,weight,inode,onode,recur);
+	lnk=new Link(trait_id,weight,inode,onode,recur);
 }
 
 Gene::Gene(const Gene& gene)
