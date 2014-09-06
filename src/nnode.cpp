@@ -60,7 +60,7 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	override=false;
 }
 
-NNode::NNode(NNode *n, int trait_id_) {
+NNode::NNode(NNode *n) {
     in_depth = false;
 	active_flag=false;
 	activation=0;
@@ -75,7 +75,7 @@ NNode::NNode(NNode *n, int trait_id_) {
 	dup=0;
 	analogue=0;
 	frozen=false;
-    trait_id = trait_id_;
+    trait_id = n->trait_id;
 	override=false;
 }
 

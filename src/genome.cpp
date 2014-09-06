@@ -62,7 +62,7 @@ Genome::Genome(const Genome& genome)
 
 	//Duplicate NNodes
 	for(curnode=genome.nodes.begin();curnode!=genome.nodes.end();++curnode) {
-		NNode* newnode=new NNode(*curnode, (*curnode)->get_trait_id());
+		NNode* newnode=new NNode(*curnode);
 
 		(*curnode)->dup=newnode;  //Remember this node's old copy
 		//    (*curnode)->activation_count=55;
@@ -579,7 +579,7 @@ Genome *Genome::duplicate(int new_id) {
 
 	//Duplicate NNodes
 	for(curnode=nodes.begin();curnode!=nodes.end();++curnode) {
-		newnode=new NNode(*curnode, (*curnode)->get_trait_id());
+		newnode=new NNode(*curnode);
 
 		(*curnode)->dup=newnode;  //Remember this node's old copy
 		//    (*curnode)->activation_count=55;
@@ -1077,7 +1077,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
             || (node->gen_node_label == OUTPUT)) {
 
             //Create a new node off the sensor or output
-            NNode *new_node = new NNode(node, node->get_trait_id());
+            NNode *new_node = new NNode(node);
             //Add the new node
             node_insert(newnodes, new_node);
         }
@@ -1184,7 +1184,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_inode=new NNode(inode, inode->get_trait_id());
+						new_inode=new NNode(inode);
 						node_insert(newnodes,new_inode);
 
 					}
@@ -1200,7 +1200,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 						++curnode;
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_onode=new NNode(onode, onode->get_trait_id());
+						new_onode=new NNode(onode);
 						node_insert(newnodes,new_onode);
 
 					}
@@ -1218,7 +1218,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 						++curnode;
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_onode=new NNode(onode,onode->get_trait_id());
+						new_onode=new NNode(onode);
 						//newnodes.push_back(new_onode);
 						node_insert(newnodes,new_onode);
 
@@ -1235,7 +1235,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 						++curnode;
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_inode=new NNode(inode,inode->get_trait_id());
+						new_inode=new NNode(inode);
 						node_insert(newnodes,new_inode);
 					}
 					else {
@@ -1328,7 +1328,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 			(((*curnode)->gen_node_label)==OUTPUT)||
 			(((*curnode)->gen_node_label)==BIAS)) {
 				//Create a new node off the sensor or output
-				new_onode=new NNode((*curnode),(*curnode)->get_trait_id());
+				new_onode=new NNode((*curnode));
 
 				//Add the new node
 				node_insert(newnodes,new_onode);
@@ -1498,7 +1498,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_inode=new NNode(inode,inode->get_trait_id());
+						new_inode=new NNode(inode);
 
 						node_insert(newnodes,new_inode);
 					}
@@ -1514,7 +1514,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 						++curnode;
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_onode=new NNode(onode,onode->get_trait_id());
+						new_onode=new NNode(onode);
 
 						node_insert(newnodes,new_onode);
 					}
@@ -1531,7 +1531,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 						++curnode;
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_onode=new NNode(onode,onode->get_trait_id());
+						new_onode=new NNode(onode);
 
 						node_insert(newnodes,new_onode);
 					}
@@ -1546,7 +1546,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 						++curnode;
 					if (curnode==newnodes.end()) {
 						//Here we know the node doesn't exist so we have to add it
-						new_inode=new NNode(inode,inode->get_trait_id());
+						new_inode=new NNode(inode);
 
 						node_insert(newnodes,new_inode);
 					}
@@ -1767,7 +1767,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 
 				if (curnode==newnodes.end()) {
 					//Here we know the node doesn't exist so we have to add it
-					new_inode=new NNode(inode,inode->get_trait_id());
+					new_inode=new NNode(inode);
 
 					node_insert(newnodes,new_inode);
 				}
@@ -1782,7 +1782,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 					++curnode;
 				if (curnode==newnodes.end()) {
 					//Here we know the node doesn't exist so we have to add it
-					new_onode=new NNode(onode,onode->get_trait_id());
+					new_onode=new NNode(onode);
 					node_insert(newnodes,new_onode);
 
 				}
@@ -1799,7 +1799,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 					++curnode;
 				if (curnode==newnodes.end()) {
 					//Here we know the node doesn't exist so we have to add it
-					new_onode=new NNode(onode,onode->get_trait_id());
+					new_onode=new NNode(onode);
 					node_insert(newnodes,new_onode);
 				}
 				else {
@@ -1814,7 +1814,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 					++curnode;
 				if (curnode==newnodes.end()) {
 					//Here we know the node doesn't exist so we have to add it
-					new_inode=new NNode(inode,inode->get_trait_id());
+					new_inode=new NNode(inode);
 					//newnodes.push_back(new_inode);
 					node_insert(newnodes,new_inode);
 				}
