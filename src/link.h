@@ -58,7 +58,9 @@ namespace NEAT {
 		// Copy Constructor
 		Link(const Link& link);
 
-        inline Trait *get_trait() {return linktrait;}
+        inline int get_trait_id() {
+            return linktrait ? linktrait->trait_id : trait_id;
+        }
         inline void set_trait(Trait *t) {linktrait = t;}
 
 		// Derive a trait into link params

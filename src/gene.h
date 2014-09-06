@@ -51,7 +51,6 @@ namespace NEAT {
 
 		//Print gene to a file- called from Genome
         void print_to_file(std::ostream &outFile);
-	void print_to_file(std::ofstream &outFile);
 	};
 
 } // namespace NEAT
