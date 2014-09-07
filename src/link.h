@@ -62,7 +62,7 @@ namespace NEAT {
         inline void set_trait_id(int trait_id_) {trait_id = trait_id_;}
 
 		// Derive a trait into link params
-		void derive_trait(Trait *curtrait);
+		void derive_trait(const Trait &curtrait);
 
 	};
 

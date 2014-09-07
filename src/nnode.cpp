@@ -190,21 +190,10 @@ void NNode::flushback() {
 }
 
 // Reserved for future system expansion
-void NNode::derive_trait(Trait *curtrait) {
-
-	if (curtrait!=0) {
-		for (int count=0;count<NEAT::num_trait_params;count++)
-			params[count]=(curtrait->params)[count];
-	}
-	else {
-		for (int count=0;count<NEAT::num_trait_params;count++)
-			params[count]=0;
-	}
-
-	if (curtrait!=0)
-		trait_id=curtrait->trait_id;
-	else trait_id=1;
-
+void NNode::derive_trait(const Trait &t) {
+    trait_id = t.trait_id;
+    for(int count=0; count < NEAT::num_trait_params; count++)
+        params[count] = t.params[count];
 }
 
 void NNode::print_to_file(std::ofstream &outFile) {

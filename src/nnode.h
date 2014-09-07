@@ -141,7 +141,7 @@ namespace NEAT {
         void print_to_file(std::ofstream &outFile);
 
 		// Have NNode gain its properties from the trait
-		void derive_trait(Trait *curtrait);
+		void derive_trait(const Trait &curtrait);
 
 		// Writes back changes weight values into the genome
 		// (Lamarckian trasnfer of characteristics)
