@@ -25,7 +25,7 @@ using namespace NEAT;
 using std::vector;
 
 
-class Topology {
+class RecurrencyChecker {
 private:
     size_t nnodes;
     Gene **genes;
@@ -79,9 +79,9 @@ private:
     }
 
 public:
-    Topology(size_t nnodes_,
-             vector<Gene *> &genome_genes,
-             Gene **buf_genes) {
+    RecurrencyChecker(size_t nnodes_,
+                      vector<Gene *> &genome_genes,
+                      Gene **buf_genes) {
         nnodes = nnodes_;
         genes = buf_genes;
 
@@ -122,6 +122,41 @@ public:
     
 };
 
+class NodeLookup {
+    vector<NNode *> nodes;
+
+    static bool cmp(NNode *node, int node_id) {
+        return node->node_id < node_id;
+    }
+public:
+    // Must be sorted by node_id in ascending order
+    NodeLookup(vector<NNode *> &nodes_)
+        : nodes(nodes_) {
+
+#ifndef NDEBUG
+        for(size_t i = 1; i < nodes.size(); i++) {
+            assert(nodes[i-1]->node_id <= nodes[i]->node_id);
+        }
+#endif
+    }
+
+    NNode *find(int node_id) {
+        auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
+        if(it == nodes.end())
+            return nullptr;
+
+        NNode *node = *it;
+        if(node->node_id != node_id)
+            return nullptr;
+
+        return node;
+    }
+
+    NNode *find(NNode *n) {
+        return find(n->node_id);
+    }
+};
+
 Genome::Genome(int id, std::vector<Trait*> t, std::vector<NNode*> n, std::vector<Gene*> g) {
 	genome_id=id;
 	traits=t;
@@ -151,34 +186,26 @@ Genome::Genome(const Genome& genome)
 {
 	genome_id = genome.genome_id;
 
-	std::vector<Trait*>::const_iterator curtrait;
-	std::vector<NNode*>::const_iterator curnode;
-	std::vector<Gene*>::const_iterator curgene;
-
-	for(curtrait=genome.traits.begin(); curtrait!=genome.traits.end(); ++curtrait) {
-		traits.push_back(new Trait(**curtrait));
-	}
+    //Duplicate traits
+    for(Trait *trait: genome.traits) {
+        traits.push_back(new Trait(*trait));
+    }
 
 	//Duplicate NNodes
-	for(curnode=genome.nodes.begin();curnode!=genome.nodes.end();++curnode) {
-		NNode* newnode=new NNode(*curnode);
-
-		(*curnode)->dup=newnode;  //Remember this node's old copy
-		//    (*curnode)->activation_count=55;
-		nodes.push_back(newnode);    
+    for(NNode *node: genome.nodes) {
+		nodes.push_back(new NNode(node));    
 	}
 
-	NNode *inode; //For forming a gene 
-	NNode *onode; //For forming a gene
+    NodeLookup node_lookup(nodes);
 
 	//Duplicate Genes
-	for(curgene=genome.genes.begin(); curgene!=genome.genes.end(); ++curgene) {
+    for(Gene *gene: genes) {
 		//First find the nodes connected by the gene's link
+        Link *lnk = gene->lnk;
 
-		inode=(((*curgene)->lnk)->in_node)->dup;
-		onode=(((*curgene)->lnk)->out_node)->dup;
-
-		Gene* newgene=new Gene(*curgene,(*curgene)->lnk->get_trait_id(),inode,onode);
+		NNode *inode = node_lookup.find(lnk->in_node);
+		NNode *onode = node_lookup.find(lnk->out_node);
+		Gene* newgene=new Gene(gene, lnk->get_trait_id(), inode, onode);
 		genes.push_back(newgene);
 
 	}
@@ -384,19 +411,17 @@ Network *Genome::genesis(int id) {
 
 		//Keep track of all nodes, not just input and output
 		all_list.push_back(newnode);
-
-		//Have the node specifier point to the node it generated
-		(*curnode)->analogue=newnode;
-
 	}
+
+    NodeLookup node_lookup(all_list);
 
 	//Create the links by iterating through the genes
 	for(curgene=genes.begin();curgene!=genes.end();++curgene) {
 		//Only create the link if the gene is enabled
 		if (((*curgene)->enable)==true) {
 			curlink=(*curgene)->lnk;
-			inode=(curlink->in_node)->analogue;
-			onode=(curlink->out_node)->analogue;
+			inode = node_lookup.find(curlink->in_node);
+			onode = node_lookup.find(curlink->out_node);
 
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
@@ -630,54 +655,31 @@ Genome *Genome::duplicate(int new_id) {
 	std::vector<NNode*> nodes_dup;
 	std::vector<Gene*> genes_dup;
 
-	//Iterators for the old Genome
-	std::vector<Trait*>::iterator curtrait;
-	std::vector<NNode*>::iterator curnode;
-	std::vector<Gene*>::iterator curgene;
-
-	//New item pointers
-	Trait *newtrait;
-	NNode *newnode;
-	Gene *newgene;
-	NNode *inode; //For forming a gene 
-	NNode *onode; //For forming a gene
-
-	Genome *newgenome;
-
-	//verify();
-
 	//Duplicate the traits
-	for(curtrait=traits.begin();curtrait!=traits.end();++curtrait) {
-		newtrait=new Trait(*curtrait);
-		traits_dup.push_back(newtrait);
+    for(Trait *trait: traits) {
+        traits_dup.push_back(new Trait(*trait));
 	}
 
 	//Duplicate NNodes
-	for(curnode=nodes.begin();curnode!=nodes.end();++curnode) {
-		newnode=new NNode(*curnode);
-
-		(*curnode)->dup=newnode;  //Remember this node's old copy
-		//    (*curnode)->activation_count=55;
-		nodes_dup.push_back(newnode);    
+    for(NNode *node: nodes) {
+		nodes_dup.push_back(new NNode(node));    
 	}
 
+    NodeLookup node_lookup(nodes_dup);
+
 	//Duplicate Genes
-	for(curgene=genes.begin();curgene!=genes.end();++curgene) {
+    for(Gene *gene: genes) {
 		//First find the nodes connected by the gene's link
-
-		inode=(((*curgene)->lnk)->in_node)->dup;
-		onode=(((*curgene)->lnk)->out_node)->dup;
-
-		newgene=new Gene(*curgene,(*curgene)->lnk->get_trait_id(),inode,onode);
+        Link *lnk = gene->lnk;
+		NNode *inode = node_lookup.find(lnk->in_node);
+		NNode *onode = node_lookup.find(lnk->out_node);
+		Gene *newgene = new Gene(gene, lnk->get_trait_id(), inode, onode);
 		genes_dup.push_back(newgene);
 
 	}
 
 	//Finally, return the genome
-	newgenome=new Genome(new_id,traits_dup,nodes_dup,genes_dup);
-
-	return newgenome;
-
+	return new Genome(new_id,traits_dup,nodes_dup,genes_dup);
 }
 
 void Genome::mutate_random_trait() {
@@ -948,8 +950,8 @@ bool Genome::mutate_add_node(std::vector<Innovation*> &innovs,
 bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
                              double &curinnov,
                              int tries) {
-    Gene *topology_buf[genes.size()];
-    Topology topology(nodes.size(), genes, topology_buf);
+    Gene *recur_checker_buf[genes.size()];
+    RecurrencyChecker recur_checker(nodes.size(), genes, recur_checker_buf);
 
 	NNode *in_node = nullptr; //Pointers to the nodes
 	NNode *out_node = nullptr; //Pointers to the nodes
@@ -988,7 +990,7 @@ bool Genome::mutate_add_link(std::vector<Innovation*> &innovs,
             }
 
             found_nodes = !link_exists(in_node, out_node, do_recur)
-                && (do_recur == topology.is_recur(in_node, out_node));
+                && (do_recur == recur_checker.is_recur(in_node, out_node));
         }
 
         assert( out_node->type != SENSOR );

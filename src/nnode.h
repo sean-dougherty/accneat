@@ -55,8 +55,6 @@ namespace NEAT {
 		int activation_count;  // keeps track of which activation the node is currently in
 		double last_activation; // Holds the previous step's activation for recurrency
 		double last_activation2; // Holds the activation BEFORE the prevous step's
-		NNode *dup;       // Used for Genome duplication
-		NNode *analogue;  // Used for Gene decoding
 
 	protected:
 
@@ -157,9 +155,6 @@ namespace NEAT {
 
 		// Have NNode gain its properties from the trait
 		void derive_trait(Trait *curtrait);
-
-		// Returns the gene that created the node
-		NNode *get_analogue();
 
 		// Force an output value on the node
 		void override_output(double new_output);

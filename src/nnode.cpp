@@ -33,8 +33,6 @@ NNode::NNode(nodetype ntype,int nodeid) {
 	node_id=nodeid;
 	ftype=SIGMOID;
 	gen_node_label=HIDDEN;
-	dup=0;
-	analogue=0;
 	frozen=false;
 	trait_id=1;
 	override=false;
@@ -53,8 +51,6 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	node_id=nodeid;
 	ftype=SIGMOID;
 	gen_node_label=placement;
-	dup=0;
-	analogue=0;
 	frozen=false;
 	trait_id=1;
 	override=false;
@@ -72,8 +68,6 @@ NNode::NNode(NNode *n) {
 	node_id=n->node_id;
 	ftype=SIGMOID;
 	gen_node_label=n->gen_node_label;
-	dup=0;
-	analogue=0;
 	frozen=false;
     trait_id = n->trait_id;
 	override=false;
@@ -112,8 +106,6 @@ NNode::NNode (const NNode& nnode)
 	node_id = nnode.node_id;
 	ftype = nnode.ftype;
 	gen_node_label = nnode.gen_node_label;
-	dup = nnode.dup;
-	analogue = nnode.dup;
 	frozen = nnode.frozen;
 	trait_id = nnode.trait_id;
 	override = nnode.override;
@@ -223,11 +215,6 @@ void NNode::derive_trait(Trait *curtrait) {
 		trait_id=curtrait->trait_id;
 	else trait_id=1;
 
-}
-
-// Returns the gene that created the node
-NNode *NNode::get_analogue() {
-	return analogue;
 }
 
 // Force an output value on the node
