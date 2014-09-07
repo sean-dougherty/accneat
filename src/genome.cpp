@@ -629,7 +629,6 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
                              double &curinnov) {
 	NNode *in_node; //Here are the nodes connected by the gene
 	NNode *out_node; 
-	Link *thelink;  //The link inside the random gene
 
 	vector<Innovation*>::iterator theinnov; //For finding a historical match
 	bool done=false;
@@ -659,12 +658,11 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 	thegene->enable=false;
 
 	//Extract the link
-	thelink=thegene->lnk;
 	oldweight=thegene->weight();
 
 	//Extract the nodes
-	in_node=thelink->in_node;
-	out_node=thelink->out_node;
+	in_node = get_node(thegene->in_node_id());
+	out_node = get_node(thegene->out_node_id());
 
 	//Check to see if this innovation has already been done   
 	//in another genome
@@ -679,7 +677,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 			//The innovation is totally novel
 
 			//Get the old link's trait
-            int trait_id = thelink->get_trait_id();
+            int trait_id = thegene->trait_id();
 
 			//Create the new NNode
 			//By convention, it will point to the first trait
@@ -687,7 +685,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 			newnode->set_trait_id(traits[0].trait_id);
 
 			//Create the new Genes
-			if (thelink->is_recurrent) {
+			if (thegene->is_recurrent()) {
 				newgene1=new Gene(trait_id,1.0,in_node,newnode,true,curinnov,0);
 				newgene2=new Gene(trait_id,oldweight,newnode,out_node,false,curinnov+1,0);
 				curinnov+=2.0;
@@ -720,7 +718,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 			//Here, the innovation has been done before
 
 			//Get the old link's trait
-            int trait_id = thelink->get_trait_id();
+            int trait_id = thegene->trait_id();
 
 			//Create the new NNode
 			newnode=new NNode(NEURON,(*theinnov)->newnode_id,HIDDEN);      
@@ -729,7 +727,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 			newnode->set_trait_id(traits[0].trait_id);
 
 			//Create the new Genes
-			if (thelink->is_recurrent) {
+			if (thegene->is_recurrent()) {
 				newgene1=new Gene(trait_id,1.0,in_node,newnode,true,(*theinnov)->innovation_num1,0);
 				newgene2=new Gene(trait_id,oldweight,newnode,out_node,false,(*theinnov)->innovation_num2,0);
 			}
