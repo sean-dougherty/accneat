@@ -59,16 +59,6 @@ namespace NEAT {
 	protected:
 
         bool in_depth;
-		// This is necessary for a special recurrent case when the innode
-		// of a recurrent link is one time step ahead of the outnode.
-		// The innode then needs to send from TWO time steps ago
-
-		bool override; // The NNode cannot compute its own output- something is overriding it
-
-		double override_value; // Contains the activation value that will override this node's activation
-
-		// Pointer to the Sensor corresponding to this Body.
-		//Sensor* mySensor;
 
 	public:
 		bool frozen; // When frozen, cannot be mutated (meaning its trait pointer is fixed)
@@ -155,15 +145,6 @@ namespace NEAT {
 
 		// Have NNode gain its properties from the trait
 		void derive_trait(Trait *curtrait);
-
-		// Force an output value on the node
-		void override_output(double new_output);
-
-		// Tell whether node has been overridden
-		bool overridden();
-
-		// Set activation to the override value and turn off override
-		void activate_override();  
 
 		// Writes back changes weight values into the genome
 		// (Lamarckian trasnfer of characteristics)

@@ -151,20 +151,8 @@ bool Network::activate() {
 					//Keep a memory of activations for potential time delayed connections
 					node->last_activation2=node->last_activation;
 					node->last_activation=node->activation;
-
-					//If the node is being overrided from outside,
-					//stick in the override value
-					if (node->overridden()) {
-						//Set activation to the override value and turn off override
-						node->activate_override();
-					}
-					else {
-						//Now run the net activation through an activation function
-						if (node->ftype==SIGMOID)
-							node->activation=NEAT::fsigmoid(node->activesum,4.924273,2.4621365);  //Sigmoidal activation- see comments under fsigmoid
-					}
-					//cout<<node->activation<<endl;
-
+                    //Now run the net activation through an activation function
+                    node->activation=NEAT::fsigmoid(node->activesum,4.924273,2.4621365);  //Sigmoidal activation- see comments under fsigmoid
 					//Increment the activation_count
 					//First activation cannot be from nothing!!
 					node->activation_count++;

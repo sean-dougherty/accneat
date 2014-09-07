@@ -35,7 +35,6 @@ NNode::NNode(nodetype ntype,int nodeid) {
 	gen_node_label=HIDDEN;
 	frozen=false;
 	trait_id=1;
-	override=false;
 }
 
 NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
@@ -53,7 +52,6 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	gen_node_label=placement;
 	frozen=false;
 	trait_id=1;
-	override=false;
 }
 
 NNode::NNode(NNode *n) {
@@ -70,7 +68,6 @@ NNode::NNode(NNode *n) {
 	gen_node_label=n->gen_node_label;
 	frozen=false;
     trait_id = n->trait_id;
-	override=false;
 }
 
 NNode::NNode (const char *argline, std::vector<Trait*> &traits) {
@@ -87,8 +84,6 @@ NNode::NNode (const char *argline, std::vector<Trait*> &traits) {
 	// Get the Sensor Identifier and Parameter String
 	// mySensor = SensorRegistry::getSensor(id, param);
 	frozen=false;  //TODO: Maybe change
-
-	override=false;
 }
 
 // This one might be incomplete
@@ -108,7 +103,6 @@ NNode::NNode (const NNode& nnode)
 	gen_node_label = nnode.gen_node_label;
 	frozen = nnode.frozen;
 	trait_id = nnode.trait_id;
-	override = nnode.override;
 }
 
 NNode::~NNode() {
@@ -216,24 +210,6 @@ void NNode::derive_trait(Trait *curtrait) {
 	else trait_id=1;
 
 }
-
-// Force an output value on the node
-void NNode::override_output(double new_output) {
-	override_value=new_output;
-	override=true;
-}
-
-// Tell whether node has been overridden
-bool NNode::overridden() {
-	return override;
-}
-
-// Set activation to the override value and turn off override
-void NNode::activate_override() {
-	activation=override_value;
-	override=false;
-}
-
 
 void NNode::print_to_file(std::ofstream &outFile) {
   outFile<<"node "<<node_id<<" ";
