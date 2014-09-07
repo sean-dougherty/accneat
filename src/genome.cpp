@@ -164,51 +164,6 @@ Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, vector<Gene*> g
 	genes=g;
 }
 
-
-Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, vector<Link*> links) {
-	vector<Link*>::iterator curlink;
-	Gene *tempgene;
-	traits=t;
-	nodes=n;
-
-	genome_id=id;
-
-	//We go through the links and turn them into original genes
-	for(curlink=links.begin();curlink!=links.end();++curlink) {
-		//Create genes one at a time
-		tempgene=new Gene((*curlink)->get_trait_id(), (*curlink)->weight,(*curlink)->in_node,(*curlink)->out_node,(*curlink)->is_recurrent,1.0,0.0);
-		genes.push_back(tempgene);
-	}
-
-}
-
-Genome::Genome(const Genome& genome)
-{
-	genome_id = genome.genome_id;
-
-    //Duplicate traits
-    traits = genome.traits;
-
-	//Duplicate NNodes
-    for(NNode *node: genome.nodes) {
-		nodes.push_back(new NNode(node));    
-	}
-
-    NodeLookup node_lookup(nodes);
-
-	//Duplicate Genes
-    for(Gene *gene: genes) {
-		//First find the nodes connected by the gene's link
-        Link *lnk = gene->lnk;
-
-		NNode *inode = node_lookup.find(lnk->in_node);
-		NNode *onode = node_lookup.find(lnk->out_node);
-		Gene* newgene=new Gene(gene, lnk->get_trait_id(), inode, onode);
-		genes.push_back(newgene);
-
-	}
-}
-
 Genome::Genome(int id, std::ifstream &iFile) {
 
 	char curword[128];  //max word size of 128 characters

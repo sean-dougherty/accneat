@@ -65,15 +65,6 @@ namespace NEAT {
                std::vector<NNode*> n,
                std::vector<Gene*> g);
 
-		//Constructor which takes in links (not genes) and creates a Genome
-		Genome(int id,
-               const std::vector<Trait> &t,
-               std::vector<NNode*> n,
-               std::vector<Link*> links);
-
-		// Copy constructor
-		Genome(const Genome& genome);
-
 		//Special constructor which spawns off an input file
 		//This constructor assumes that some routine has already read in GENOMESTART
         Genome(int id, std::ifstream &iFile);
