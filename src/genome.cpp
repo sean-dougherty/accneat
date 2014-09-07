@@ -369,8 +369,8 @@ bool Genome::verify() {
     {
         //Check genes reference valid nodes.
         for(Gene *gene: genes) {
-            assert( node_lookup.find(gene->in_node_id()) );
-            assert( node_lookup.find(gene->out_node_id()) );
+            assert( get_node(gene->in_node_id()) );
+            assert( get_node(gene->out_node_id()) );
         }
     }
 
@@ -642,12 +642,10 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
     Gene *thegene = nullptr;
     {
-        NodeLookup node_lookup(nodes);
-
         for(int i = 0; !thegene && i < 20; i++) {
             Gene *g = genes[ randint(0,genes.size()-1) ];
             //If either the gene is disabled, or it has a bias input, try again
-            if( g->enable && node_lookup.find(g->in_node_id())->gen_node_label != BIAS ) {
+            if( g->enable && get_node(g->in_node_id())->gen_node_label != BIAS ) {
                 thegene = g;
             }
         }
@@ -919,7 +917,6 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	vector<Gene*>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	Gene *chosengene = nullptr;  //Gene chosen for baby to inherit
 	vector<NNode*>::iterator curnode;  //For checking if NNodes exist already 
 
 	bool disable;  //Set to true if we want to disabled a chosen gene
@@ -971,35 +968,28 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	p1gene=genes.begin();
 	p2gene=(g->genes).begin();
 	while( !((p1gene==genes.end()) && (p2gene==(g->genes).end())) ) {
-        Genome *chosen_genome = nullptr;
+        ProtoGene protogene;
 
         skip=false;  //Default to not skipping a chosen gene
 
         if (p1gene==genes.end()) {
-            chosengene=*p2gene;
-            chosen_genome = genome2;
+            protogene.set_gene(genome2, *p2gene);
             ++p2gene;
             if (p1better) skip=true;  //Skip excess from the worse genome
-        }
-        else if (p2gene==(g->genes).end()) {
-            chosengene=*p1gene;
-            chosen_genome = genome1;
+        } else if (p2gene==(g->genes).end()) {
+            protogene.set_gene(genome1, *p1gene);
             ++p1gene;
             if (!p1better) skip=true; //Skip excess from the worse genome
-        }
-        else {
+        } else {
             //Extract current innovation numbers
             p1innov=(*p1gene)->innovation_num;
             p2innov=(*p2gene)->innovation_num;
 
             if (p1innov==p2innov) {
                 if (randfloat()<0.5) {
-                    chosengene=*p1gene;
-                    chosen_genome = genome1;
-                }
-                else {
-                    chosengene=*p2gene;
-                    chosen_genome = genome2;
+                    protogene.set_gene(genome1, *p1gene);
+                } else {
+                    protogene.set_gene(genome2, *p2gene);
                 }
 
                 //If one is disabled, the corresponding gene in the offspring
@@ -1010,19 +1000,14 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 
                 ++p1gene;
                 ++p2gene;
-
-            }
-            else if (p1innov<p2innov) {
-                chosengene=*p1gene;
-                chosen_genome = genome1;
+            } else if (p1innov < p2innov) {
+                protogene.set_gene(genome1, *p1gene);
                 ++p1gene;
 
                 if (!p1better) skip=true;
 
-            }
-            else if (p2innov<p1innov) {
-                chosengene=*p2gene;
-                chosen_genome = genome2;
+            } else if (p2innov<p1innov) {
+                protogene.set_gene(genome2, *p2gene);
                 ++p2gene;
 
                 if (p1better) skip=true;
@@ -1038,16 +1023,16 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
         skip=false;
         */
 
-        //Check to see if the chosengene conflicts with an already chosen gene
+        //Check to see if the protogene conflicts with an already chosen gene
         //i.e. do they represent the same link    
         curgene2=newgenes.begin();
         while ((curgene2!=newgenes.end())&&
-               (!(((*curgene2)->in_node_id()==chosengene->in_node_id())&&
-                  ((*curgene2)->out_node_id()==chosengene->out_node_id())&&((*curgene2)->is_recurrent()== chosengene->is_recurrent()) ))&&
-               (!(((*curgene2)->in_node_id()==chosengene->out_node_id())&&
-                  ((*curgene2)->out_node_id()==chosengene->in_node_id())&&
+               (!(((*curgene2)->in_node_id()==protogene.gene()->in_node_id())&&
+                  ((*curgene2)->out_node_id()==protogene.gene()->out_node_id())&&((*curgene2)->is_recurrent()== protogene.gene()->is_recurrent()) ))&&
+               (!(((*curgene2)->in_node_id()==protogene.gene()->out_node_id())&&
+                  ((*curgene2)->out_node_id()==protogene.gene()->in_node_id())&&
                   (!((*curgene2)->is_recurrent()))&&
-                  (!(chosengene->is_recurrent())) )))
+                  (!(protogene.gene()->is_recurrent())) )))
         {	
             ++curgene2;
         }
@@ -1055,14 +1040,13 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
         if (curgene2!=newgenes.end()) skip=true;  //Links conflicts, abort adding
 
         if (!skip) {
-            //Now add the chosengene to the baby
+            //Now add the gene to the baby
             NNode *new_inode;
             NNode *new_onode;
-            NodeLookup node_lookup(chosen_genome->nodes);
 
             //Next check for the nodes, add them if not in the baby Genome already
-            NNode *inode = node_lookup.find(chosengene->in_node_id());
-            NNode *onode = node_lookup.find(chosengene->out_node_id());
+            NNode *inode = protogene.in();
+            NNode *onode = protogene.out();
 
             //Check for inode in the newnodes list
             if (inode->node_id<onode->node_id) {
@@ -1138,7 +1122,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
             } //End NNode checking section- NNodes are now in new Genome
 
             //Add the Gene
-            newgene=new Gene(chosengene,chosengene->trait_id(),new_inode,new_onode);
+            newgene=new Gene(protogene.gene(),protogene.gene()->trait_id(),new_inode,new_onode);
             if (disable) {
                 newgene->enable=false;
                 disable=false;
@@ -1168,8 +1152,6 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	vector<Gene*>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	Gene *chosengene = nullptr;  //Gene chosen for baby to inherit
-
 	vector<NNode*>::iterator curnode;  //For checking if NNodes exist already 
 
 	//This Gene is used to hold the average of the two genes to be averaged
@@ -1226,24 +1208,21 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	p1gene=genes.begin();
 	p2gene=(g->genes).begin();
 	while(!((p1gene==genes.end()) && (p2gene==(g->genes).end()))) {
-        Genome *chosen_genome_in = nullptr;
-        Genome *chosen_genome_out = nullptr;
+        ProtoGene protogene;
 
         avgene->enable=true;  //Default to enabled
 
         skip=false;
 
         if (p1gene==genes.end()) {
-            chosengene=*p2gene;
-            chosen_genome_in = chosen_genome_out = genome2;
+            protogene.set_gene(genome2, *p2gene);
             ++p2gene;
 
             if (p1better) skip=true;
 
         }
         else if (p2gene==(g->genes).end()) {
-            chosengene=*p1gene;
-            chosen_genome_in = chosen_genome_out = genome1;
+            protogene.set_gene(genome1, *p1gene);
             ++p1gene;
 
             if (!p1better) skip=true;
@@ -1254,6 +1233,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
             p2innov=(*p2gene)->innovation_num;
 
             if (p1innov==p2innov) {
+                protogene.set_gene(nullptr, avgene);
+
                 //Average them into the avgene
                 if (randfloat()>0.5) {
                     avgene->set_trait_id((*p1gene)->trait_id());
@@ -1265,19 +1246,15 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
                 avgene->weight() = ((*p1gene)->weight()+(*p2gene)->weight())/2.0;
 
                 if(randfloat() > 0.5) {
-                    avgene->lnk->in_node = (*p1gene)->lnk->in_node;
-                    chosen_genome_in = genome1;
+                    protogene.set_in(genome1->get_node((*p1gene)->in_node_id()));
                 } else {
-                    avgene->lnk->in_node = (*p2gene)->lnk->in_node;
-                    chosen_genome_in = genome2;
+                    protogene.set_in(genome2->get_node((*p2gene)->in_node_id()));
                 }
 
                 if(randfloat() > 0.5) {
-                    avgene->lnk->out_node=((*p1gene)->lnk)->out_node;
-                    chosen_genome_out = genome1;
+                    protogene.set_out(genome1->get_node((*p1gene)->out_node_id()));
                 } else {
-                    avgene->lnk->out_node=((*p2gene)->lnk)->out_node;
-                    chosen_genome_out = genome2;
+                    protogene.set_out(genome2->get_node((*p2gene)->out_node_id()));
                 }
 
                 if (randfloat()>0.5) avgene->set_recurrent((*p1gene)->is_recurrent());
@@ -1290,20 +1267,15 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
                     (((*p2gene)->enable)==false)) 
                     if (randfloat()<0.75) avgene->enable=false;
 
-                chosengene=avgene;
                 ++p1gene;
                 ++p2gene;
-            }
-            else if (p1innov<p2innov) {
-                chosengene=*p1gene;
-                chosen_genome_in = chosen_genome_out = genome1;
+            } else if (p1innov<p2innov) {
+                protogene.set_gene(genome1, *p1gene);
                 ++p1gene;
 
                 if (!p1better) skip=true;
-            }
-            else if (p2innov<p1innov) {
-                chosengene=*p2gene;
-                chosen_genome_in = chosen_genome_out = genome2;
+            } else if (p2innov<p1innov) {
+                protogene.set_gene(genome2, *p2gene);
                 ++p2gene;
 
                 if (p1better) skip=true;
@@ -1326,13 +1298,13 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
         {
 
-            if ((((*curgene2)->in_node_id()==chosengene->in_node_id())&&
-                 ((*curgene2)->out_node_id()==chosengene->out_node_id())&&
-                 ((*curgene2)->is_recurrent()== chosengene->is_recurrent()))||
-                (((*curgene2)->out_node_id()==chosengene->in_node_id())&&
-                 ((*curgene2)->in_node_id()==chosengene->out_node_id())&&
+            if ((((*curgene2)->in_node_id()==protogene.gene()->in_node_id())&&
+                 ((*curgene2)->out_node_id()==protogene.gene()->out_node_id())&&
+                 ((*curgene2)->is_recurrent()== protogene.gene()->is_recurrent()))||
+                (((*curgene2)->out_node_id()==protogene.gene()->in_node_id())&&
+                 ((*curgene2)->in_node_id()==protogene.gene()->out_node_id())&&
                  (!((*curgene2)->is_recurrent()))&&
-                 (!(chosengene->is_recurrent()))     ))
+                 (!(protogene.gene()->is_recurrent()))     ))
             { 
                 skip=true;
 
@@ -1342,12 +1314,10 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
         if (!skip) {
             //Now add the chosengene to the baby
-            NodeLookup node_lookup_in(chosen_genome_in->nodes);
-            NodeLookup node_lookup_out(chosen_genome_out->nodes);
 
             //Next check for the nodes, add them if not in the baby Genome already
-            NNode *inode = node_lookup_in.find(chosengene->in_node_id());
-            NNode *onode = node_lookup_out.find(chosengene->out_node_id());
+            NNode *inode = protogene.in();
+            NNode *onode = protogene.out();
 
             //Check for inode in the newnodes list
             NNode *new_inode;
@@ -1422,7 +1392,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
             } //End NNode checking section- NNodes are now in new Genome
 
             //Add the Gene
-            newgene=new Gene(chosengene,chosengene->trait_id(),new_inode,new_onode);
+            newgene=new Gene(protogene.gene(),protogene.gene()->trait_id(),new_inode,new_onode);
 
             newgenes.push_back(newgene);
 
@@ -1453,7 +1423,6 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 	vector<Gene*>::iterator p1stop;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	Gene *chosengene = nullptr;  //Gene chosen for baby to inherit
 	vector<NNode*>::iterator curnode;  //For checking if NNodes exist already 
 
 	//This Gene is used to hold the average of the two genes to be averaged
@@ -1480,8 +1449,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 		stopper=(g->genes).end();
 		p1stop=genes.end();
 		p2stop=(g->genes).end();
-	}
-	else {
+	} else {
 		crosspoint=randint(0,((g->genes).size())-1);
 		p2gene=genes.begin();
 		p1gene=(g->genes).begin();
@@ -1500,22 +1468,16 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
     Genome *genome1 = this;
     Genome *genome2 = g;
 	while(p2gene!=stopper) {
-        Genome *chosen_genome_in = nullptr;
-        Genome *chosen_genome_out = nullptr;
-
+        ProtoGene protogene;
 		avgene->enable=true;  //Default to true
 
 		if (p1gene==p1stop) {
-			chosengene=*p2gene;
-            chosen_genome_in = chosen_genome_out = genome2;
+            protogene.set_gene(genome2, *p2gene);
 			++p2gene;
-		}
-		else if (p2gene==p2stop) {
-			chosengene=*p1gene;
-            chosen_genome_in = chosen_genome_out = genome1;
+		} else if (p2gene==p2stop) {
+            protogene.set_gene(genome1, *p1gene);
 			++p1gene;
-		}
-		else {
+		} else {
 			//Extract current innovation numbers
 			p1innov=(*p1gene)->innovation_num;
 			p2innov=(*p2gene)->innovation_num;
@@ -1524,13 +1486,12 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 
 				//Pick the chosengene depending on whether we've crossed yet
 				if (genecounter<crosspoint) {
-					chosengene=*p1gene;
-				}
-				else if (genecounter>crosspoint) {
-					chosengene=*p2gene;
-				}
-				//We are at the crosspoint here
-				else {
+                    protogene.set_gene(genome1, *p1gene);
+				} else if (genecounter>crosspoint) {
+                    protogene.set_gene(genome2, *p2gene);
+				} else {
+                    //We are at the crosspoint here
+                    protogene.set_gene(nullptr, avgene);
 
 					//Average them into the avgene
 					if (randfloat()>0.5) {
@@ -1542,21 +1503,16 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 					//WEIGHTS AVERAGED HERE
 					avgene->weight()=((*p1gene)->weight()+(*p2gene)->weight())/2.0;
 
-
 					if(randfloat() > 0.5) {
-                        avgene->lnk->in_node = (*p1gene)->lnk->in_node;
-                        chosen_genome_in = genome1;
+                        protogene.set_in(genome1->get_node((*p1gene)->in_node_id()));
 					} else { 
-                        avgene->lnk->in_node = (*p2gene)->lnk->in_node;
-                        chosen_genome_in = genome2;
+                        protogene.set_in(genome2->get_node((*p2gene)->in_node_id()));
                     }
 
 					if(randfloat() > 0.5) {
-                        avgene->lnk->out_node = (*p1gene)->lnk->out_node;
-                        chosen_genome_out = genome1;
+                        protogene.set_out(genome1->get_node((*p1gene)->out_node_id()));
 					} else {
-                        avgene->lnk->out_node = (*p2gene)->lnk->out_node;
-                        chosen_genome_out = genome2;
+                        protogene.set_out(genome2->get_node((*p2gene)->out_node_id()));
                     }
 
 					if (randfloat()>0.5) avgene->set_recurrent((*p1gene)->is_recurrent());
@@ -1568,8 +1524,6 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 					if ((((*p1gene)->enable)==false)||
 						(((*p2gene)->enable)==false)) 
 						avgene->enable=false;
-
-					chosengene=avgene;
 				}
 
 				++p1gene;
@@ -1578,14 +1532,12 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 			}
 			else if (p1innov<p2innov) {
 				if (genecounter<crosspoint) {
-					chosengene=*p1gene;
-                    chosen_genome_in = chosen_genome_out = genome1;
+                    protogene.set_gene(genome1, *p1gene);
 					++p1gene;
 					++genecounter;
 				}
 				else {
-					chosengene=*p2gene;
-                    chosen_genome_in = chosen_genome_out = genome2;
+                    protogene.set_gene(genome2, *p2gene);
 					++p2gene;
 				}
 			}
@@ -1601,13 +1553,13 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 		curgene2=newgenes.begin();
 
 		while ((curgene2!=newgenes.end())&&
-               (!(((*curgene2)->in_node_id()==chosengene->in_node_id())&&
-                  ((*curgene2)->out_node_id()==chosengene->out_node_id())&&
-                  ((*curgene2)->is_recurrent()== chosengene->is_recurrent()) ))&&
-               (!(((*curgene2)->in_node_id()==chosengene->out_node_id())&&
-                  ((*curgene2)->out_node_id()==chosengene->in_node_id())&&
+               (!(((*curgene2)->in_node_id()==protogene.gene()->in_node_id())&&
+                  ((*curgene2)->out_node_id()==protogene.gene()->out_node_id())&&
+                  ((*curgene2)->is_recurrent()== protogene.gene()->is_recurrent()) ))&&
+               (!(((*curgene2)->in_node_id()==protogene.gene()->out_node_id())&&
+                  ((*curgene2)->out_node_id()==protogene.gene()->in_node_id())&&
                   (!((*curgene2)->is_recurrent()))&&
-                  (!(chosengene->is_recurrent())) )))
+                  (!(protogene.gene()->is_recurrent())) )))
 		{
 
 			++curgene2;
@@ -1618,12 +1570,8 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 
 		if (!skip) {
 			//Now add the chosengene to the baby
-            NodeLookup node_lookup_in(chosen_genome_in->nodes);
-            NodeLookup node_lookup_out(chosen_genome_out->nodes);
-
-			//Next check for the nodes, add them if not in the baby Genome already
-            NNode *inode = node_lookup_in.find(chosengene->in_node_id());
-            NNode *onode = node_lookup_out.find(chosengene->out_node_id());
+            NNode *inode = protogene.in();
+            NNode *onode = protogene.out();
 
             NNode *new_inode;
             NNode *new_onode;
@@ -1696,7 +1644,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 			} //End NNode checking section- NNodes are now in new Genome
 
 			//Add the Gene
-			newgenes.push_back(new Gene(chosengene,chosengene->trait_id(),new_inode,new_onode));
+			newgenes.push_back(new Gene(protogene.gene(),protogene.gene()->trait_id(),new_inode,new_onode));
 
 		}  //End of if (!skip)
 
@@ -1875,21 +1823,10 @@ NNode *Genome::get_node(int id) {
 
 void NEAT::print_Genome_tofile(Genome *g,const char *filename) {
 
-	//ofstream oFile(filename,ios::out);
-
     std::string file = "nero/data/neat/";
     file += filename;
-    //strcpyl(file, 100, "nero/data/neat/", filename, 0);
 	std::ofstream oFile(file.c_str());
-//	oFile.open(file, std::ostream::Write);
-
-	//Make sure	it worked
-	//if (!oFile)	{
-	//	cerr<<"Can't open "<<filename<<" for output"<<std::endl;
-	//	return 0;
-	//}
 	g->print_to_file(oFile);
-
 	oFile.close();
 }
 

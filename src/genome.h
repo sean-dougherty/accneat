@@ -27,35 +27,6 @@ namespace NEAT {
 		COLDGAUSSIAN = 1
 	};
 
-    class NodeLookup {
-        std::vector<NNode *> &nodes;
-
-        static bool cmp(NNode *node, int node_id) {
-            return node->node_id < node_id;
-        }
-    public:
-        // Must be sorted by node_id in ascending order
-        NodeLookup(std::vector<NNode *> &nodes_)
-            : nodes(nodes_) {
-        }
-
-        NNode *find(int node_id) {
-            auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
-            if(it == nodes.end())
-                return nullptr;
-
-            NNode *node = *it;
-            if(node->node_id != node_id)
-                return nullptr;
-
-            return node;
-        }
-
-        NNode *find(NNode *n) {
-            return find(n->node_id);
-        }
-    };
-
 	//----------------------------------------------------------------------- 
 	//A Genome is the primary source of genotype information used to create   
 	//a phenotype.  It contains 3 major constituents:                         
@@ -209,10 +180,67 @@ namespace NEAT {
         Trait &get_trait(Gene *gene);
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
         NNode *get_node(int id);
-
-        static NNode *get_node(int id, Gene *gene, Genome *g1, Genome *g2);
         
     private:
+        class NodeLookup {
+            std::vector<NNode *> &nodes;
+
+            static bool cmp(NNode *node, int node_id) {
+                return node->node_id < node_id;
+            }
+        public:
+            // Must be sorted by node_id in ascending order
+        NodeLookup(std::vector<NNode *> &nodes_)
+            : nodes(nodes_) {
+            }
+
+            NNode *find(int node_id) {
+                auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
+                if(it == nodes.end())
+                    return nullptr;
+
+                NNode *node = *it;
+                if(node->node_id != node_id)
+                    return nullptr;
+
+                return node;
+            }
+
+            NNode *find(NNode *n) {
+                return find(n->node_id);
+            }
+        };
+
+        class ProtoGene {
+            Genome *_genome = nullptr;
+            Gene *_gene = nullptr;
+            NNode *_in = nullptr;
+            NNode *_out = nullptr;
+        public:
+            void set_gene(Genome *genome, Gene *gene) {
+                _genome = genome;
+                _gene = gene;
+            }
+            Gene *gene() {
+                return _gene;
+            }
+
+            void set_out(NNode *out) {
+                _out = out;
+                _gene->lnk->out_node = out; // tmp
+            }
+            NNode *out() {
+                return _out ? _out : _genome->get_node(_gene->out_node_id());
+            }
+
+            void set_in(NNode *in) {
+                _in = in;
+                _gene->lnk->in_node = in; // tmp
+            }
+            NNode *in() {
+                return _in ? _in : _genome->get_node(_gene->in_node_id());
+            }
+        };
         NodeLookup node_lookup;
         Genome(const Genome &other);
     };
