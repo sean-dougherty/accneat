@@ -79,10 +79,10 @@ Trait::Trait(const char *argline) {
 
 }
 
-Trait::Trait(Trait *t1,Trait *t2) {
-	for(int count=0;count<NEAT::num_trait_params;count++)
-		params[count]=(((t1->params)[count])+((t2->params)[count]))/2.0;
-	trait_id=t1->trait_id;
+Trait::Trait(const Trait &t1, const Trait &t2) {
+	trait_id = t1.trait_id;
+	for(int count=0; count < NEAT::num_trait_params; count++)
+		params[count] = (t1.params[count] + t2.params[count]) / 2.0;
 }
 
 void Trait::print_to_file(std::ofstream &outFile) {

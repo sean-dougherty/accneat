@@ -46,7 +46,7 @@ namespace NEAT {
 	public:
 		int genome_id;
 
-		std::vector<Trait*> traits; //parameter conglomerations
+		std::vector<Trait> traits; //parameter conglomerations
 		std::vector<NNode*> nodes; //List of NNodes for the Network
 		std::vector<Gene*> genes; //List of innovation-tracking genes
 
@@ -57,11 +57,19 @@ namespace NEAT {
 
 		void print_genome(); //Displays Genome on screen
 
+        // todo: use c++11 move for constructor vectors?
+
 		//Constructor which takes full genome specs and puts them into the new one
-		Genome(int id, std::vector<Trait*> t, std::vector<NNode*> n, std::vector<Gene*> g);
+		Genome(int id,
+               const std::vector<Trait> &t,
+               std::vector<NNode*> n,
+               std::vector<Gene*> g);
 
 		//Constructor which takes in links (not genes) and creates a Genome
-		Genome(int id, std::vector<Trait*> t, std::vector<NNode*> n, std::vector<Link*> links);
+		Genome(int id,
+               const std::vector<Trait> &t,
+               std::vector<NNode*> n,
+               std::vector<Link*> links);
 
 		// Copy constructor
 		Genome(const Genome& genome);
@@ -178,8 +186,8 @@ namespace NEAT {
 		void add_gene(std::vector<Gene*> &glist,Gene *g);
 
     private:
-        Trait *get_trait(NNode *node);
-        Trait *get_trait(Link *link);
+        Trait &get_trait(NNode *node);
+        Trait &get_trait(Link *link);
         bool link_exists(NNode *in_node, NNode *out_node, bool is_recurrent);
         bool is_recur(NNode *in_node, NNode *out_node);
 	};

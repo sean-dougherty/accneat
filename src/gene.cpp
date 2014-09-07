@@ -49,7 +49,8 @@ Gene::Gene(Gene *g,int trait_id,NNode *inode,NNode *onode) {
 	frozen=g->frozen;
 }
 
-Gene::Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*> &nodes) {
+//todo: use NodeLookup
+Gene::Gene(const char *argline, std::vector<NNode*> &nodes) {
 	//Gene parameter holders
 	int trait_id;
 	int inodenum;
@@ -59,7 +60,6 @@ Gene::Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*>
 	double weight;
 	int recur;
 
-	std::vector<Trait*>::iterator curtrait;
 	std::vector<NNode*>::iterator curnode;
 
 	//Get the gene parameters

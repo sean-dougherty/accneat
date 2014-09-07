@@ -16,6 +16,7 @@
 #ifndef _NNODE_H_
 #define _NNODE_H_
 
+#include <assert.h>
 #include <algorithm>
 #include <vector>
 #include "neat.h"
@@ -97,7 +98,7 @@ namespace NEAT {
 		NNode(NNode *n);
 
 		// Construct the node out of a file specification using given list of traits
-		NNode (const char *argline, std::vector<Trait*> &traits);
+		NNode (const char *argline);
 
 		// Copy Constructor
 		NNode (const NNode& nnode);
@@ -107,7 +108,7 @@ namespace NEAT {
         // Return activation currently in node, if it has been activated
         inline double get_active_out() {return (activation_count > 0) ? activation : 0.0;}
 
-        inline void set_trait_id(int id) { trait_id = id; }
+        inline void set_trait_id(int id) { assert(id > 0); trait_id = id; }
 
         inline int get_trait_id() {
             return trait_id;

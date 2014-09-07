@@ -67,7 +67,7 @@ NNode::NNode(NNode *n) {
     trait_id = n->trait_id;
 }
 
-NNode::NNode (const char *argline, std::vector<Trait*> &traits) {
+NNode::NNode (const char *argline) {
     in_depth = false;
 
 	activesum=0;
@@ -77,6 +77,9 @@ NNode::NNode (const char *argline, std::vector<Trait*> &traits) {
     ss >> node_id >> trait_id >> nodety >> nodepl;
     type = (nodetype)nodety;
     gen_node_label = (nodeplace)nodepl;
+
+    if(trait_id == 0)
+        trait_id = 1;
 
 	// Get the Sensor Identifier and Parameter String
 	// mySensor = SensorRegistry::getSensor(id, param);

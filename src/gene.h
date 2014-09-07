@@ -42,7 +42,7 @@ namespace NEAT {
 		Gene(Gene *g,int trait_id,NNode *inode,NNode *onode);
 
 		//Construct a gene from a file spec given traits and nodes
-		Gene(const char *argline, std::vector<Trait*> &traits, std::vector<NNode*> &nodes);
+		Gene(const char *argline, std::vector<NNode*> &nodes);
 
 		// Copy Constructor
 		Gene(const Gene& gene);
