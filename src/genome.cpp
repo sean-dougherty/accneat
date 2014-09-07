@@ -32,25 +32,25 @@ private:
     size_t ngenes;
 
     static bool cmp_sort(const Gene *x, const Gene *y) {
-        return x->lnk->out_node->node_id < y->lnk->out_node->node_id;
+        return x->out_node_id() < y->out_node_id();
     }
 
     static bool cmp_find(const Gene *x, int node_id) {
-        return x->lnk->out_node->node_id < node_id;
+        return x->out_node_id() < node_id;
     }
 
     bool find(int node_id, Gene ***curr) {
         if(*curr == nullptr) {
             auto it = std::lower_bound(genes, genes + ngenes, node_id, cmp_find);
             if(it == genes + ngenes) return false;
-            if((*it)->lnk->out_node->node_id != node_id) return false;
+            if((*it)->out_node_id() != node_id) return false;
 
             *curr = it;
             return true;
         } else {
             (*curr)++;
             if(*curr >= (genes + ngenes)) return false;
-            if((**curr)->lnk->out_node->node_id != node_id) return false;
+            if((**curr)->out_node_id() != node_id) return false;
             return true;
         }
     }
@@ -66,11 +66,10 @@ private:
         else {
             Gene **gene = nullptr;
             while( find(in_id, &gene) ) {
-                Link *link = (*gene)->lnk;
                 //But skip links that are already recurrent
                 //(We want to check back through the forward flow of signals only
-                if(!link->is_recurrent) {
-                    if( is_recur(link->in_node->node_id, out_id, count, thresh) )
+                if(!(*gene)->is_recurrent()) {
+                    if( is_recur((*gene)->in_node_id(), out_id, count, thresh) )
                         return true;
                 }
             }
@@ -95,7 +94,7 @@ public:
         std::sort(genes, genes + ngenes, cmp_sort);
     }
 
-    bool is_recur(NNode *in_node, NNode *out_node) {
+    bool is_recur(int in_node_id, int out_node_id) {
         //These are used to avoid getting stuck in an infinite loop checking
         //for recursion
         //Note that we check for recursion to control the frequency of
@@ -104,7 +103,7 @@ public:
         int thresh=nnodes*nnodes;
         int count = 0;
 
-        if(is_recur(in_node->node_id, out_node->node_id, count, thresh)) {
+        if(is_recur(in_node_id, out_node_id, count, thresh)) {
             return true;
         }
 
@@ -315,9 +314,7 @@ Genome::~Genome() {
 }
 
 Network *Genome::genesis(int id) {
-	vector<Gene*>::iterator curgene;
 	NNode *newnode;
-	Link *curlink;
 
 	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
 	double weight_mag; //Measures absolute value of weights
@@ -358,21 +355,20 @@ Network *Genome::genesis(int id) {
     NodeLookup node_lookup(all_list);
 
 	//Create the links by iterating through the genes
-	for(curgene=genes.begin();curgene!=genes.end();++curgene) {
+    for(Gene *gene: genes) {
 		//Only create the link if the gene is enabled
-		if (((*curgene)->enable)==true) {
-			curlink=(*curgene)->lnk;
-			inode = node_lookup.find(curlink->in_node);
-			onode = node_lookup.find(curlink->out_node);
+		if(gene->enable) {
+			inode = node_lookup.find(gene->in_node_id());
+			onode = node_lookup.find(gene->out_node_id());
 
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
-			Link newlink(curlink->weight,inode,onode,curlink->is_recurrent);
+			Link newlink(gene->weight(), inode, onode, gene->is_recurrent());
 
 			(onode->incoming).push_back(newlink);
 
 			//Derive link's parameters from its Trait pointer
-			newlink.derive_trait( get_trait(curlink) );
+			newlink.derive_trait( get_trait(gene) );
 
 			//Keep track of maximum weight
 			if (newlink.weight>0)
@@ -394,121 +390,37 @@ Network *Genome::genesis(int id) {
 }
 
 bool Genome::verify() {
-	vector<NNode*>::iterator curnode;
-	vector<Gene*>::iterator curgene;
-	vector<Gene*>::iterator curgene2;
-	NNode *inode;
-	NNode *onode;
-
-	bool disab;
-
-	int last_id;
-
-	//int pause;
-
-	//cout<<"Verifying Genome id: "<<this->genome_id<<endl;
-
-	if (this==0) {
-		//cout<<"ERROR GENOME EMPTY"<<endl;
-		//cin>>pause;
-	}
-
-	//Check each gene's nodes
-	for(curgene=genes.begin();curgene!=genes.end();++curgene) {
-		inode=((*curgene)->lnk)->in_node;
-		onode=((*curgene)->lnk)->out_node;
-
-		//Look for inode
-		curnode=nodes.begin();
-		while((curnode!=nodes.end())&&
-			((*curnode)!=inode))
-			++curnode;
-
-		if (curnode==nodes.end()) {
-			//cout<<"MISSING iNODE FROM GENE NOT IN NODES OF GENOME!!"<<endl;
-			//cin>>pause;
-			return false;
-		}
-
-		//Look for onode
-		curnode=nodes.begin();
-		while((curnode!=nodes.end())&&
-			((*curnode)!=onode))
-			++curnode;
-
-		if (curnode==nodes.end()) {
-			//cout<<"MISSING oNODE FROM GENE NOT IN NODES OF GENOME!!"<<endl;
-			//cin>>pause;
-			return false;
-		}
-
-	}
+#ifdef NDEBUG
+    return true;
+#else
 
 	//Check for NNodes being out of order
-	last_id=0;
-	for(curnode=nodes.begin();curnode!=nodes.end();++curnode) {
-		if ((*curnode)->node_id<last_id) {
-			//cout<<"ALERT: NODES OUT OF ORDER in "<<this<<endl;
-			//cin>>pause;
-			return false;
-		}
+    for(size_t i = 1, n = nodes.size(); i < n; i++) {
+        assert( nodes[i-1]->node_id < nodes[i]->node_id );
+    }
 
-		last_id=(*curnode)->node_id;
-	}
-
+    {
+        //Check genes reference valid nodes.
+        NodeLookup node_lookup(nodes);
+        for(Gene *gene: genes) {
+            assert( node_lookup.find(gene->in_node_id()) );
+            assert( node_lookup.find(gene->out_node_id()) );
+        }
+    }
 
 	//Make sure there are no duplicate genes
-	for(curgene=genes.begin();curgene!=genes.end();++curgene) {
-
-		for(curgene2=genes.begin();curgene2!=genes.end();++curgene2) {
-			if (((*curgene)!=(*curgene2))&&
-				((((*curgene)->lnk)->is_recurrent)==(((*curgene2)->lnk)->is_recurrent))&&
-				((((((*curgene2)->lnk)->in_node)->node_id)==((((*curgene)->lnk)->in_node)->node_id))&&
-				(((((*curgene2)->lnk)->out_node)->node_id)==((((*curgene)->lnk)->out_node)->node_id)))) {
-					//cout<<"ALERT: DUPLICATE GENES: "<<(*curgene)<<(*curgene2)<<endl;
-					//cout<<"INSIDE GENOME: "<<this<<endl;
-
-					//cin>>pause;
-				}
-
-
+	for(Gene *gene: genes) {
+		for(Gene *gene2: genes) {
+            if(gene != gene2) {
+                assert( (gene->is_recurrent() != gene2->is_recurrent())
+                        || (gene2->in_node_id() != gene->in_node_id())
+                        || (gene2->out_node_id() != gene->out_node_id()) );
+            }
 		}
 	}
-
-	//See if a gene is not disabled properly
-	//Note this check does not necessary mean anything is wrong
-	//
-	//if (nodes.size()>=15) {
-	//disab=false;
-	////Go through genes and see if one is disabled
-	//for(curgene=genes.begin();curgene!=genes.end();++curgene) {
-	//if (((*curgene)->enable)==false) disab=true;
-	//}
-
-	//if (disab==false) {
-	//cout<<"ALERT: NO DISABLED GENE IN GENOME: "<<this<<endl;
-	////cin>>pause;
-	//}
-
-	//}
-	//
-
-	//Check for 2 disables in a row
-	//Note:  Again, this is not necessarily a bad sign
-	if (nodes.size()>=500) {
-		disab=false;
-		for(curgene=genes.begin();curgene!=genes.end();++curgene) {
-			if ((((*curgene)->enable)==false)&&(disab==true)) {
-				//cout<<"ALERT: 2 DISABLES IN A ROW: "<<this<<endl;
-			}
-			if (((*curgene)->enable)==false) disab=true;
-			else disab=false;
-		}
-	}
-
-	//cout<<"GENOME OK!"<<endl;
 
 	return true;
+#endif
 }
 
 
@@ -595,10 +507,9 @@ Genome *Genome::duplicate(int new_id) {
 	//Duplicate Genes
     for(Gene *gene: genes) {
 		//First find the nodes connected by the gene's link
-        Link *lnk = gene->lnk;
-		NNode *inode = node_lookup.find(lnk->in_node);
-		NNode *onode = node_lookup.find(lnk->out_node);
-		Gene *newgene = new Gene(gene, lnk->get_trait_id(), inode, onode);
+		NNode *inode = node_lookup.find(gene->in_node_id());
+		NNode *onode = node_lookup.find(gene->out_node_id());
+		Gene *newgene = new Gene(gene, gene->trait_id(), inode, onode);
 		genes_dup.push_back(newgene);
 
 	}
@@ -618,7 +529,7 @@ void Genome::mutate_link_trait(int times) {
         Gene *gene = genes[ randint(0,genes.size()-1) ];
         
         if(!gene->frozen) {
-            gene->lnk->set_trait_id(trait_id);
+            gene->set_trait_id(trait_id);
         }
     }
 }
@@ -691,19 +602,19 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 			if (mut_type==GAUSSIAN) {
 				double randchoice = randfloat();
 				if (randchoice > gausspoint)
-					(gene->lnk)->weight+=randnum;
+					gene->weight()+=randnum;
 				else if (randchoice > coldgausspoint)
-					(gene->lnk)->weight=randnum;
+					gene->weight()=randnum;
 			}
 			else if (mut_type==COLDGAUSSIAN)
-				(gene->lnk)->weight=randnum;
+				gene->weight()=randnum;
 
 			//Cap the weights at 8.0 (experimental)
-			if ((gene->lnk)->weight > 8.0) (gene->lnk)->weight = 8.0;
-			else if ((gene->lnk)->weight < -8.0) (gene->lnk)->weight = -8.0;
+			if (gene->weight() > 8.0) gene->weight() = 8.0;
+			else if (gene->weight() < -8.0) gene->weight() = -8.0;
 
 			//Record the innovation
-			gene->mutation_num = (gene->lnk)->weight;
+			gene->mutation_num = gene->weight();
 
 			num+=1.0;
 		}
@@ -722,7 +633,7 @@ void Genome::mutate_toggle_enable(int times) {
 			//Because if not a section of network will break off and become isolated
             bool found = false;
             for(Gene *checkgene: genes) {
-                if( (checkgene->lnk->in_node == gene->lnk->in_node)
+                if( (checkgene->in_node_id() == gene->in_node_id())
                     && checkgene->enable
                     && (checkgene->innovation_num != gene->innovation_num) ) {
                     found = true;
@@ -780,7 +691,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
 	//Extract the link
 	thelink=thegene->lnk;
-	oldweight=thegene->lnk->weight;
+	oldweight=thegene->weight();
 
 	//Extract the nodes
 	in_node=thelink->in_node;
@@ -914,8 +825,8 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                 out_node = nodes[ randint(first_nonsensor,nodes.size()-1) ];
             }
 
-            found_nodes = !link_exists(in_node, out_node, do_recur)
-                && (do_recur == recur_checker.is_recur(in_node, out_node));
+            found_nodes = !link_exists(in_node->node_id, out_node->node_id, do_recur)
+                && (do_recur == recur_checker.is_recur(in_node->node_id, out_node->node_id));
         }
 
         assert( out_node->type != SENSOR );
@@ -1156,12 +1067,12 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 			//i.e. do they represent the same link    
 			curgene2=newgenes.begin();
 			while ((curgene2!=newgenes.end())&&
-				(!((((((*curgene2)->lnk)->in_node)->node_id)==((((chosengene)->lnk)->in_node)->node_id))&&
-				(((((*curgene2)->lnk)->out_node)->node_id)==((((chosengene)->lnk)->out_node)->node_id))&&((((*curgene2)->lnk)->is_recurrent)== (((chosengene)->lnk)->is_recurrent)) ))&&
-				(!((((((*curgene2)->lnk)->in_node)->node_id)==((((chosengene)->lnk)->out_node)->node_id))&&
-				(((((*curgene2)->lnk)->out_node)->node_id)==((((chosengene)->lnk)->in_node)->node_id))&&
-				(!((((*curgene2)->lnk)->is_recurrent)))&&
-				(!((((chosengene)->lnk)->is_recurrent))) )))
+				(!(((*curgene2)->in_node_id()==chosengene->in_node_id())&&
+				((*curgene2)->out_node_id()==chosengene->out_node_id())&&((*curgene2)->is_recurrent()== chosengene->is_recurrent()) ))&&
+				(!(((*curgene2)->in_node_id()==chosengene->out_node_id())&&
+				((*curgene2)->out_node_id()==chosengene->in_node_id())&&
+				(!((*curgene2)->is_recurrent()))&&
+				(!(chosengene->is_recurrent())) )))
 			{	
 				++curgene2;
 			}
@@ -1250,7 +1161,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 				} //End NNode checking section- NNodes are now in new Genome
 
 				//Add the Gene
-                newgene=new Gene(chosengene,chosengene->lnk->get_trait_id(),new_inode,new_onode);
+                newgene=new Gene(chosengene,chosengene->trait_id(),new_inode,new_onode);
 				if (disable) {
 					newgene->enable=false;
 					disable=false;
@@ -1367,38 +1278,13 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 				if (p1innov==p2innov) {
 					//Average them into the avgene
 					if (randfloat()>0.5) {
-                        avgene->lnk->set_trait_id((*p1gene)->lnk->get_trait_id());
+                        avgene->set_trait_id((*p1gene)->trait_id());
 					} else {
-                        avgene->lnk->set_trait_id((*p2gene)->lnk->get_trait_id());
+                        avgene->set_trait_id((*p2gene)->trait_id());
                     }
 
 					//WEIGHTS AVERAGED HERE
-					(avgene->lnk)->weight=(((*p1gene)->lnk)->weight+((*p2gene)->lnk)->weight)/2.0;
-
-				
-
-					////BLX-alpha method (Eschelman et al 1993)
-					////Not used in this implementation, but the commented code works
-					////with alpha=0.5, this will produce babies evenly in exploitation and exploration space
-					////and uniformly distributed throughout
-					//blx_alpha=-0.4;
-					//w1=(((*p1gene)->lnk)->weight);
-					//w2=(((*p2gene)->lnk)->weight);
-					//if (w1>w2) {
-					//blx_max=w1; blx_min=w2;
-					//}
-					//else {
-					//blx_max=w2; blx_min=w1;
-					//}
-					//blx_range=blx_max-blx_min;
-					//blx_explore=blx_alpha*blx_range;
-					////Now extend the range into the exploraton space
-					//blx_min-=blx_explore;
-					//blx_max+=blx_explore;
-					//blx_range=blx_max-blx_min;
-					////Set the weight in the new range
-					//(avgene->lnk)->weight=blx_min+blx_pos*blx_range;
-					//
+					avgene->weight()=((*p1gene)->weight()+(*p2gene)->weight())/2.0;
 
 					if (randfloat()>0.5) (avgene->lnk)->in_node=((*p1gene)->lnk)->in_node;
 					else (avgene->lnk)->in_node=((*p2gene)->lnk)->in_node;
@@ -1406,8 +1292,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 					if (randfloat()>0.5) (avgene->lnk)->out_node=((*p1gene)->lnk)->out_node;
 					else (avgene->lnk)->out_node=((*p2gene)->lnk)->out_node;
 
-					if (randfloat()>0.5) (avgene->lnk)->is_recurrent=((*p1gene)->lnk)->is_recurrent;
-					else (avgene->lnk)->is_recurrent=((*p2gene)->lnk)->is_recurrent;
+					if (randfloat()>0.5) avgene->set_recurrent((*p1gene)->is_recurrent());
+					else avgene->set_recurrent((*p2gene)->is_recurrent());
 
 					avgene->innovation_num=(*p1gene)->innovation_num;
 					avgene->mutation_num=((*p1gene)->mutation_num+(*p2gene)->mutation_num)/2.0;
@@ -1450,13 +1336,13 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
 			{
 
-				if (((((((*curgene2)->lnk)->in_node)->node_id)==((((chosengene)->lnk)->in_node)->node_id))&&
-					(((((*curgene2)->lnk)->out_node)->node_id)==((((chosengene)->lnk)->out_node)->node_id))&&
-					((((*curgene2)->lnk)->is_recurrent)== (((chosengene)->lnk)->is_recurrent)))||
-					((((((*curgene2)->lnk)->out_node)->node_id)==((((chosengene)->lnk)->in_node)->node_id))&&
-					(((((*curgene2)->lnk)->in_node)->node_id)==((((chosengene)->lnk)->out_node)->node_id))&&
-					(!((((*curgene2)->lnk)->is_recurrent)))&&
-					(!((((chosengene)->lnk)->is_recurrent)))     ))
+				if ((((*curgene2)->in_node_id()==chosengene->in_node_id())&&
+					((*curgene2)->out_node_id()==chosengene->out_node_id())&&
+					((*curgene2)->is_recurrent()== chosengene->is_recurrent()))||
+					(((*curgene2)->out_node_id()==chosengene->in_node_id())&&
+					((*curgene2)->in_node_id()==chosengene->out_node_id())&&
+					(!((*curgene2)->is_recurrent()))&&
+					(!(chosengene->is_recurrent()))     ))
 				{ 
 					skip=true;
 
@@ -1543,7 +1429,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 				} //End NNode checking section- NNodes are now in new Genome
 
 				//Add the Gene
-				newgene=new Gene(chosengene,chosengene->lnk->get_trait_id(),new_inode,new_onode);
+				newgene=new Gene(chosengene,chosengene->trait_id(),new_inode,new_onode);
 
 				newgenes.push_back(newgene);
 
@@ -1657,13 +1543,13 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 
 					//Average them into the avgene
 					if (randfloat()>0.5) {
-                        avgene->lnk->set_trait_id((*p1gene)->lnk->get_trait_id());
+                        avgene->set_trait_id((*p1gene)->trait_id());
                     } else {
-                        avgene->lnk->set_trait_id((*p2gene)->lnk->get_trait_id());
+                        avgene->set_trait_id((*p2gene)->trait_id());
                     }
 
 					//WEIGHTS AVERAGED HERE
-					(avgene->lnk)->weight=(((*p1gene)->lnk)->weight+((*p2gene)->lnk)->weight)/2.0;
+					avgene->weight()=((*p1gene)->weight()+(*p2gene)->weight())/2.0;
 
 
 					if (randfloat()>0.5) (avgene->lnk)->in_node=((*p1gene)->lnk)->in_node;
@@ -1672,8 +1558,8 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 					if (randfloat()>0.5) (avgene->lnk)->out_node=((*p1gene)->lnk)->out_node;
 					else (avgene->lnk)->out_node=((*p2gene)->lnk)->out_node;
 
-					if (randfloat()>0.5) (avgene->lnk)->is_recurrent=((*p1gene)->lnk)->is_recurrent;
-					else (avgene->lnk)->is_recurrent=((*p2gene)->lnk)->is_recurrent;
+					if (randfloat()>0.5) avgene->set_recurrent((*p1gene)->is_recurrent());
+					else avgene->set_recurrent((*p2gene)->is_recurrent());
 
 					avgene->innovation_num=(*p1gene)->innovation_num;
 					avgene->mutation_num=((*p1gene)->mutation_num+(*p2gene)->mutation_num)/2.0;
@@ -1712,12 +1598,13 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 		curgene2=newgenes.begin();
 
 		while ((curgene2!=newgenes.end())&&
-			(!((((((*curgene2)->lnk)->in_node)->node_id)==((((chosengene)->lnk)->in_node)->node_id))&&
-			(((((*curgene2)->lnk)->out_node)->node_id)==((((chosengene)->lnk)->out_node)->node_id))&&((((*curgene2)->lnk)->is_recurrent)== (((chosengene)->lnk)->is_recurrent)) ))&&
-			(!((((((*curgene2)->lnk)->in_node)->node_id)==((((chosengene)->lnk)->out_node)->node_id))&&
-			(((((*curgene2)->lnk)->out_node)->node_id)==((((chosengene)->lnk)->in_node)->node_id))&&
-			(!((((*curgene2)->lnk)->is_recurrent)))&&
-			(!((((chosengene)->lnk)->is_recurrent))) )))
+               (!(((*curgene2)->in_node_id()==chosengene->in_node_id())&&
+                  ((*curgene2)->out_node_id()==chosengene->out_node_id())&&
+                  ((*curgene2)->is_recurrent()== chosengene->is_recurrent()) ))&&
+               (!(((*curgene2)->in_node_id()==chosengene->out_node_id())&&
+                  ((*curgene2)->out_node_id()==chosengene->in_node_id())&&
+                  (!((*curgene2)->is_recurrent()))&&
+                  (!(chosengene->is_recurrent())) )))
 		{
 
 			++curgene2;
@@ -1802,7 +1689,7 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 			} //End NNode checking section- NNodes are now in new Genome
 
 			//Add the Gene
-			newgenes.push_back(new Gene(chosengene,chosengene->lnk->get_trait_id(),new_inode,new_onode));
+			newgenes.push_back(new Gene(chosengene,chosengene->trait_id(),new_inode,new_onode));
 
 		}  //End of if (!skip)
 
@@ -1861,7 +1748,6 @@ double Genome::compatibility(Genome *g) {
 					num_matching+=1.0;
 					mut_diff=((*p1gene)->mutation_num)-((*p2gene)->mutation_num);
 					if (mut_diff<0.0) mut_diff=0.0-mut_diff;
-					//mut_diff+=trait_compare((*p1gene)->lnk->get_trait(),(*p2gene)->lnk->get_trait()); //CONSIDER TRAIT DIFFERENCES
 					mut_diff_total+=mut_diff;
 
 					++p1gene;
@@ -1945,7 +1831,7 @@ void Genome::randomize_traits() {
 
     for(Gene *gene: genes) {
 		int trait_id = randint(1,numtraits); //randomize trait
-		gene->lnk->set_trait_id(trait_id);
+		gene->set_trait_id(trait_id);
 	}
 }
 
@@ -1959,16 +1845,15 @@ Trait &Genome::get_trait(NNode *node) {
     return ::get_trait(traits, node->get_trait_id());
 }
 
-Trait &Genome::get_trait(Link *link) {
-    return ::get_trait(traits, link->get_trait_id());
+Trait &Genome::get_trait(Gene *gene) {
+    return ::get_trait(traits, gene->trait_id());
 }
 
-bool Genome::link_exists(NNode *in_node, NNode *out_node, bool is_recurrent) {
+bool Genome::link_exists(int in_node_id, int out_node_id, bool is_recurrent) {
     for(Gene *g: genes) {
-        Link *lnk = g->lnk;
-        if( (lnk->in_node == in_node)
-            && (lnk->out_node == out_node)
-            && (lnk->is_recurrent == is_recurrent) ) {
+        if( (g->in_node_id() == in_node_id)
+            && (g->out_node_id() == out_node_id)
+            && (g->is_recurrent() == is_recurrent) ) {
 
             return true;
         }

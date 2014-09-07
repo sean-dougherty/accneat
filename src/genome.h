@@ -178,8 +178,8 @@ namespace NEAT {
 
     private:
         Trait &get_trait(NNode *node);
-        Trait &get_trait(Link *link);
-        bool link_exists(NNode *in_node, NNode *out_node, bool is_recurrent);
+        Trait &get_trait(Gene *gene);
+        bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
         bool is_recur(NNode *in_node, NNode *out_node);
 	};
 

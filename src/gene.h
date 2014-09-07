@@ -25,8 +25,19 @@ namespace NEAT {
 
 	class Gene {
 	public:
-
 		Link *lnk;
+
+        inline int out_node_id() const { return lnk->out_node->node_id; }
+        inline int in_node_id() const { return lnk->in_node->node_id; }
+        inline double &weight() const { return lnk->weight; }
+
+        inline int trait_id() const { return lnk->trait_id; }
+        inline void set_trait_id(int tid) const { lnk->trait_id = tid; }
+
+        inline bool is_recurrent() const { return lnk->is_recurrent; }
+        inline void set_recurrent(bool r) { lnk->is_recurrent = r; }
+
+
 		double innovation_num;
 		double mutation_num;  //Used to see how much mutation has changed the link
 		bool enable;  //When this is off the Gene is disabled
