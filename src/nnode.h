@@ -70,9 +70,6 @@ namespace NEAT {
 		double activation; // The total activation entering the NNode 
 		bool active_flag;  // To make sure outputs are active
 
-		// NOT USED IN NEAT - covered by "activation" above
-		double output;  // Output of the NNode- the value in the NNode 
-
 		// ************ LEARNING PARAMETERS *********** 
 		// The following parameters are for use in    
 		//   neurons that learn through habituation,

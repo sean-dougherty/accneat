@@ -25,7 +25,6 @@ NNode::NNode(nodetype ntype,int nodeid) {
 	active_flag=false;
 	activesum=0;
 	activation=0;
-	output=0;
 	last_activation=0;
 	last_activation2=0;
 	type=ntype; //NEURON or SENSOR type
@@ -42,7 +41,6 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	active_flag=false;
 	activesum=0;
 	activation=0;
-	output=0;
 	last_activation=0;
 	last_activation2=0;
 	type=ntype; //NEURON or SENSOR type
@@ -58,7 +56,6 @@ NNode::NNode(NNode *n) {
     in_depth = false;
 	active_flag=false;
 	activation=0;
-	output=0;
 	last_activation=0;
 	last_activation2=0;
 	type=n->type; //NEURON or SENSOR type
@@ -93,7 +90,6 @@ NNode::NNode (const NNode& nnode)
 	active_flag = nnode.active_flag;
 	activesum = nnode.activesum;
 	activation = nnode.activation;
-	output = nnode.output;
 	last_activation = nnode.last_activation;
 	last_activation2 = nnode.last_activation2;
 	type = nnode.type; //NEURON or SENSOR type
