@@ -50,35 +50,6 @@ Organism::Organism(double fit, Genome *g,int gen, const char* md) {
 	modified = true;
 }
 
-Organism::Organism(const Organism& org)
-{
-	fitness = org.fitness;
-	orig_fitness = org.orig_fitness;
-	gnome = new Genome(*(org.gnome));	// Associative relationship
-	//gnome = org.gnome->duplicate(org.gnome->genome_id);
-	net = new Network(*(org.net)); // Associative relationship
-	species = org.species;	// Delegation relationship
-	expected_offspring = org.expected_offspring;
-	generation = org.generation;
-	eliminate = org.eliminate;
-	error = org.error;
-	winner = org.winner;
-	champion = org.champion;
-	super_champ_offspring = org.super_champ_offspring;
-
-	strcpy(metadata, org.metadata);
-	//printf("copying %s did it work? %s", org.metadata, metadata);
-
-	time_alive = org.time_alive;
-	pop_champ = org.pop_champ;
-	pop_champ_child = org.pop_champ_child;
-	high_fit = org.high_fit;
-	mut_struct_baby = org.mut_struct_baby;
-	mate_baby = org.mate_baby;
-
-	modified = false;
-}
-
 Organism::~Organism() {
 	delete net;
 	delete gnome;

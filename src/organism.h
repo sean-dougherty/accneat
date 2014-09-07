@@ -66,9 +66,10 @@ namespace NEAT {
 		bool write_to_file(std::ostream &outFile);
 
 		Organism(double fit, Genome *g, int gen, const char* md = 0);
-		Organism(const Organism& org);	// Copy Constructor
 		~Organism();
 
+    private:
+		Organism(const Organism& org);	// Copy Constructor
 	};
 
 	// This is used for list sorting of Organisms by fitness..highest fitness first

@@ -27,6 +27,35 @@ namespace NEAT {
 		COLDGAUSSIAN = 1
 	};
 
+    class NodeLookup {
+        std::vector<NNode *> &nodes;
+
+        static bool cmp(NNode *node, int node_id) {
+            return node->node_id < node_id;
+        }
+    public:
+        // Must be sorted by node_id in ascending order
+        NodeLookup(std::vector<NNode *> &nodes_)
+            : nodes(nodes_) {
+        }
+
+        NNode *find(int node_id) {
+            auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
+            if(it == nodes.end())
+                return nullptr;
+
+            NNode *node = *it;
+            if(node->node_id != node_id)
+                return nullptr;
+
+            return node;
+        }
+
+        NNode *find(NNode *n) {
+            return find(n->node_id);
+        }
+    };
+
 	//----------------------------------------------------------------------- 
 	//A Genome is the primary source of genotype information used to create   
 	//a phenotype.  It contains 3 major constituents:                         
@@ -42,7 +71,6 @@ namespace NEAT {
 	//    link-building.
 
 	class Genome {
-
 	public:
 		int genome_id;
 
@@ -180,11 +208,16 @@ namespace NEAT {
         Trait &get_trait(NNode *node);
         Trait &get_trait(Gene *gene);
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
-        bool is_recur(NNode *in_node, NNode *out_node);
-	};
+        NNode *get_node(int id);
+
+        static NNode *get_node(int id, Gene *gene, Genome *g1, Genome *g2);
+        
+    private:
+        NodeLookup node_lookup;
+        Genome(const Genome &other);
+    };
 
 	void print_Genome_tofile(Genome *g,const char *filename);
-
 } // namespace NEAT
 
 #endif
