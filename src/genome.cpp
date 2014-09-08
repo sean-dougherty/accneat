@@ -330,19 +330,14 @@ Network *Genome::genesis(int id) {
 			NNode *inode = node_lookup.find(gene->in_node_id());
 			NNode *onode = node_lookup.find(gene->out_node_id());
 
-            assert(inode);
-            assert(onode);
-
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
-			Link newlink(gene->weight(), inode, onode, gene->is_recurrent());
+			onode->incoming.emplace_back(gene->weight(), inode, onode, gene->is_recurrent());
 
-            //todo: emplace
-			(onode->incoming).push_back(newlink);
+            Link &newlink = onode->incoming.back();
 
 			//Derive link's parameters from its Trait pointer
 			newlink.derive_trait( get_trait(gene) );
-
 			//Keep track of maximum weight
 			if (newlink.weight>0)
 				weight_mag=newlink.weight;
