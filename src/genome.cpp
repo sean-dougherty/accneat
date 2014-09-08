@@ -24,6 +24,20 @@
 using namespace NEAT;
 using std::vector;
 
+static vector<Gene *> to_ptrs(const vector<Gene> &genes) {
+    vector<Gene *> result;
+    for(const Gene &g: genes)
+        result.push_back( new Gene(g) );
+    return result;
+}
+static vector<Gene> from_ptrs(const vector<Gene *> &genes) {
+    vector<Gene> result;
+    for(const Gene *g: genes) {
+        result.emplace_back(*g);
+    }
+    return result;
+}
+
 
 class RecurrencyChecker {
 private:
@@ -130,9 +144,7 @@ Genome::Genome(int id, const vector<Trait> &t, const vector<NNode> &n, const vec
         nodes.push_back(new NNode(node));
     }
 
-    for(const Gene &gene: g) {
-        genes.push_back(new Gene(gene));
-    }
+    genes = to_ptrs(g);
 }
 
 Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, const vector<Gene> &g)
@@ -488,11 +500,7 @@ Genome *Genome::duplicate(int new_id) {
 		nodes_dup.emplace_back(NNode::partial_copy(node));    
 	}
 
-    //todo: should be able to simply copy whole vector
-	//Duplicate Genes
-    for(Gene *gene: genes) {
-        genes_dup.emplace_back(*gene);
-	}
+    genes_dup = from_ptrs(genes);
 
 	//Finally, return the genome
 	return new Genome(new_id,traits_dup,nodes_dup,genes_dup);
@@ -927,6 +935,9 @@ void Genome::node_insert(vector<NNode> &nlist, const NNode &n) {
 }
 
 Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fitness2, bool interspec_flag) {
+    auto genes1 = from_ptrs(this->genes);
+    auto genes2 = from_ptrs(g->genes);
+
 	//The baby Genome will contain these new Traits, NNodes, and Genes
 	vector<Trait> newtraits;
 	vector<NNode> newnodes;   
@@ -940,8 +951,8 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	vector<Trait*>::iterator p2trait;
 
 	//iterators for moving through the two parents' genes
-	vector<Gene*>::iterator p1gene;
-	vector<Gene*>::iterator p2gene;
+	vector<Gene>::iterator p1gene;
+	vector<Gene>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
 	vector<NNode>::iterator curnode;  //For checking if NNodes exist already 
@@ -969,7 +980,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	if (fitness1>fitness2) 
 		p1better=true;
 	else if (fitness1==fitness2) {
-		if (genes.size()<(g->genes.size()))
+		if (genes1.size()<(genes2.size()))
 			p1better=true;
 		else p1better=false;
 	}
@@ -990,49 +1001,49 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	//Now move through the Genes of each parent until both genomes end
     Genome *genome1 = this;
     Genome *genome2 = g;
-	p1gene=genes.begin();
-	p2gene=(g->genes).begin();
-	while( !((p1gene==genes.end()) && (p2gene==(g->genes).end())) ) {
+	p1gene=genes1.begin();
+	p2gene=(genes2).begin();
+	while( !((p1gene==genes1.end()) && (p2gene==(genes2).end())) ) {
         ProtoGene protogene;
 
         skip=false;  //Default to not skipping a chosen gene
 
-        if (p1gene==genes.end()) {
-            protogene.set_gene(genome2, *p2gene);
+        if (p1gene==genes1.end()) {
+            protogene.set_gene(genome2, &*p2gene);
             ++p2gene;
             if (p1better) skip=true;  //Skip excess from the worse genome
-        } else if (p2gene==(g->genes).end()) {
-            protogene.set_gene(genome1, *p1gene);
+        } else if (p2gene==(genes2).end()) {
+            protogene.set_gene(genome1, &*p1gene);
             ++p1gene;
             if (!p1better) skip=true; //Skip excess from the worse genome
         } else {
             //Extract current innovation numbers
-            p1innov=(*p1gene)->innovation_num;
-            p2innov=(*p2gene)->innovation_num;
+            p1innov=p1gene->innovation_num;
+            p2innov=p2gene->innovation_num;
 
             if (p1innov==p2innov) {
                 if (randfloat()<0.5) {
-                    protogene.set_gene(genome1, *p1gene);
+                    protogene.set_gene(genome1, &*p1gene);
                 } else {
-                    protogene.set_gene(genome2, *p2gene);
+                    protogene.set_gene(genome2, &*p2gene);
                 }
 
                 //If one is disabled, the corresponding gene in the offspring
                 //will likely be disabled
-                if ((((*p1gene)->enable)==false)||
-                    (((*p2gene)->enable)==false)) 
+                if (((p1gene->enable)==false)||
+                    ((p2gene->enable)==false)) 
                     if (randfloat()<0.75) disable=true;
 
                 ++p1gene;
                 ++p2gene;
             } else if (p1innov < p2innov) {
-                protogene.set_gene(genome1, *p1gene);
+                protogene.set_gene(genome1, &*p1gene);
                 ++p1gene;
 
                 if (!p1better) skip=true;
 
             } else if (p2innov<p1innov) {
-                protogene.set_gene(genome2, *p2gene);
+                protogene.set_gene(genome2, &*p2gene);
                 ++p2gene;
 
                 if (p1better) skip=true;
@@ -1176,8 +1187,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	vector<Gene>::iterator curgene2; //Checking for link duplication
 
 	//iterators for moving through the two parents' genes
-	vector<Gene*>::iterator p1gene;
-	vector<Gene*>::iterator p2gene;
+	vector<Gene *>::iterator p1gene;
+	vector<Gene *>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
 	vector<NNode>::iterator curnode;  //For checking if NNodes exist already 

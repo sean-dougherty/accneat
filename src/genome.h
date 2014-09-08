@@ -213,6 +213,7 @@ namespace NEAT {
 
         class ProtoGene {
             Genome *_genome = nullptr;
+            //todo: does this have to be a Gene* now?
             Gene *_gene = nullptr;
             NNode *_in = nullptr;
             NNode *_out = nullptr;
