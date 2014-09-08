@@ -31,23 +31,20 @@ namespace NEAT {
     private:
         friend class Genome; // todo: remove friend. just for testing genome topology
 
-		std::vector<NNode*> all_nodes;  // A list of all the nodes
-		std::vector<NNode*> inputs;  // NNodes that input into the network
-		std::vector<NNode*> outputs; // Values output by the network
+		std::vector<NNode> nodes;  // A list of all the nodes
+        size_t ninput_nodes;
+        size_t noutput_nodes;
+
 		int net_id; // Allow for a network id
 		bool adaptable; // Tells whether network can adapt or not
 		double maxweight; // Maximum weight in network for adaptation purposes
 
+        Network(const Network &network);
 	public:
-		Network(std::vector<NNode*> in,
-                std::vector<NNode*> out,
-                std::vector<NNode*> all,
+		Network(std::vector<NNode> &&nodes,
                 int netid, 
                 bool adaptval,
                 double maxweight);
-
-		// Copy Constructor
-		Network(const Network& network);
 
 		~Network();
 

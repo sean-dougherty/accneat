@@ -281,57 +281,63 @@ Genome::~Genome() {
 }
 
 Network *Genome::genesis(int id) {
-	NNode *newnode;
-
 	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
 	double weight_mag; //Measures absolute value of weights
 
 	//Inputs and outputs will be collected here for the network
 	//All nodes are collected in an all_list- 
 	//this will be used for later safe destruction of the net
-	vector<NNode*> inlist;
-	vector<NNode*> outlist;
-	vector<NNode*> all_list;
-
-	//Gene translation variables
-	NNode *inode;
-	NNode *onode;
-
 	//The new network
 	Network *newnet;
 
+    vector<NNode> netnodes;
+
 	//Create the nodes
 	for(NNode *node: nodes) {
-		newnode = new NNode(node->type, node->node_id);
-
-		//Derive the node parameters from the trait pointed to
-		newnode->derive_trait( get_trait(node) );
-
-		//Check for input or output designation of node
-		if ((node->gen_node_label)==INPUT) 
-			inlist.push_back(newnode);
-		if ((node->gen_node_label)==BIAS) 
-			inlist.push_back(newnode);
-		if ((node->gen_node_label)==OUTPUT)
-			outlist.push_back(newnode);
-
-		//Keep track of all nodes, not just input and output
-		all_list.push_back(newnode);
+        netnodes.emplace_back(*node);
+        netnodes.back().derive_trait( get_trait(node) );
 	}
 
-    NodeLookup node_lookup(all_list);
+    class NetNodeLookup {
+        std::vector<NNode> &nodes;
+
+        static bool cmp(const NNode &node, int node_id) {
+            return node.node_id < node_id;
+        }
+    public:
+        // Must be sorted by node_id in ascending order
+        NetNodeLookup(std::vector<NNode> &nodes_)
+            : nodes(nodes_) {
+        }
+
+        NNode *find(int node_id) {
+            auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
+            if(it == nodes.end())
+                return nullptr;
+
+            NNode &node = *it;
+            if(node.node_id != node_id)
+                return nullptr;
+
+            return &node;
+        }
+    } node_lookup(netnodes);
 
 	//Create the links by iterating through the genes
     for(Gene *gene: genes) {
 		//Only create the link if the gene is enabled
 		if(gene->enable) {
-			inode = node_lookup.find(gene->in_node_id());
-			onode = node_lookup.find(gene->out_node_id());
+			NNode *inode = node_lookup.find(gene->in_node_id());
+			NNode *onode = node_lookup.find(gene->out_node_id());
+
+            assert(inode);
+            assert(onode);
 
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
 			Link newlink(gene->weight(), inode, onode, gene->is_recurrent());
 
+            //todo: emplace
 			(onode->incoming).push_back(newlink);
 
 			//Derive link's parameters from its Trait pointer
@@ -347,7 +353,7 @@ Network *Genome::genesis(int id) {
 	}
 
 	//Create the new network
-	newnet = new Network(inlist, outlist, all_list, id, false, maxweight);
+	newnet = new Network(std::move(netnodes), id, false, maxweight);
 
 	//Attach genotype and phenotype together
 	phenotype=newnet;
