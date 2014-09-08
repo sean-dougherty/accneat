@@ -46,7 +46,7 @@ namespace NEAT {
 		int genome_id;
 
 		std::vector<Trait> traits; //parameter conglomerations
-		std::vector<NNode*> nodes; //List of NNodes for the Network
+		std::vector<NNode> nodes; //List of NNodes for the Network
 		std::vector<Gene> genes; //List of innovation-tracking genes
 
 		Network *phenotype; //Allows Genome to be matched with its Network
@@ -62,12 +62,6 @@ namespace NEAT {
 		Genome(int id,
                const std::vector<Trait> &t,
                const std::vector<NNode> &n,
-               const std::vector<Gene> &g);
-
-		//Constructor which takes full genome specs and puts them into the new one
-		Genome(int id,
-               const std::vector<Trait> &t,
-               std::vector<NNode*> n,
                const std::vector<Gene> &g);
 
 		//Special constructor which spawns off an input file
@@ -168,7 +162,6 @@ namespace NEAT {
 
 	protected:
 		//Inserts a NNode into a given ordered list of NNodes in order
-		void node_insert(std::vector<NNode*> &nlist, NNode *n);
 		void node_insert(std::vector<NNode> &nlist, const NNode &n);
 
 		//Adds a new gene that has been created through a mutation in the
@@ -176,21 +169,21 @@ namespace NEAT {
 		void add_gene(std::vector<Gene> &glist, const Gene &g);
 
     private:
-        Trait &get_trait(NNode *node);
+        Trait &get_trait(const NNode &node);
         Trait &get_trait(const Gene &gene);
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
         NNode *get_node(int id);
         
     private:
         class NodeLookup {
-            std::vector<NNode *> &nodes;
+            std::vector<NNode> &nodes;
 
-            static bool cmp(NNode *node, int node_id) {
-                return node->node_id < node_id;
+            static bool cmp(const NNode &node, int node_id) {
+                return node.node_id < node_id;
             }
         public:
             // Must be sorted by node_id in ascending order
-        NodeLookup(std::vector<NNode *> &nodes_)
+        NodeLookup(std::vector<NNode> &nodes_)
             : nodes(nodes_) {
             }
 
@@ -199,11 +192,11 @@ namespace NEAT {
                 if(it == nodes.end())
                     return nullptr;
 
-                NNode *node = *it;
-                if(node->node_id != node_id)
+                NNode &node = *it;
+                if(node.node_id != node_id)
                     return nullptr;
 
-                return node;
+                return &node;
             }
 
             NNode *find(NNode *n) {

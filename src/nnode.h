@@ -110,7 +110,7 @@ namespace NEAT {
 
         inline void set_trait_id(int id) { assert(id > 0); trait_id = id; }
 
-        inline int get_trait_id() {
+        inline int get_trait_id() const {
             return trait_id;
         }
 
