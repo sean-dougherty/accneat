@@ -132,14 +132,6 @@ Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, const vector<Ge
     }
 }
 
-Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, const vector<Gene *> &g)
-    : node_lookup(nodes) {
-	genome_id=id;
-	traits=t;
-	nodes=n;
-    genes=g;
-}
-
 Genome::Genome(int id, std::ifstream &iFile)
     : node_lookup(nodes) {
 
