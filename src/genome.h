@@ -173,7 +173,8 @@ namespace NEAT {
 
 		//Adds a new gene that has been created through a mutation in the
 		//*correct order* into the list of genes in the genome
-		void add_gene(std::vector<Gene*> &glist,Gene *g);
+		void add_gene(std::vector<Gene*> &glist, Gene *g);
+		void add_gene(std::vector<Gene*> &glist, const Gene &g);
 
     private:
         Trait &get_trait(NNode *node);

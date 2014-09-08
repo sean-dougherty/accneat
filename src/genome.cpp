@@ -649,14 +649,16 @@ void Genome::mutate_gene_reenable() {
 bool Genome::mutate_add_node(vector<Innovation*> &innovs,
                              int &curnode_id,
                              double &curinnov) {
+    auto genes = from_ptrs(this->genes);
+
 	NNode *in_node; //Here are the nodes connected by the gene
 	NNode *out_node; 
 
 	vector<Innovation*>::iterator theinnov; //For finding a historical match
 	bool done=false;
 
-	Gene *newgene1;  //The new Genes
-	Gene *newgene2;
+	Gene newgene1;  //The new Genes
+	Gene newgene2;
 	NNode *newnode;   //The new NNode
 	//double splitweight;  //If used, Set to sqrt(oldweight of oldlink)
 	double oldweight;  //The weight of the original link
@@ -664,10 +666,12 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
     Gene *thegene = nullptr;
     {
         for(int i = 0; !thegene && i < 20; i++) {
-            Gene *g = genes[ randint(0,genes.size()-1) ];
+            int gene_index = randint(0,genes.size()-1);
+            Gene &g = genes[ gene_index ];
             //If either the gene is disabled, or it has a bias input, try again
-            if( g->enable && get_node(g->in_node_id())->gen_node_label != BIAS ) {
-                thegene = g;
+            if( g.enable && get_node(g.in_node_id())->gen_node_label != BIAS ) {
+                thegene = &g;
+                this->genes[gene_index]->enable = false;
             }
         }
         //If we couldn't find anything so say goodbye
@@ -675,9 +679,6 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
             return false;
         }
     }
-
-	//Disabled the gene
-	thegene->enable=false;
 
 	//Extract the link
 	oldweight=thegene->weight();
@@ -708,13 +709,13 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
 			//Create the new Genes
 			if (thegene->is_recurrent()) {
-				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,true,curinnov,0);
-				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,curinnov+1,0);
+				newgene1 = Gene(trait_id,1.0,in_node->node_id,newnode->node_id,true,curinnov,0);
+				newgene2 = Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,curinnov+1,0);
 				curinnov+=2.0;
 			}
 			else {
-				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,false,curinnov,0);
-				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,curinnov+1,0);
+				newgene1 = Gene(trait_id,1.0,in_node->node_id,newnode->node_id,false,curinnov,0);
+				newgene2 = Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,curinnov+1,0);
 				curinnov+=2.0;
 			}
 
@@ -750,12 +751,12 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
 			//Create the new Genes
 			if (thegene->is_recurrent()) {
-				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,true,(*theinnov)->innovation_num1,0);
-				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
+				newgene1 = Gene(trait_id,1.0,in_node->node_id,newnode->node_id,true,(*theinnov)->innovation_num1,0);
+				newgene2 = Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
 			}
 			else {
-				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,false,(*theinnov)->innovation_num1,0);
-				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
+				newgene1 = Gene(trait_id,1.0,in_node->node_id,newnode->node_id,false,(*theinnov)->innovation_num1,0);
+				newgene2 = Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
 			}
 
 			done=true;
@@ -764,9 +765,9 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 	}
 
 	//Now add the new NNode and new Genes to the Genome
-	add_gene(genes,newgene1);  //Add genes in correct order
-	add_gene(genes,newgene2);
-	node_insert(nodes,newnode);
+	add_gene(this->genes, newgene1);  //Add genes in correct order
+	add_gene(this->genes, newgene2);
+	node_insert(nodes, newnode);
 
 	return true;
 
@@ -887,21 +888,17 @@ void Genome::add_gene(vector<Gene*> &glist,Gene *g) {
   vector<Gene*>::iterator curgene;
   double inum=g->innovation_num;
 
-  //std::cout<<"**ADDING GENE: "<<g->innovation_num<<std::endl;
-
   curgene=glist.begin();
   while ((curgene!=glist.end())&&
 	 (((*curgene)->innovation_num)<inum)) {
-    //p1innov=(*curgene)->innovation_num;
-    //printf("Innov num: %f",p1innov);  
     ++curgene;
-
-    //Con::printf("looking gene %f", (*curgene)->innovation_num);
   }
 
-
   glist.insert(curgene,g);
+}
 
+void Genome::add_gene(std::vector<Gene*> &glist, const Gene &g) {
+    add_gene( glist, new Gene(g) );
 }
 
 
