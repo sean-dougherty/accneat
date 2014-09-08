@@ -519,7 +519,9 @@ vector<Organism *> Species::reproduce(int generation,
                 new_genome=(mom->gnome)->mate_multipoint_avg(dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
             }
             else {
-                new_genome=(mom->gnome)->mate_singlepoint(dad->gnome,count);
+                // todo: catch non-zero probability at time of parsing. completely elim this
+                // from code.
+                std::cerr << "singlepoint mating no longer supported" << std::endl;
             }
 
             mate_baby=true;

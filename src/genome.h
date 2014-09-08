@@ -145,13 +145,6 @@ namespace NEAT {
 		//   weights 
 		Genome *mate_multipoint_avg(Genome *g,int genomeid,double fitness1,double fitness2, bool interspec_flag);
 
-		// This method is similar to a standard single point CROSSOVER
-		//   operator.  Traits are averaged as in the previous 2 mating
-		//   methods.  A point is chosen in the smaller Genome for crossing
-		//   with the bigger one.  
-		Genome *mate_singlepoint(Genome *g,int genomeid);
-
-
 		// ******** COMPATIBILITY CHECKING METHODS ********
 
 		// This function gives a measure of compatibility between
