@@ -1179,6 +1179,9 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 }
 
 Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,double fitness2,bool interspec_flag) {
+    auto genes1 = from_ptrs(this->genes);
+    auto genes2 = from_ptrs(g->genes);
+
 	//The baby Genome will contain these new Traits, NNodes, and Genes
 	vector<Trait> newtraits;
 	vector<NNode> newnodes;
@@ -1187,8 +1190,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	vector<Gene>::iterator curgene2; //Checking for link duplication
 
 	//iterators for moving through the two parents' genes
-	vector<Gene *>::iterator p1gene;
-	vector<Gene *>::iterator p2gene;
+	vector<Gene>::iterator p1gene;
+	vector<Gene>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
 	vector<NNode>::iterator curnode;  //For checking if NNodes exist already 
@@ -1224,7 +1227,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	if (fitness1>fitness2) 
 		p1better=true;
 	else if (fitness1==fitness2) {
-		if (genes.size()<(g->genes.size()))
+		if (genes1.size()<(genes2.size()))
 			p1better=true;
 		else p1better=false;
 	}
@@ -1235,77 +1238,77 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	//Now move through the Genes of each parent until both genomes end
     Genome *genome1 = this;
     Genome *genome2 = g;
-	p1gene=genes.begin();
-	p2gene=(g->genes).begin();
-	while(!((p1gene==genes.end()) && (p2gene==(g->genes).end()))) {
+	p1gene=genes1.begin();
+	p2gene=(genes2).begin();
+	while(!((p1gene==genes1.end()) && (p2gene==(genes2).end()))) {
         ProtoGene protogene;
 
         avgene.enable=true;  //Default to enabled
 
         skip=false;
 
-        if (p1gene==genes.end()) {
-            protogene.set_gene(genome2, *p2gene);
+        if (p1gene==genes1.end()) {
+            protogene.set_gene(genome2, &*p2gene);
             ++p2gene;
 
             if (p1better) skip=true;
 
         }
-        else if (p2gene==(g->genes).end()) {
-            protogene.set_gene(genome1, *p1gene);
+        else if (p2gene==(genes2).end()) {
+            protogene.set_gene(genome1, &*p1gene);
             ++p1gene;
 
             if (!p1better) skip=true;
         }
         else {
             //Extract current innovation numbers
-            p1innov=(*p1gene)->innovation_num;
-            p2innov=(*p2gene)->innovation_num;
+            p1innov=p1gene->innovation_num;
+            p2innov=p2gene->innovation_num;
 
             if (p1innov==p2innov) {
                 protogene.set_gene(nullptr, &avgene);
 
                 //Average them into the avgene
                 if (randfloat()>0.5) {
-                    avgene.set_trait_id((*p1gene)->trait_id());
+                    avgene.set_trait_id(p1gene->trait_id());
                 } else {
-                    avgene.set_trait_id((*p2gene)->trait_id());
+                    avgene.set_trait_id(p2gene->trait_id());
                 }
 
                 //WEIGHTS AVERAGED HERE
-                avgene.weight() = ((*p1gene)->weight()+(*p2gene)->weight())/2.0;
+                avgene.weight() = (p1gene->weight()+p2gene->weight())/2.0;
 
                 if(randfloat() > 0.5) {
-                    protogene.set_in(genome1->get_node((*p1gene)->in_node_id()));
+                    protogene.set_in(genome1->get_node(p1gene->in_node_id()));
                 } else {
-                    protogene.set_in(genome2->get_node((*p2gene)->in_node_id()));
+                    protogene.set_in(genome2->get_node(p2gene->in_node_id()));
                 }
 
                 if(randfloat() > 0.5) {
-                    protogene.set_out(genome1->get_node((*p1gene)->out_node_id()));
+                    protogene.set_out(genome1->get_node(p1gene->out_node_id()));
                 } else {
-                    protogene.set_out(genome2->get_node((*p2gene)->out_node_id()));
+                    protogene.set_out(genome2->get_node(p2gene->out_node_id()));
                 }
 
-                if (randfloat()>0.5) avgene.set_recurrent((*p1gene)->is_recurrent());
-                else avgene.set_recurrent((*p2gene)->is_recurrent());
+                if (randfloat()>0.5) avgene.set_recurrent(p1gene->is_recurrent());
+                else avgene.set_recurrent(p2gene->is_recurrent());
 
-                avgene.innovation_num=(*p1gene)->innovation_num;
-                avgene.mutation_num=((*p1gene)->mutation_num+(*p2gene)->mutation_num)/2.0;
+                avgene.innovation_num=p1gene->innovation_num;
+                avgene.mutation_num=(p1gene->mutation_num+p2gene->mutation_num)/2.0;
 
-                if ((((*p1gene)->enable)==false)||
-                    (((*p2gene)->enable)==false)) 
+                if (((p1gene->enable)==false)||
+                    ((p2gene->enable)==false)) 
                     if (randfloat()<0.75) avgene.enable=false;
 
                 ++p1gene;
                 ++p2gene;
             } else if (p1innov<p2innov) {
-                protogene.set_gene(genome1, *p1gene);
+                protogene.set_gene(genome1, &*p1gene);
                 ++p1gene;
 
                 if (!p1better) skip=true;
             } else if (p2innov<p1innov) {
-                protogene.set_gene(genome2, *p2gene);
+                protogene.set_gene(genome2, &*p2gene);
                 ++p2gene;
 
                 if (p1better) skip=true;
