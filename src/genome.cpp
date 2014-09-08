@@ -912,10 +912,25 @@ void Genome::node_insert(vector<NNode*> &nlist,NNode *n) {
 
 }
 
+//todo: use binary search.
+void Genome::node_insert(vector<NNode> &nlist, const NNode &n) {
+	vector<NNode>::iterator curnode;
+
+	int id=n.node_id;
+
+	curnode=nlist.begin();
+	while ((curnode!=nlist.end())&&
+		((curnode->node_id)<id)) 
+		++curnode;
+
+	nlist.insert(curnode, n);
+
+}
+
 Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fitness2, bool interspec_flag) {
 	//The baby Genome will contain these new Traits, NNodes, and Genes
 	vector<Trait> newtraits;
-	vector<NNode*> newnodes;   
+	vector<NNode> newnodes;   
 	vector<Gene> newgenes;    
 	Genome *new_genome;
 
@@ -930,7 +945,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	vector<Gene*>::iterator p2gene;
 	double p1innov;  //Innovation numbers for genes inside parents' Genomes
 	double p2innov;
-	vector<NNode*>::iterator curnode;  //For checking if NNodes exist already 
+	vector<NNode>::iterator curnode;  //For checking if NNodes exist already 
 
 	bool disable;  //Set to true if we want to disabled a chosen gene
 
@@ -968,10 +983,8 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
             || (node->gen_node_label == BIAS)
             || (node->gen_node_label == OUTPUT)) {
 
-            //Create a new node off the sensor or output
-            NNode *new_node = new NNode(node);
             //Add the new node
-            node_insert(newnodes, new_node);
+            node_insert(newnodes, NNode(node));
         }
     }
 
@@ -1054,8 +1067,8 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 
         if (!skip) {
             //Now add the gene to the baby
-            NNode *new_inode;
-            NNode *new_onode;
+            NNode new_inode;
+            NNode new_onode;
 
             //Next check for the nodes, add them if not in the baby Genome already
             NNode *inode = protogene.in();
@@ -1068,33 +1081,33 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
                 //Checking for inode's existence
                 curnode=newnodes.begin();
                 while((curnode!=newnodes.end())&&
-                      ((*curnode)->node_id!=inode->node_id)) 
+                      (curnode->node_id!=inode->node_id)) 
                     ++curnode;
 
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_inode=new NNode(inode);
+                    new_inode = NNode(inode);
                     node_insert(newnodes,new_inode);
 
                 }
                 else {
-                    new_inode=(*curnode);
+                    new_inode=*curnode;
 
                 }
 
                 //Checking for onode's existence
                 curnode=newnodes.begin();
                 while((curnode!=newnodes.end())&&
-                      ((*curnode)->node_id!=onode->node_id)) 
+                      (curnode->node_id!=onode->node_id)) 
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_onode=new NNode(onode);
+                    new_onode = NNode(onode);
                     node_insert(newnodes,new_onode);
 
                 }
                 else {
-                    new_onode=(*curnode);
+                    new_onode=*curnode;
                 }
 
             }
@@ -1103,32 +1116,32 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
                 //Checking for onode's existence
                 curnode=newnodes.begin();
                 while((curnode!=newnodes.end())&&
-                      ((*curnode)->node_id!=onode->node_id)) 
+                      (curnode->node_id!=onode->node_id)) 
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_onode=new NNode(onode);
+                    new_onode = NNode(onode);
                     //newnodes.push_back(new_onode);
                     node_insert(newnodes,new_onode);
 
                 }
                 else {
-                    new_onode=(*curnode);
+                    new_onode=*curnode;
 
                 }
 
                 //Checking for inode's existence
                 curnode=newnodes.begin();
                 while((curnode!=newnodes.end())&&
-                      ((*curnode)->node_id!=inode->node_id)) 
+                      (curnode->node_id!=inode->node_id)) 
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_inode=new NNode(inode);
+                    new_inode = NNode(inode);
                     node_insert(newnodes,new_inode);
                 }
                 else {
-                    new_inode=(*curnode);
+                    new_inode=*curnode;
 
                 }
 
@@ -1137,8 +1150,8 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
             //Add the Gene
             newgene = Gene(protogene.gene(),
                            protogene.gene()->trait_id(),
-                           new_inode->node_id,
-                           new_onode->node_id);
+                           new_inode.node_id,
+                           new_onode.node_id);
             if (disable) {
                 newgene.enable=false;
                 disable=false;

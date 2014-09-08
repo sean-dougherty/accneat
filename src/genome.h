@@ -169,6 +169,7 @@ namespace NEAT {
 	protected:
 		//Inserts a NNode into a given ordered list of NNodes in order
 		void node_insert(std::vector<NNode*> &nlist, NNode *n);
+		void node_insert(std::vector<NNode> &nlist, const NNode &n);
 
 		//Adds a new gene that has been created through a mutation in the
 		//*correct order* into the list of genes in the genome

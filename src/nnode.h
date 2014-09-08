@@ -90,6 +90,9 @@ namespace NEAT {
 
 		nodeplace gen_node_label;  // Used for genetic marking of nodes
 
+        // Construct NNode with invalid state.
+        NNode() {}
+
 		NNode(nodetype ntype,int nodeid);
 
 		NNode(nodetype ntype,int nodeid, nodeplace placement);
