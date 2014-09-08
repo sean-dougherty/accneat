@@ -85,24 +85,6 @@ NNode::NNode (const char *argline) {
 	frozen=false;  //TODO: Maybe change
 }
 
-// This one might be incomplete
-NNode::NNode (const NNode& nnode)
-{
-    in_depth = false;
-	active_flag = nnode.active_flag;
-	activesum = nnode.activesum;
-	activation = nnode.activation;
-	last_activation = nnode.last_activation;
-	last_activation2 = nnode.last_activation2;
-	type = nnode.type; //NEURON or SENSOR type
-	activation_count = nnode.activation_count; //Inactive upon creation
-	node_id = nnode.node_id;
-	ftype = nnode.ftype;
-	gen_node_label = nnode.gen_node_label;
-	frozen = nnode.frozen;
-	trait_id = nnode.trait_id;
-}
-
 NNode::~NNode() {
 }
 

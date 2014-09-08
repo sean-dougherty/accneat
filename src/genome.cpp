@@ -121,6 +121,20 @@ public:
     
 };
 
+Genome::Genome(int id, const vector<Trait> &t, const vector<NNode> &n, const vector<Gene> &g)
+    : node_lookup(nodes) {
+	genome_id=id;
+	traits=t;
+
+    for(const NNode &node: n) {
+        nodes.push_back(new NNode(node));
+    }
+
+    for(const Gene &gene: g) {
+        genes.push_back(new Gene(gene));
+    }
+}
+
 Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, const vector<Gene> &g)
     : node_lookup(nodes) {
 	genome_id=id;
@@ -462,18 +476,18 @@ double Genome::get_last_gene_innovnum() {
 Genome *Genome::duplicate(int new_id) {
 	//Collections for the new Genome
 	vector<Trait> traits_dup;
-	vector<NNode*> nodes_dup;
+	vector<NNode> nodes_dup;
 	vector<Gene> genes_dup;
 
 	//Duplicate the traits
     traits_dup = traits;
 
+    //todo: should be able to simply copy whole vector
+    //todo: why must we use the NNode(NNode *) constructor?!
 	//Duplicate NNodes
     for(NNode *node: nodes) {
-		nodes_dup.push_back(new NNode(node));    
+		nodes_dup.emplace_back(node);    
 	}
-
-    NodeLookup node_lookup(nodes_dup);
 
     //todo: should be able to simply copy whole vector
 	//Duplicate Genes

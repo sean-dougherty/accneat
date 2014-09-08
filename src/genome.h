@@ -61,6 +61,12 @@ namespace NEAT {
 		//Constructor which takes full genome specs and puts them into the new one
 		Genome(int id,
                const std::vector<Trait> &t,
+               const std::vector<NNode> &n,
+               const std::vector<Gene> &g);
+
+		//Constructor which takes full genome specs and puts them into the new one
+		Genome(int id,
+               const std::vector<Trait> &t,
                std::vector<NNode*> n,
                const std::vector<Gene> &g);
 

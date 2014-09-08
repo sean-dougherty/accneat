@@ -100,9 +100,6 @@ namespace NEAT {
 		// Construct the node out of a file specification using given list of traits
 		NNode (const char *argline);
 
-		// Copy Constructor
-		NNode (const NNode& nnode);
-
 		~NNode();
 
         // Return activation currently in node, if it has been activated
