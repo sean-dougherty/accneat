@@ -24,13 +24,6 @@
 using namespace NEAT;
 using std::vector;
 
-static vector<Gene *> to_ptrs(const vector<Gene> &genes) {
-    vector<Gene *> result;
-    for(const Gene &g: genes)
-        result.push_back( new Gene(g) );
-    return result;
-}
-
 class RecurrencyChecker {
 private:
     size_t nnodes;
@@ -1406,13 +1399,9 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 }
 
 double Genome::compatibility(Genome *g) {
-    auto genes1 = to_ptrs(this->genes);
-    auto genes2 = to_ptrs(g->genes);
+    vector<Gene> &genes1 = this->genes;
+    vector<Gene> &genes2 = g->genes;
 
-
-	//iterators for moving through the two potential parents' Genes
-	vector<Gene*>::iterator p1gene;
-	vector<Gene*>::iterator p2gene;  
 
 	//Innovation numbers
 	double p1innov;
@@ -1429,8 +1418,9 @@ double Genome::compatibility(Genome *g) {
 
 	//Now move through the Genes of each potential parent 
 	//until both Genomes end
-	p1gene=genes1.begin();
-	p2gene=genes2.begin();
+	vector<Gene>::iterator p1gene = genes1.begin();
+	vector<Gene>::iterator p2gene = genes2.begin();
+
 	while(!((p1gene==genes1.end())&&
 		(p2gene==genes2.end()))) {
 
@@ -1444,12 +1434,12 @@ double Genome::compatibility(Genome *g) {
 			}
 			else {
 				//Extract current innovation numbers
-				p1innov=(*p1gene)->innovation_num;
-				p2innov=(*p2gene)->innovation_num;
+				p1innov = p1gene->innovation_num;
+				p2innov = p2gene->innovation_num;
 
 				if (p1innov==p2innov) {
 					num_matching+=1.0;
-					mut_diff=((*p1gene)->mutation_num)-((*p2gene)->mutation_num);
+					mut_diff = p1gene->mutation_num - p2gene->mutation_num;
 					if (mut_diff<0.0) mut_diff=0.0-mut_diff;
 					mut_diff_total+=mut_diff;
 
