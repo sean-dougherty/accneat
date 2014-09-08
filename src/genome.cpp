@@ -910,10 +910,10 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	//The baby Genome will contain these new Traits, NNodes, and Genes
 	vector<Trait> newtraits;
 	vector<NNode*> newnodes;   
-	vector<Gene*> newgenes;    
+	vector<Gene> newgenes;    
 	Genome *new_genome;
 
-	vector<Gene*>::iterator curgene2;  //Checks for link duplication
+	vector<Gene>::iterator curgene2;  //Checks for link duplication
 
 	//iterators for moving through the two parents' traits
 	vector<Trait*>::iterator p1trait;
@@ -929,7 +929,7 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
 	bool disable;  //Set to true if we want to disabled a chosen gene
 
 	disable=false;
-	Gene *newgene;
+	Gene newgene;
 
 	bool p1better; //Tells if the first genome (this one) has better fitness or not
 
@@ -1034,11 +1034,11 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
         //i.e. do they represent the same link    
         curgene2=newgenes.begin();
         while ((curgene2!=newgenes.end())&&
-               (!(((*curgene2)->in_node_id()==protogene.gene()->in_node_id())&&
-                  ((*curgene2)->out_node_id()==protogene.gene()->out_node_id())&&((*curgene2)->is_recurrent()== protogene.gene()->is_recurrent()) ))&&
-               (!(((*curgene2)->in_node_id()==protogene.gene()->out_node_id())&&
-                  ((*curgene2)->out_node_id()==protogene.gene()->in_node_id())&&
-                  (!((*curgene2)->is_recurrent()))&&
+               (!((curgene2->in_node_id()==protogene.gene()->in_node_id())&&
+                  (curgene2->out_node_id()==protogene.gene()->out_node_id())&&(curgene2->is_recurrent()== protogene.gene()->is_recurrent()) ))&&
+               (!((curgene2->in_node_id()==protogene.gene()->out_node_id())&&
+                  (curgene2->out_node_id()==protogene.gene()->in_node_id())&&
+                  (!(curgene2->is_recurrent()))&&
                   (!(protogene.gene()->is_recurrent())) )))
         {	
             ++curgene2;
@@ -1129,12 +1129,12 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
             } //End NNode checking section- NNodes are now in new Genome
 
             //Add the Gene
-            newgene=new Gene(protogene.gene(),
-                             protogene.gene()->trait_id(),
-                             new_inode->node_id,
-                             new_onode->node_id);
+            newgene = Gene(protogene.gene(),
+                           protogene.gene()->trait_id(),
+                           new_inode->node_id,
+                           new_onode->node_id);
             if (disable) {
-                newgene->enable=false;
+                newgene.enable=false;
                 disable=false;
             }
             newgenes.push_back(newgene);

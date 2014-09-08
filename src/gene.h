@@ -51,6 +51,9 @@ namespace NEAT {
 		bool enable;  //When this is off the Gene is disabled
 		bool frozen;  //When frozen, the linkweight cannot be mutated
 
+        // Construct a gene in an invalid default state.
+        Gene() {}
+
 		//Construct a gene with no trait
 		Gene(double w,
              int inode_id,
