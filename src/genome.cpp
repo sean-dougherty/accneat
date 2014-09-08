@@ -1153,9 +1153,9 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	//The baby Genome will contain these new Traits, NNodes, and Genes
 	vector<Trait> newtraits;
 	vector<NNode*> newnodes;
-	vector<Gene*> newgenes;
+	vector<Gene> newgenes;
 
-	vector<Gene*>::iterator curgene2; //Checking for link duplication
+	vector<Gene>::iterator curgene2; //Checking for link duplication
 
 	//iterators for moving through the two parents' genes
 	vector<Gene*>::iterator p1gene;
@@ -1165,9 +1165,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	vector<NNode*>::iterator curnode;  //For checking if NNodes exist already 
 
 	//This Gene is used to hold the average of the two genes to be averaged
-	Gene *avgene;
-
-	Gene *newgene;
+	Gene avgene(0,0,0,0,0,0,0);
+	Gene newgene;
 
 	bool skip;
 
@@ -1179,9 +1178,6 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
     for(size_t i = 0, n = traits.size(); i < n; i++) {
         newtraits.emplace_back(traits[i], g->traits[i]);
 	}
-
-	//Set up the avgene
-	avgene=new Gene(0,0,0,0,0,0,0);
 
 	//NEW 3/17/03 Make sure all sensors and outputs are included
 	for(curnode=(g->nodes).begin();curnode!=(g->nodes).end();++curnode) {
@@ -1220,7 +1216,7 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 	while(!((p1gene==genes.end()) && (p2gene==(g->genes).end()))) {
         ProtoGene protogene;
 
-        avgene->enable=true;  //Default to enabled
+        avgene.enable=true;  //Default to enabled
 
         skip=false;
 
@@ -1243,17 +1239,17 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
             p2innov=(*p2gene)->innovation_num;
 
             if (p1innov==p2innov) {
-                protogene.set_gene(nullptr, avgene);
+                protogene.set_gene(nullptr, &avgene);
 
                 //Average them into the avgene
                 if (randfloat()>0.5) {
-                    avgene->set_trait_id((*p1gene)->trait_id());
+                    avgene.set_trait_id((*p1gene)->trait_id());
                 } else {
-                    avgene->set_trait_id((*p2gene)->trait_id());
+                    avgene.set_trait_id((*p2gene)->trait_id());
                 }
 
                 //WEIGHTS AVERAGED HERE
-                avgene->weight() = ((*p1gene)->weight()+(*p2gene)->weight())/2.0;
+                avgene.weight() = ((*p1gene)->weight()+(*p2gene)->weight())/2.0;
 
                 if(randfloat() > 0.5) {
                     protogene.set_in(genome1->get_node((*p1gene)->in_node_id()));
@@ -1267,15 +1263,15 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
                     protogene.set_out(genome2->get_node((*p2gene)->out_node_id()));
                 }
 
-                if (randfloat()>0.5) avgene->set_recurrent((*p1gene)->is_recurrent());
-                else avgene->set_recurrent((*p2gene)->is_recurrent());
+                if (randfloat()>0.5) avgene.set_recurrent((*p1gene)->is_recurrent());
+                else avgene.set_recurrent((*p2gene)->is_recurrent());
 
-                avgene->innovation_num=(*p1gene)->innovation_num;
-                avgene->mutation_num=((*p1gene)->mutation_num+(*p2gene)->mutation_num)/2.0;
+                avgene.innovation_num=(*p1gene)->innovation_num;
+                avgene.mutation_num=((*p1gene)->mutation_num+(*p2gene)->mutation_num)/2.0;
 
                 if ((((*p1gene)->enable)==false)||
                     (((*p2gene)->enable)==false)) 
-                    if (randfloat()<0.75) avgene->enable=false;
+                    if (randfloat()<0.75) avgene.enable=false;
 
                 ++p1gene;
                 ++p2gene;
@@ -1308,12 +1304,12 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
         {
 
-            if ((((*curgene2)->in_node_id()==protogene.gene()->in_node_id())&&
-                 ((*curgene2)->out_node_id()==protogene.gene()->out_node_id())&&
-                 ((*curgene2)->is_recurrent()== protogene.gene()->is_recurrent()))||
-                (((*curgene2)->out_node_id()==protogene.gene()->in_node_id())&&
-                 ((*curgene2)->in_node_id()==protogene.gene()->out_node_id())&&
-                 (!((*curgene2)->is_recurrent()))&&
+            if (((curgene2->in_node_id()==protogene.gene()->in_node_id())&&
+                 (curgene2->out_node_id()==protogene.gene()->out_node_id())&&
+                 (curgene2->is_recurrent()== protogene.gene()->is_recurrent()))||
+                ((curgene2->out_node_id()==protogene.gene()->in_node_id())&&
+                 (curgene2->in_node_id()==protogene.gene()->out_node_id())&&
+                 (!(curgene2->is_recurrent()))&&
                  (!(protogene.gene()->is_recurrent()))     ))
             { 
                 skip=true;
@@ -1402,10 +1398,10 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
             } //End NNode checking section- NNodes are now in new Genome
 
             //Add the Gene
-            newgene=new Gene(protogene.gene(),
-                             protogene.gene()->trait_id(),
-                             new_inode->node_id,
-                             new_onode->node_id);
+            newgene = Gene(protogene.gene(),
+                           protogene.gene()->trait_id(),
+                           new_inode->node_id,
+                           new_onode->node_id);
 
             newgenes.push_back(newgene);
 
@@ -1413,11 +1409,8 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
 
     }
 
-    delete avgene;  //Clean up used object
-
     //Return the baby Genome
     return (new Genome(genomeid,newtraits,newnodes,newgenes));
-
 }
 
 Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
