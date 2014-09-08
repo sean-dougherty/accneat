@@ -93,14 +93,14 @@ private:
 
 public:
     RecurrencyChecker(size_t nnodes_,
-                      vector<Gene *> &genome_genes,
+                      vector<Gene> &genome_genes,
                       Gene **buf_genes) {
         nnodes = nnodes_;
         genes = buf_genes;
 
         ngenes = 0;
         for(size_t i = 0; i < genome_genes.size(); i++) {
-            Gene *g = genome_genes[i];
+            Gene *g = &genome_genes[i];
             if(g->enable) {
                 genes[ngenes++] = g;
             }
@@ -776,6 +776,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                              double &curinnov,
                              int tries) {
+    auto genes = from_ptrs(this->genes);
     Gene *recur_checker_buf[genes.size()];
     RecurrencyChecker recur_checker(nodes.size(), genes, recur_checker_buf);
 
@@ -829,7 +830,8 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 
     // Create the gene.
     {
-        Gene *newgene = nullptr;
+        Gene newgene;
+        bool created_gene = false;
 
         // Try to find existing innovation.
         for(Innovation *innov: innovs) {
@@ -839,18 +841,19 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                 (innov->recur_flag == do_recur)) {
 
                 //Create new gene using existing innovation.
-                newgene = new Gene(innov->new_trait_id,
-                                   innov->new_weight,
-                                   in_node->node_id,
-                                   out_node->node_id,
-                                   do_recur,
-                                   innov->innovation_num1,
-                                   0);
+                created_gene = true;
+                newgene = Gene(innov->new_trait_id,
+                               innov->new_weight,
+                               in_node->node_id,
+                               out_node->node_id,
+                               do_recur,
+                               innov->innovation_num1,
+                               0);
             }
         }
 
         //The innovation is totally novel
-        if(!newgene) {
+        if(!created_gene) {
             //Choose a random trait
             int trait_id = randint(1, (int)traits.size());
 
@@ -859,13 +862,13 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             double newweight = randposneg() * randfloat() * 1.0; //used to be 10.0
 
             //Create the new gene
-            newgene = new Gene(trait_id,
-                               newweight,
-                               in_node->node_id,
-                               out_node->node_id,
-                               do_recur,
-                               curinnov,
-                               newweight);
+            newgene = Gene(trait_id,
+                           newweight,
+                           in_node->node_id,
+                           out_node->node_id,
+                           do_recur,
+                           curinnov,
+                           newweight);
 
             //Add the innovation
             innovs.push_back(new Innovation(in_node->node_id,
@@ -876,7 +879,7 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             curinnov += 1.0;
         }
 
-        add_gene(genes,newgene);  //Adds the gene in correct order
+        add_gene(this->genes, newgene);  //Adds the gene in correct order
     }
 
     return true;
