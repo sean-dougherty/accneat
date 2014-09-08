@@ -133,7 +133,6 @@ namespace NEAT {
 
 		// Print the node to a file
         void  print_to_file(std::ostream &outFile);
-        void print_to_file(std::ofstream &outFile);
 
 		// Have NNode gain its properties from the trait
 		void derive_trait(const Trait &curtrait);

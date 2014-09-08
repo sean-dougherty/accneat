@@ -178,34 +178,11 @@ void NNode::derive_trait(const Trait &t) {
         params[count] = t.params[count];
 }
 
-void NNode::print_to_file(std::ofstream &outFile) {
+void NNode::print_to_file(std::ostream &outFile) {
   outFile<<"node "<<node_id<<" ";
   outFile<<trait_id<<" ";
   outFile<<type<<" ";
   outFile<<gen_node_label<<std::endl;
-}
-
-
-void NNode::print_to_file(std::ostream &outFile) {
-	//outFile<<"node "<<node_id<<" ";
-	//if (nodetrait!=0) outFile<<nodetrait->trait_id<<" ";
-	//else outFile<<"0 ";
-	//outFile<<type<<" ";
-	//outFile<<gen_node_label<<std::endl;
-
-	char tempbuf[128];
-	sprintf(tempbuf, "node %d ", node_id);
-	outFile << tempbuf;
-
-    {
-		char tempbuf2[128];
-		sprintf(tempbuf2, "%d ", trait_id);
-		outFile << tempbuf2;
-	}
-
-	char tempbuf2[128];
-	sprintf(tempbuf2, "%d %d\n", type, gen_node_label);
-	outFile << tempbuf2;
 }
 
 //Find the greatest depth starting from this neuron at depth d
