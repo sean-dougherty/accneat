@@ -20,28 +20,39 @@
 using namespace NEAT;
 
 Gene::Gene(double w, NNode *inode, NNode *onode, bool recur, double innov, double mnum) {
-	lnk = new Link(w, inode, onode, recur);
+    _weight = w;
+    _in_node_id = inode ? inode->node_id : 0;
+    _out_node_id = onode ? onode->node_id : 0;
+    _is_recurrent = recur;
+    _trait_id = 1;
+
 	innovation_num = innov;
 	mutation_num = mnum;
-
 	enable = true;
-
 	frozen = false;
 }
 
 
 Gene::Gene(int trait_id,double w,NNode *inode,NNode *onode,bool recur,double innov,double mnum) {
-	lnk=new Link(trait_id,w,inode,onode,recur);
+    _weight = w;
+    _in_node_id = inode ? inode->node_id : 0;
+    _out_node_id = onode ? onode->node_id : 0;
+    _is_recurrent = recur;
+    _trait_id = trait_id;
+
 	innovation_num=innov;
 	mutation_num=mnum;
-
 	enable=true;
-
 	frozen=false;
 }
 
 Gene::Gene(Gene *g,int trait_id,NNode *inode,NNode *onode) {
-	lnk=new Link(trait_id,(g->lnk)->weight,inode,onode,(g->lnk)->is_recurrent);
+    _weight = g->_weight;
+    _in_node_id = inode ? inode->node_id : 0;
+    _out_node_id = onode ? onode->node_id : 0;
+    _is_recurrent = g->_is_recurrent;
+    _trait_id = trait_id;
+
 	innovation_num=g->innovation_num;
 	mutation_num=g->mutation_num;
 	enable=g->enable;
@@ -50,38 +61,25 @@ Gene::Gene(Gene *g,int trait_id,NNode *inode,NNode *onode) {
 }
 
 //todo: use NodeLookup
-Gene::Gene(const char *argline, std::vector<NNode*> &nodes) {
+Gene::Gene(const char *argline) {
 	//Gene parameter holders
 	int trait_id;
 	int inodenum;
 	int onodenum;
-	NNode *inode;
-	NNode *onode;
 	double weight;
 	int recur;
 
-	std::vector<NNode*>::iterator curnode;
-
 	//Get the gene parameters
-
     std::stringstream ss(argline);
     ss >> trait_id >> inodenum >> onodenum >> weight >> recur >> innovation_num >> mutation_num >> enable;
 
 	frozen=false; //TODO: MAYBE CHANGE
 
-	//Get a pointer to the input node
-	curnode=nodes.begin();
-	while(((*curnode)->node_id)!=inodenum)
-		++curnode;
-	inode=(*curnode);
-
-	//Get a pointer to the output node
-	curnode=nodes.begin();
-	while(((*curnode)->node_id)!=onodenum)
-		++curnode;
-	onode=(*curnode);
-
-	lnk=new Link(trait_id,weight,inode,onode,recur);
+    _weight = weight;
+    _in_node_id = inodenum;
+    _out_node_id = onodenum;
+    _is_recurrent = recur;
+    _trait_id = trait_id;
 }
 
 Gene::Gene(const Gene& gene)
@@ -91,11 +89,14 @@ Gene::Gene(const Gene& gene)
 	enable = gene.enable;
 	frozen = gene.frozen;
 
-	lnk = new Link(*gene.lnk);
+    _weight = gene._weight;
+    _in_node_id = gene._in_node_id;
+    _out_node_id = gene._out_node_id;
+    _is_recurrent = gene._is_recurrent;
+    _trait_id = gene._trait_id;
 }
 
 Gene::~Gene() {
-	delete lnk;
 }
 
 
@@ -103,12 +104,12 @@ void Gene::print_to_file(std::ostream &outFile) {
 	outFile<<"gene ";
 
 	//Start off with the trait number for this gene
-    outFile<<lnk->get_trait_id()<<" ";
-	outFile<<(lnk->in_node)->node_id<<" ";
-	outFile<<(lnk->out_node)->node_id<<" ";
-	outFile<<(lnk->weight)<<" ";
-	outFile<<(lnk->is_recurrent)<<" ";
-	outFile<<innovation_num<<" ";
-	outFile<<mutation_num<<" ";
-    outFile<<enable<<std::endl;
+    outFile << _trait_id << " ";
+	outFile << _in_node_id << " ";
+	outFile << _out_node_id << " ";
+	outFile << _weight << " ";
+	outFile << _is_recurrent << " ";
+	outFile << innovation_num << " ";
+	outFile << mutation_num << " ";
+    outFile << enable << std::endl;
 }

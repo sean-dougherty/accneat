@@ -24,18 +24,26 @@
 namespace NEAT {
 
 	class Gene {
+		double _weight; // Weight of connection
+		int _in_node_id; // NNode inputting into the link
+		int _out_node_id; // NNode that the link affects
+		bool _is_recurrent;
+		int _trait_id;  // identify the trait derived by this link
+
 	public:
-		Link *lnk;
+        inline int out_node_id() const { return _out_node_id; }
+        inline void set_out_node_id(int id) { _out_node_id = id; }
 
-        inline int out_node_id() const { return lnk->out_node->node_id; }
-        inline int in_node_id() const { return lnk->in_node->node_id; }
-        inline double &weight() const { return lnk->weight; }
+        inline int in_node_id() const { return _in_node_id; }
+        inline void set_in_node_id(int id) { _in_node_id = id; }
 
-        inline int trait_id() const { return lnk->trait_id; }
-        inline void set_trait_id(int tid) const { lnk->trait_id = tid; }
+        inline double &weight() { return _weight; }
 
-        inline bool is_recurrent() const { return lnk->is_recurrent; }
-        inline void set_recurrent(bool r) { lnk->is_recurrent = r; }
+        inline int trait_id() const { return _trait_id; }
+        inline void set_trait_id(int tid) { _trait_id = tid; }
+
+        inline bool is_recurrent() const { return _is_recurrent; }
+        inline void set_recurrent(bool r) { _is_recurrent = r; }
 
 
 		double innovation_num;
@@ -53,7 +61,7 @@ namespace NEAT {
 		Gene(Gene *g,int trait_id,NNode *inode,NNode *onode);
 
 		//Construct a gene from a file spec given traits and nodes
-		Gene(const char *argline, std::vector<NNode*> &nodes);
+		Gene(const char *argline);
 
 		// Copy Constructor
 		Gene(const Gene& gene);

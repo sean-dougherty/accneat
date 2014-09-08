@@ -232,7 +232,7 @@ Genome::Genome(int id, std::ifstream &iFile)
 
             ss.getline(argline, 1024);
 			//Allocate the new Gene
-            newgene=new Gene(argline,nodes);
+            newgene=new Gene(argline);
 
 			//Add the gene to the genome
 			genes.push_back(newgene);

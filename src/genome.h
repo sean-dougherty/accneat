@@ -227,7 +227,7 @@ namespace NEAT {
 
             void set_out(NNode *out) {
                 _out = out;
-                _gene->lnk->out_node = out; // tmp
+                _gene->set_out_node_id(out->node_id);
             }
             NNode *out() {
                 return _out ? _out : _genome->get_node(_gene->out_node_id());
@@ -235,7 +235,7 @@ namespace NEAT {
 
             void set_in(NNode *in) {
                 _in = in;
-                _gene->lnk->in_node = in; // tmp
+                _gene->set_in_node_id(in->node_id);
             }
             NNode *in() {
                 return _in ? _in : _genome->get_node(_gene->in_node_id());
