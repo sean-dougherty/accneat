@@ -47,7 +47,7 @@ namespace NEAT {
 
 		std::vector<Trait> traits; //parameter conglomerations
 		std::vector<NNode*> nodes; //List of NNodes for the Network
-		std::vector<Gene*> genes; //List of innovation-tracking genes
+		std::vector<Gene> genes; //List of innovation-tracking genes
 
 		Network *phenotype; //Allows Genome to be matched with its Network
 
@@ -173,12 +173,11 @@ namespace NEAT {
 
 		//Adds a new gene that has been created through a mutation in the
 		//*correct order* into the list of genes in the genome
-		void add_gene(std::vector<Gene*> &glist, Gene *g);
-		void add_gene(std::vector<Gene*> &glist, const Gene &g);
+		void add_gene(std::vector<Gene> &glist, const Gene &g);
 
     private:
         Trait &get_trait(NNode *node);
-        Trait &get_trait(Gene *gene);
+        Trait &get_trait(const Gene &gene);
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
         NNode *get_node(int id);
         
