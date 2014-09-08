@@ -17,8 +17,7 @@
 #include <iostream>
 #include <sstream>
 using namespace NEAT;
-using std::cout;
-using std::endl;
+using std::vector;
 
 NNode::NNode(nodetype ntype,int nodeid) {
     in_depth = false;
@@ -133,24 +132,6 @@ bool NNode::sensor_load(double value) {
 	else return false;
 }
 
-// Note: NEAT keeps track of which links are recurrent and which
-// are not even though this is unnecessary for activation.
-// It is useful to do so for 2 other reasons: 
-// 1. It makes networks visualization of recurrent networks possible
-// 2. It allows genetic control of the proportion of connections
-//    that may become recurrent
-
-// Add an incoming connection a node
-void NNode::add_incoming(NNode *feednode,double weight,bool recur) {
-    incoming.emplace_back(weight, feednode, this, recur);
-}
-
-// Nonrecurrent version
-void NNode::add_incoming(NNode *feednode,double weight) {
-    incoming.emplace_back(weight, feednode, this, false);
-}
-
-
 // Return activation currently in node from PREVIOUS (time-delayed) time step,
 // if there is one
 double NNode::get_active_out_td() {
@@ -160,9 +141,8 @@ double NNode::get_active_out_td() {
 }
 
 // This recursively flushes everything leading into and including this NNode, including recurrencies
-void NNode::flushback() {
-	std::vector<Link*>::iterator curlink;
-
+//todo: this doesn't need to be recursive
+void NNode::flushback(vector<NNode> &nodes) {
 	//A sensor should not flush black
 	if (type!=SENSOR) {
 
@@ -177,11 +157,11 @@ void NNode::flushback() {
 		for(Link &link: incoming) {
 			//Flush the link itself (For future learning parameters possibility) 
 			link.added_weight=0;
-			if (((link.in_node)->activation_count>0))
-				(link.in_node)->flushback();
+            NNode &inode = nodes[link.in_node_index];
+			if(inode.activation_count > 0)
+				inode.flushback(nodes);
 		}
-	}
-	else {
+	} else {
 		//Flush the SENSOR
 		activation_count=0;
 		activation=0;
@@ -189,7 +169,6 @@ void NNode::flushback() {
 		last_activation2=0;
 
 	}
-
 }
 
 // Reserved for future system expansion
@@ -230,7 +209,7 @@ void NNode::print_to_file(std::ostream &outFile) {
 }
 
 //Find the greatest depth starting from this neuron at depth d
-int NNode::depth(int d, Network *mynet) {
+int NNode::depth(int d, vector<NNode> &nodes) {
     const int MAX_DEPTH = 10;
     int cur_depth; //The depth of the current node
     int max=d; //The max depth
@@ -246,7 +225,7 @@ int NNode::depth(int d, Network *mynet) {
     } else {
 
         for(Link &link: incoming) {
-            cur_depth = link.in_node->depth(d+1,mynet);
+            cur_depth = nodes[link.in_node_index].depth(d+1, nodes);
             if (cur_depth>max) max=cur_depth;
         }
   

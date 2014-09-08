@@ -310,16 +310,14 @@ Network *Genome::genesis(int id) {
             : nodes(nodes_) {
         }
 
-        NNode *find(int node_id) {
+        node_index_t find(int node_id) {
             auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
-            if(it == nodes.end())
-                return nullptr;
+            assert(it != nodes.end());
 
-            NNode &node = *it;
-            if(node.node_id != node_id)
-                return nullptr;
+            node_index_t i = it - nodes.begin();
+            assert(nodes[i].node_id == node_id);
 
-            return &node;
+            return i;
         }
     } node_lookup(netnodes);
 
@@ -327,14 +325,17 @@ Network *Genome::genesis(int id) {
     for(Gene *gene: genes) {
 		//Only create the link if the gene is enabled
 		if(gene->enable) {
-			NNode *inode = node_lookup.find(gene->in_node_id());
-			NNode *onode = node_lookup.find(gene->out_node_id());
+            node_index_t inode = node_lookup.find(gene->in_node_id());
+            node_index_t onode = node_lookup.find(gene->out_node_id());
 
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
-			onode->incoming.emplace_back(gene->weight(), inode, onode, gene->is_recurrent());
+			netnodes[onode].incoming.emplace_back(gene->weight(),
+                                                  inode,
+                                                  onode,
+                                                  gene->is_recurrent());
 
-            Link &newlink = onode->incoming.back();
+            Link &newlink = netnodes[onode].incoming.back();
 
 			//Derive link's parameters from its Trait pointer
 			newlink.derive_trait( get_trait(gene) );

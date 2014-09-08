@@ -17,43 +17,30 @@
 
 using namespace NEAT;
 
-Link::Link(double w,NNode *inode,NNode *onode,bool recur) {
-	weight=w;
-	in_node=inode;
-	out_node=onode;
-	is_recurrent=recur;
-	added_weight=0;
-	time_delay=false;
-	trait_id=1;
-}
 
-Link::Link(int trait_id_,double w,NNode *inode,NNode *onode,bool recur) {
-	weight=w;
-	in_node=inode;
-	out_node=onode;
-	is_recurrent=recur;
-	added_weight=0;
-	time_delay=false;
-    trait_id = trait_id_;
+Link::Link(int tid,
+           double w,
+           node_index_t inode_index,
+           node_index_t onode_index,
+           bool recur) {
+    trait_id = tid;
+	weight = w;
+    in_node_index = inode_index;
+    out_node_index = onode_index;
+	is_recurrent = recur;
+	added_weight = 0;
+	time_delay = false;
 }	
 
-Link::Link(double w) {
-	weight=w;
-	in_node=out_node=0;  
-	is_recurrent=false;
-	time_delay=false;
-	trait_id=1;
+Link::Link(double w,
+           node_index_t inode_index,
+           node_index_t onode_index,
+           bool recur)
+    : Link(1, w, inode_index, onode_index, recur) {
 }
 
-Link::Link(const Link& link)
-{
-	weight = link.weight;
-	in_node = link.in_node;
-	out_node = link.out_node;
-	is_recurrent = link.is_recurrent;
-	added_weight = link.added_weight;
-	time_delay = link.time_delay;
-	trait_id = link.trait_id;
+Link::Link(double w)
+    : Link(1, w, 0, 0, false) {
 }
 
 void Link::derive_trait(const Trait &t) {

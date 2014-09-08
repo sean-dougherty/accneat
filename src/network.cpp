@@ -66,7 +66,7 @@ void Network::flush() {
     for(size_t i = 0; i < noutput_nodes; i++) {
         NNode &node = nodes[i + ninput_nodes];
         assert(node.gen_node_label == OUTPUT);
-        node.flushback();
+        node.flushback(nodes);
     }
 }
 
@@ -80,21 +80,6 @@ bool Network::outputsoff() {
     }
     return false;
 }
-
-// Print the connections weights to a file separated by only carriage returns
-void Network::print_links_tofile(char *filename) {
-    std::ofstream oFile(filename);
-
-    for(size_t i = ninput_nodes; i < nodes.size(); i++) {
-        NNode &node = nodes[i];
-        assert(node.type != SENSOR);
-        for(Link &link: node.incoming) {
-            oFile << link.in_node->node_id << " -> " << link.out_node->node_id << " : " << link.weight << std::endl;
-        }
-    }
-
-	oFile.close();
-} //print_links_tofile
 
 // Activates the net such that all outputs are active
 // Returns true on success;
@@ -123,15 +108,17 @@ bool Network::activate() {
 
             // For each incoming connection, add the activity from the connection to the activesum 
             for(Link &link: node.incoming) {
+                NNode &inode = nodes[link.in_node_index];
+
                 //Handle possible time delays
                 if (!(link.time_delay)) {
-                    add_amount=(link.weight)*((link.in_node)->get_active_out());
-                    if (((link.in_node)->active_flag)||
-                        ((link.in_node)->type==SENSOR)) node.active_flag=true;
+                    add_amount=(link.weight)*(inode.get_active_out());
+                    if ((inode.active_flag)||
+                        (inode.type==SENSOR)) node.active_flag=true;
                     node.activesum+=add_amount;
                 } else {
                     //Input over a time delayed connection
-                    add_amount=(link.weight)*((link.in_node)->get_active_out_td());
+                    add_amount=(link.weight)*(inode.get_active_out_td());
                     node.activesum+=add_amount;
                 }
 
@@ -163,6 +150,8 @@ bool Network::activate() {
             // For each incoming connection, perform adaptation based on the trait of the connection 
             NNode &node = nodes[i];
             for(Link &link: node.incoming) {
+                NNode &inode = nodes[link.in_node_index];
+                NNode &onode = nodes[link.out_node_index];
 		
                 if ((link.trait_id==2)||
                     (link.trait_id==3)||
@@ -172,8 +161,8 @@ bool Network::activate() {
                     if (link.is_recurrent) {
                         link.weight=
                             hebbian(link.weight,maxweight,
-                                    link.in_node->last_activation, 
-                                    link.out_node->get_active_out(),
+                                    inode.last_activation, 
+                                    onode.get_active_out(),
                                     link.params[0],link.params[1],
                                     link.params[2]);
 		    
@@ -182,8 +171,8 @@ bool Network::activate() {
                     else { //non-recurrent case
                         link.weight=
                             hebbian(link.weight,maxweight,
-                                    link.in_node->get_active_out(), 
-                                    link.out_node->get_active_out(),
+                                    inode.get_active_out(), 
+                                    onode.get_active_out(),
                                     link.params[0],link.params[1],
                                     link.params[2]);
                     }
@@ -221,7 +210,7 @@ int Network::max_depth() {
     int max = 0; //The max depth
 
     for(size_t i = 0; i < noutput_nodes; i++) {
-        cur_depth = nodes[i + ninput_nodes].depth(0, this);
+        cur_depth = nodes[i + ninput_nodes].depth(0, nodes);
         if(cur_depth > max) max = cur_depth;
     }
 

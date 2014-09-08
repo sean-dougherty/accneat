@@ -24,15 +24,18 @@ namespace NEAT {
 
 	class NNode;
 
+    typedef uint16_t node_index_t;
+
 	// ----------------------------------------------------------------------- 
 	// A LINK is a connection from one node to another with an associated weight 
 	// It can be marked as recurrent 
 	// Its parameters are made public for efficiency 
 	class Link {
 	public: 
+        node_index_t in_node_index; // NNode inputting into the link
+        node_index_t out_node_index; // NNode that the link affects
+
 		double weight; // Weight of connection
-		NNode *in_node; // NNode inputting into the link
-		NNode *out_node; // NNode that the link affects
 		bool is_recurrent;
 		bool time_delay;
 
@@ -45,16 +48,20 @@ namespace NEAT {
 		double added_weight;  // The amount of weight adjustment 
 		double params[NEAT::num_trait_params];
 
-		Link(double w,NNode *inode,NNode *onode,bool recur);
+		// Including a trait in the Link creation
+		Link(int trait_id,
+             double w,
+             node_index_t inode_index,
+             node_index_t onode_index,
+             bool recur);
 
-		// Including a trait pointer in the Link creation
-		Link(int trait_id,double w,NNode *inode,NNode *onode,bool recur);
+		Link(double w,
+             node_index_t inode_index,
+             node_index_t onode_index,
+             bool recur);
 
 		// For when you don't know the connections yet
 		Link(double w);
-
-		// Copy Constructor
-		Link(const Link& link);
 
         inline int get_trait_id() {
             return trait_id;

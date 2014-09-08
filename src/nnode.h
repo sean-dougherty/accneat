@@ -128,14 +128,8 @@ namespace NEAT {
 		// If the node is a SENSOR, returns true and loads the value
 		bool sensor_load(double);
 
-		// Adds a NONRECURRENT Link to a new NNode in the incoming List
-		void add_incoming(NNode*,double);
-
-		// Adds a Link to a new NNode in the incoming List
-		void add_incoming(NNode*,double,bool);
-
 		// Recursively deactivate backwards through the network
-		void flushback();
+		void flushback(std::vector<NNode> &nodes);
 
 		// Print the node to a file
         void  print_to_file(std::ostream &outFile);
@@ -149,7 +143,7 @@ namespace NEAT {
 		void Lamarck();
 
 		//Find the greatest depth starting from this neuron at depth d
-		int depth(int d,Network *mynet); 
+		int depth(int d, std::vector<NNode> &nodes); 
 
 	};
 
