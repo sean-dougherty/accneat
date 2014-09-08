@@ -121,12 +121,23 @@ public:
     
 };
 
-Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, vector<Gene*> g)
+Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, const vector<Gene> &g)
     : node_lookup(nodes) {
 	genome_id=id;
 	traits=t;
-	nodes=n; 
-	genes=g;
+	nodes=n;
+
+    for(Gene gene: g) {
+        genes.push_back(new Gene(gene));
+    }
+}
+
+Genome::Genome(int id, const vector<Trait> &t, vector<NNode*> n, const vector<Gene *> &g)
+    : node_lookup(nodes) {
+	genome_id=id;
+	traits=t;
+	nodes=n;
+    genes=g;
 }
 
 Genome::Genome(int id, std::ifstream &iFile)
@@ -460,7 +471,7 @@ Genome *Genome::duplicate(int new_id) {
 	//Collections for the new Genome
 	vector<Trait> traits_dup;
 	vector<NNode*> nodes_dup;
-	vector<Gene*> genes_dup;
+	vector<Gene> genes_dup;
 
 	//Duplicate the traits
     traits_dup = traits;
@@ -475,12 +486,7 @@ Genome *Genome::duplicate(int new_id) {
     //todo: should be able to simply copy whole vector
 	//Duplicate Genes
     for(Gene *gene: genes) {
-		//First find the nodes connected by the gene's link
-		NNode *inode = node_lookup.find(gene->in_node_id());
-		NNode *onode = node_lookup.find(gene->out_node_id());
-		Gene *newgene = new Gene(gene, gene->trait_id(), inode->node_id, onode->node_id);
-		genes_dup.push_back(newgene);
-
+        genes_dup.emplace_back(*gene);
 	}
 
 	//Finally, return the genome

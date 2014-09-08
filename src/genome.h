@@ -62,7 +62,12 @@ namespace NEAT {
 		Genome(int id,
                const std::vector<Trait> &t,
                std::vector<NNode*> n,
-               std::vector<Gene*> g);
+               const std::vector<Gene> &g);
+
+		Genome(int id,
+               const std::vector<Trait> &t,
+               std::vector<NNode*> n,
+               const std::vector<Gene *> &g);
 
 		//Special constructor which spawns off an input file
 		//This constructor assumes that some routine has already read in GENOMESTART
