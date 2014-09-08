@@ -51,19 +51,21 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 	trait_id=1;
 }
 
-NNode::NNode(NNode *n) {
-    in_depth = false;
-	active_flag=false;
-	activation=0;
-	last_activation=0;
-	last_activation2=0;
-	type=n->type; //NEURON or SENSOR type
-	activation_count=0; //Inactive upon creation
-	node_id=n->node_id;
-	ftype=SIGMOID;
-	gen_node_label=n->gen_node_label;
-	frozen=false;
-    trait_id = n->trait_id;
+NNode NNode::partial_copy(NNode *n) {
+    NNode copy;
+    copy.in_depth = false;
+	copy.active_flag=false;
+	copy.activation=0;
+	copy.last_activation=0;
+	copy.last_activation2=0;
+	copy.type=n->type; //NEURON or SENSOR type
+	copy.activation_count=0; //Inactive upon creation
+	copy.node_id=n->node_id;
+	copy.ftype=SIGMOID;
+	copy.gen_node_label=n->gen_node_label;
+	copy.frozen=false;
+    copy.trait_id = n->trait_id;
+    return copy;
 }
 
 NNode::NNode (const char *argline) {

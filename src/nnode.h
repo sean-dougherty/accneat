@@ -97,8 +97,8 @@ namespace NEAT {
 
 		NNode(nodetype ntype,int nodeid, nodeplace placement);
 
-		// Construct a NNode off another NNode for genome purposes
-		explicit NNode(NNode *n);
+		//todo: figure out why this is needed instead of copy ctor
+		static NNode partial_copy(NNode *n);
 
 		// Construct the node out of a file specification using given list of traits
 		NNode (const char *argline);
