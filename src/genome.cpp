@@ -472,12 +472,13 @@ Genome *Genome::duplicate(int new_id) {
 
     NodeLookup node_lookup(nodes_dup);
 
+    //todo: should be able to simply copy whole vector
 	//Duplicate Genes
     for(Gene *gene: genes) {
 		//First find the nodes connected by the gene's link
 		NNode *inode = node_lookup.find(gene->in_node_id());
 		NNode *onode = node_lookup.find(gene->out_node_id());
-		Gene *newgene = new Gene(gene, gene->trait_id(), inode, onode);
+		Gene *newgene = new Gene(gene, gene->trait_id(), inode->node_id, onode->node_id);
 		genes_dup.push_back(newgene);
 
 	}
@@ -688,13 +689,13 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
 			//Create the new Genes
 			if (thegene->is_recurrent()) {
-				newgene1=new Gene(trait_id,1.0,in_node,newnode,true,curinnov,0);
-				newgene2=new Gene(trait_id,oldweight,newnode,out_node,false,curinnov+1,0);
+				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,true,curinnov,0);
+				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,curinnov+1,0);
 				curinnov+=2.0;
 			}
 			else {
-				newgene1=new Gene(trait_id,1.0,in_node,newnode,false,curinnov,0);
-				newgene2=new Gene(trait_id,oldweight,newnode,out_node,false,curinnov+1,0);
+				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,false,curinnov,0);
+				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,curinnov+1,0);
 				curinnov+=2.0;
 			}
 
@@ -730,12 +731,12 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
 			//Create the new Genes
 			if (thegene->is_recurrent()) {
-				newgene1=new Gene(trait_id,1.0,in_node,newnode,true,(*theinnov)->innovation_num1,0);
-				newgene2=new Gene(trait_id,oldweight,newnode,out_node,false,(*theinnov)->innovation_num2,0);
+				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,true,(*theinnov)->innovation_num1,0);
+				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
 			}
 			else {
-				newgene1=new Gene(trait_id,1.0,in_node,newnode,false,(*theinnov)->innovation_num1,0);
-				newgene2=new Gene(trait_id,oldweight,newnode,out_node,false,(*theinnov)->innovation_num2,0);
+				newgene1=new Gene(trait_id,1.0,in_node->node_id,newnode->node_id,false,(*theinnov)->innovation_num1,0);
+				newgene2=new Gene(trait_id,oldweight,newnode->node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
 			}
 
 			done=true;
@@ -820,8 +821,8 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                 //Create new gene using existing innovation.
                 newgene = new Gene(innov->new_trait_id,
                                    innov->new_weight,
-                                   in_node,
-                                   out_node,
+                                   in_node->node_id,
+                                   out_node->node_id,
                                    do_recur,
                                    innov->innovation_num1,
                                    0);
@@ -840,8 +841,8 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             //Create the new gene
             newgene = new Gene(trait_id,
                                newweight,
-                               in_node,
-                               out_node,
+                               in_node->node_id,
+                               out_node->node_id,
                                do_recur,
                                curinnov,
                                newweight);
@@ -1122,7 +1123,10 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
             } //End NNode checking section- NNodes are now in new Genome
 
             //Add the Gene
-            newgene=new Gene(protogene.gene(),protogene.gene()->trait_id(),new_inode,new_onode);
+            newgene=new Gene(protogene.gene(),
+                             protogene.gene()->trait_id(),
+                             new_inode->node_id,
+                             new_onode->node_id);
             if (disable) {
                 newgene->enable=false;
                 disable=false;
@@ -1392,7 +1396,10 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
             } //End NNode checking section- NNodes are now in new Genome
 
             //Add the Gene
-            newgene=new Gene(protogene.gene(),protogene.gene()->trait_id(),new_inode,new_onode);
+            newgene=new Gene(protogene.gene(),
+                             protogene.gene()->trait_id(),
+                             new_inode->node_id,
+                             new_onode->node_id);
 
             newgenes.push_back(newgene);
 
@@ -1644,7 +1651,10 @@ Genome *Genome::mate_singlepoint(Genome *g,int genomeid) {
 			} //End NNode checking section- NNodes are now in new Genome
 
 			//Add the Gene
-			newgenes.push_back(new Gene(protogene.gene(),protogene.gene()->trait_id(),new_inode,new_onode));
+			newgenes.push_back(new Gene(protogene.gene(),
+                                        protogene.gene()->trait_id(),
+                                        new_inode->node_id,
+                                        new_onode->node_id));
 
 		}  //End of if (!skip)
 

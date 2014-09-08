@@ -19,10 +19,15 @@
 #include <sstream>
 using namespace NEAT;
 
-Gene::Gene(double w, NNode *inode, NNode *onode, bool recur, double innov, double mnum) {
+Gene::Gene(double w,
+           int inode_id,
+           int onode_id,
+           bool recur,
+           double innov,
+           double mnum) {
     _weight = w;
-    _in_node_id = inode ? inode->node_id : 0;
-    _out_node_id = onode ? onode->node_id : 0;
+    _in_node_id = inode_id;
+    _out_node_id = onode_id;
     _is_recurrent = recur;
     _trait_id = 1;
 
@@ -33,10 +38,17 @@ Gene::Gene(double w, NNode *inode, NNode *onode, bool recur, double innov, doubl
 }
 
 
-Gene::Gene(int trait_id,double w,NNode *inode,NNode *onode,bool recur,double innov,double mnum) {
+//Construct a gene with a trait
+Gene::Gene(int trait_id,
+           double w,
+           int inode_id,
+           int onode_id,
+           bool recur,
+           double innov,
+           double mnum) {
     _weight = w;
-    _in_node_id = inode ? inode->node_id : 0;
-    _out_node_id = onode ? onode->node_id : 0;
+    _in_node_id = inode_id;
+    _out_node_id = onode_id;
     _is_recurrent = recur;
     _trait_id = trait_id;
 
@@ -46,10 +58,13 @@ Gene::Gene(int trait_id,double w,NNode *inode,NNode *onode,bool recur,double inn
 	frozen=false;
 }
 
-Gene::Gene(Gene *g,int trait_id,NNode *inode,NNode *onode) {
+Gene::Gene(Gene *g,
+           int trait_id,
+           int inode_id,
+           int onode_id) {
     _weight = g->_weight;
-    _in_node_id = inode ? inode->node_id : 0;
-    _out_node_id = onode ? onode->node_id : 0;
+    _in_node_id = inode_id;
+    _out_node_id = onode_id;
     _is_recurrent = g->_is_recurrent;
     _trait_id = trait_id;
 

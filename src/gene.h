@@ -52,13 +52,27 @@ namespace NEAT {
 		bool frozen;  //When frozen, the linkweight cannot be mutated
 
 		//Construct a gene with no trait
-		Gene(double w,NNode *inode,NNode *onode,bool recur,double innov,double mnum);
+		Gene(double w,
+             int inode_id,
+             int onode_id,
+             bool recur,
+             double innov,
+             double mnum);
 
 		//Construct a gene with a trait
-		Gene(int trait_id,double w,NNode *inode,NNode *onode,bool recur,double innov,double mnum);
+		Gene(int trait_id,
+             double w,
+             int inode_id,
+             int onode_id,
+             bool recur,
+             double innov,
+             double mnum);
 
 		//Construct a gene off of another gene as a duplicate
-		Gene(Gene *g,int trait_id,NNode *inode,NNode *onode);
+		Gene(Gene *g,
+             int trait_id,
+             int inode_id,
+             int onode_id);
 
 		//Construct a gene from a file spec given traits and nodes
 		Gene(const char *argline);
