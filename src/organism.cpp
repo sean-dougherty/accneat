@@ -18,7 +18,11 @@
 using namespace NEAT;
 using std::vector;
 
-Organism::Organism(double fit, int gen, const char* md) {
+Organism::Organism() {
+    init(0.0, 1, nullptr);
+}
+
+void Organism::init(double fit, int gen, const char* md) {
 	fitness=fit;
 	orig_fitness=fitness;
 	species=0;  //Start it in no Species

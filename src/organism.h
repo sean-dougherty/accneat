@@ -62,8 +62,10 @@ namespace NEAT {
 		bool print_to_file(char *filename);   
 		bool write_to_file(std::ostream &outFile);
 
-		Organism(double fit, int gen, const char* md = 0);
+		Organism();
 		~Organism();
+
+        void init(double fit, int gen, const char *metadata = nullptr);
 
         void create_phenotype();
 

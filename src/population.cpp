@@ -86,7 +86,8 @@ Population::Population(const char *filename) {
 				}
 				md = false;
 
-                Organism *org = new Organism(0, 1, metadata);
+                Organism *org = new Organism();
+                org->init(0, 1, metadata);
 				org->genome.load_from_file(idcheck, iFile);
                 org->create_phenotype();
 				organisms.push_back(org);
@@ -176,7 +177,7 @@ bool Population::clone(Genome *g,int size, float power) {
 	Genome *new_genome;
 	Organism *new_organism;
 
-    new_organism = new Organism(0.0, 1);
+    new_organism = new Organism();
     new_genome = &new_organism->genome;
     g->duplicate_into(*new_genome, 1);
     new_organism->create_phenotype();
@@ -185,7 +186,7 @@ bool Population::clone(Genome *g,int size, float power) {
 	//Create size copies of the Genome
 	//Start with perturbed linkweights
 	for(count=2;count<=size;count++) {
-		new_organism = new Organism(0.0, 1);
+		new_organism = new Organism();
         new_genome = &new_organism->genome;
 		g->duplicate_into(*new_genome, count); 
 		if(power>0)
@@ -214,7 +215,7 @@ bool Population::spawn(Genome *g,int size) {
 	//Create size copies of the Genome
 	//Start with perturbed linkweights
 	for(count=1;count<=size;count++) {
-		new_organism = new Organism(0.0, 1);
+		new_organism = new Organism();
 		new_genome = &new_organism->genome;
         g->duplicate_into(*new_genome, count); 
 		new_genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
@@ -457,14 +458,8 @@ bool Population::epoch(int generation) {
 	//Check for stagnation- if there is stagnation, perform delta-coding
 	if (highest_last_changed>=NEAT::dropoff_age+5) {
 
-		//    cout<<"PERFORMING DELTA CODING"<<endl;
-
 		highest_last_changed=0;
-
 		half_pop=NEAT::pop_size/2;
-
-		//    cout<<"half_pop"<<half_pop<<" pop_size-halfpop: "<<pop_size-half_pop<<endl;
-
 		curspecies=sorted_species.begin();
 
 		(*(((*curspecies)->organisms).begin()))->super_champ_offspring=half_pop;
@@ -498,145 +493,8 @@ bool Population::epoch(int generation) {
 	//  worse species and give them to superior species depending on
 	//  the system parameter babies_stolen (when babies_stolen > 0)
 	else if (NEAT::babies_stolen>0) {
-		//Take away a constant number of expected offspring from the worst few species
-
-		stolen_babies=0;
-		curspecies=sorted_species.end();
-		curspecies--;
-		while ((stolen_babies<NUM_STOLEN)&&
-			(curspecies!=sorted_species.begin())) {
-
-				//cout<<"Considering Species "<<(*curspecies)->id<<": age "<<(((*curspecies)->age))<<" expected offspring "<<(((*curspecies)->expected_offspring))<<endl;
-
-				if ((((*curspecies)->age)>5)&&
-					(((*curspecies)->expected_offspring)>2)) {
-						//cout<<"STEALING!"<<endl;
-
-						//This species has enough to finish off the stolen pool
-						if (((*curspecies)->expected_offspring-1)>=(NUM_STOLEN-stolen_babies)) {
-							(*curspecies)->expected_offspring-=(NUM_STOLEN-stolen_babies);
-							stolen_babies=NUM_STOLEN;
-						}
-						//Not enough here to complete the pool of stolen
-						else {
-							stolen_babies+=(*curspecies)->expected_offspring-1;
-							(*curspecies)->expected_offspring=1;
-
-						}
-					}
-
-					curspecies--;
-
-					//if (stolen_babies>0)
-					//cout<<"stolen babies so far: "<<stolen_babies<<endl;
-			}
-
-			//cout<<"STOLEN BABIES: "<<stolen_babies<<endl;
-
-			//Mark the best champions of the top species to be the super champs
-			//who will take on the extra offspring for cloning or mutant cloning
-			curspecies=sorted_species.begin();
-
-			//Determine the exact number that will be given to the top three
-			//They get , in order, 1/5 1/5 and 1/10 of the stolen babies
-			one_fifth_stolen=NEAT::babies_stolen/5;
-			one_tenth_stolen=NEAT::babies_stolen/10;
-
-			//Don't give to dying species even if they are champs
-			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
-				++curspecies;
-
-			//Concentrate A LOT on the number one species
-			if ((stolen_babies>=one_fifth_stolen)&&(curspecies!=sorted_species.end())) {
-				(*(((*curspecies)->organisms).begin()))->super_champ_offspring=one_fifth_stolen;
-				(*curspecies)->expected_offspring+=one_fifth_stolen;
-				stolen_babies-=one_fifth_stolen;
-				//cout<<"Gave "<<one_fifth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
-				//      cout<<"The best superchamp is "<<(*(((*curspecies)->organisms).begin()))->genome.genome_id<<endl;
-
-				//Print this champ to file "champ" for observation if desired
-				//IMPORTANT:  This causes generational file output 
-				//print_Genome_tofile((*(((*curspecies)->organisms).begin()))->gnome,"champ");
-
-				curspecies++;
-
-			}
-
-			//Don't give to dying species even if they are champs
-			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
-				++curspecies;
-
-			if ((curspecies!=sorted_species.end())) {
-				if (stolen_babies>=one_fifth_stolen) {
-					(*(((*curspecies)->organisms).begin()))->super_champ_offspring=one_fifth_stolen;
-					(*curspecies)->expected_offspring+=one_fifth_stolen;
-					stolen_babies-=one_fifth_stolen;
-					//cout<<"Gave "<<one_fifth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
-					curspecies++;
-
-				}
-			}
-
-			//Don't give to dying species even if they are champs
-			while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
-				++curspecies;
-
-			if (curspecies!=sorted_species.end())
-				if (stolen_babies>=one_tenth_stolen) {
-					(*(((*curspecies)->organisms).begin()))->super_champ_offspring=one_tenth_stolen;
-					(*curspecies)->expected_offspring+=one_tenth_stolen;
-					stolen_babies-=one_tenth_stolen;
-
-					//cout<<"Gave "<<one_tenth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
-					curspecies++;
-
-				}
-
-				//Don't give to dying species even if they are champs
-				while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
-					++curspecies;
-
-				while((stolen_babies>0)&&
-					(curspecies!=sorted_species.end())) {
-						//Randomize a little which species get boosted by a super champ
-
-						if (randfloat()>0.1)
-							if (stolen_babies>3) {
-								(*(((*curspecies)->organisms).begin()))->super_champ_offspring=3;
-								(*curspecies)->expected_offspring+=3;
-								stolen_babies-=3;
-								//cout<<"Gave 3 babies to Species "<<(*curspecies)->id<<endl;
-							}
-							else {
-								//cout<<"3 or less babies available"<<endl;
-								(*(((*curspecies)->organisms).begin()))->super_champ_offspring=stolen_babies;
-								(*curspecies)->expected_offspring+=stolen_babies;
-								//cout<<"Gave "<<stolen_babies<<" babies to Species "<<(*curspecies)->id<<endl;
-								stolen_babies=0;
-
-							}
-
-							curspecies++;
-
-							//Don't give to dying species even if they are champs
-							while((curspecies!=sorted_species.end())&&((*curspecies)->last_improved()>NEAT::dropoff_age))
-								++curspecies;
-
-					}
-
-					//cout<<"Done giving back babies"<<endl;
-
-					//If any stolen babies aren't taken, give them to species #1's champ
-					if (stolen_babies>0) {
-
-						//cout<<"Not all given back, giving to best Species"<<endl;
-
-						curspecies=sorted_species.begin();
-						(*(((*curspecies)->organisms).begin()))->super_champ_offspring+=stolen_babies;
-						(*curspecies)->expected_offspring+=stolen_babies;
-						stolen_babies=0;
-					}
-
+        //todo: catch at ne parsing
+        trap("stolen babies not supported!");
 	}
 
 

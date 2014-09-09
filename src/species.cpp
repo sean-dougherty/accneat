@@ -392,7 +392,9 @@ vector<Organism *> Species::reproduce(int generation,
     //Create the designated number of offspring for the Species
     //one at a time
     for(int count=0; count < expected_offspring; count++) {
-        Organism *baby = new Organism(0.0, generation);
+        Organism *baby = new Organism();
+        baby->init(0.0, generation);
+
         Genome *new_genome = &baby->genome;  //For holding baby's genes
         Species *newspecies; //For babies in new Species
 
