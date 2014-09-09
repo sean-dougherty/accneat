@@ -23,8 +23,6 @@
 using namespace NEAT;
 using std::vector;
 
-#define VERBOSE false
-
 Population::Population(Genome *g,int size) {
 	winnergen=0;
 	highest_fitness=0.0;
@@ -54,8 +52,6 @@ Population::Population(const char *filename) {
 	cur_node_id=0;
 	cur_innov_num=0.0;
 
-	int curwordnum = 0;
-
 	std::ifstream iFile(filename);
 	if (!iFile) {
 		printf("Can't open genomes file for input");
@@ -70,9 +66,7 @@ Population::Population(const char *filename) {
 		{
 			iFile.getline(curline, sizeof(curline));
             std::stringstream ss(curline);
-			//strcpy(curword, NEAT::getUnit(curline, 0, delimiters));
             ss >> curword;
-            //std::cout << curline << std::endl;
 
 			//Check for next
 			if (strcmp(curword,"genomestart")==0) 
@@ -101,8 +95,6 @@ Population::Population(const char *filename) {
 			{
 				// New metadata possibly, so clear out the metadata
 				strcpy(metadata, "");
-				curwordnum=1;
-				//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
                 ss >> curword;
 
 				while(strcmp(curword,"*/")!=0)
@@ -299,47 +291,20 @@ bool Population::epoch(int generation) {
 	double skim; 
 	int total_expected;  //precision checking
 	int total_organisms = organisms.size();
+    assert(total_organisms == NEAT::pop_size);
 	int max_expected;
-	Species *best_species;
+	Species *best_species = nullptr;
 	int final_expected;
 
-	//Rights to make babies can be stolen from inferior species
-	//and given to their superiors, in order to concentrate exploration on
-	//the best species
-	int NUM_STOLEN=NEAT::babies_stolen; //Number of babies to steal
-	int one_fifth_stolen;
-	int one_tenth_stolen;
-
 	std::vector<Species*> sorted_species;  //Species sorted by max fit org in Species
-	int stolen_babies; //Babies taken from the bad species and given to the champs
-
 	int half_pop;
 
 	//We can try to keep the number of species constant at this number
 	int num_species=species.size();
 
-
-	//Keeping species diverse
-	//This commented out code forces the system to aim for 
-	// num_species species at all times, enforcing diversity
-	//This tinkers with the compatibility threshold, which
-	// normally would be held constant
-	/*
-	if (generation>1) {
-		if (num_species<num_species_target)
-			NEAT::compat_threshold-=compat_mod;
-		else if (num_species>num_species_target)
-			NEAT::compat_threshold+=compat_mod;
-
-		if (NEAT::compat_threshold<0.3) NEAT::compat_threshold=0.3;
-
-	}
-	*/
-
-
 	//Stick the Species pointers into a new Species list for sorting
-	for(auto curspecies=species.begin();curspecies!=species.end();++curspecies) {
-		sorted_species.push_back(*curspecies);
+	for(Species *s: species) {
+		sorted_species.push_back(s);
 	}
 
 	//Sort the Species by max fitness (Use an extra list to do this)
@@ -431,70 +396,50 @@ bool Population::epoch(int generation) {
 	//sorted_species.qsort(order_species);
     std::sort(sorted_species.begin(), sorted_species.end(), order_species);
 
-#if VERBOSE
-	for(curspecies=sorted_species.begin();curspecies!=sorted_species.end();++curspecies) {
-
-		//Print out for Debugging/viewing what's going on 
-		std::cout<<"orig fitness of Species"<<(*curspecies)->id<<"(Size "<<(*curspecies)->organisms.size()<<"): "<<(*((*curspecies)->organisms).begin())->orig_fitness<<" last improved "<<((*curspecies)->age-(*curspecies)->age_of_last_improvement)<<std::endl;
-	}
-#endif
-
 	//Check for Population-level stagnation
-	curspecies=sorted_species.begin();
-	(*(((*curspecies)->organisms).begin()))->pop_champ=true; //DEBUG marker of the best of pop
-	if (((*(((*curspecies)->organisms).begin()))->orig_fitness) > highest_fitness) {
-        
-        double old_highest = highest_fitness;
-        highest_fitness=((*(((*curspecies)->organisms).begin()))->orig_fitness);
-        highest_last_changed=0;
+    {
+        Organism *pop_champ = sorted_species[0]->first();
+        pop_champ->pop_champ = true; //DEBUG marker of the best of pop
+        if(pop_champ->orig_fitness > highest_fitness) {
+            double old_highest = highest_fitness;
+            highest_fitness = pop_champ->orig_fitness;
+            highest_last_changed=0;
 
-        printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg\n", highest_fitness, highest_fitness - old_highest);
-    } else {
-		++highest_last_changed;
-		std::cout<<highest_last_changed<<" generations since last population fitness record: "<<highest_fitness<<std::endl;
-	}
+            printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg\n",
+                   highest_fitness, highest_fitness - old_highest);
+        } else {
+            ++highest_last_changed;
 
+            printf("%uz generations since last population fitness record: %lg\n",
+                   size_t(highest_last_changed), highest_fitness);
+        }
+    }
 
 	//Check for stagnation- if there is stagnation, perform delta-coding
-	if (highest_last_changed>=NEAT::dropoff_age+5) {
+	if (highest_last_changed >= NEAT::dropoff_age+5) {
+		highest_last_changed = 0;
+		half_pop = total_organisms / 2;
 
-		highest_last_changed=0;
-		half_pop=NEAT::pop_size/2;
-		curspecies=sorted_species.begin();
+		sorted_species[0]->first()->super_champ_offspring = half_pop;
+		sorted_species[0]->expected_offspring = half_pop;
+		sorted_species[0]->age_of_last_improvement = sorted_species[0]->age;
 
-		(*(((*curspecies)->organisms).begin()))->super_champ_offspring=half_pop;
-		(*curspecies)->expected_offspring=half_pop;
-		(*curspecies)->age_of_last_improvement=(*curspecies)->age;
-
-		++curspecies;
-
-		if (curspecies!=sorted_species.end()) {
-
-			(*(((*curspecies)->organisms).begin()))->super_champ_offspring=NEAT::pop_size-half_pop;
-			(*curspecies)->expected_offspring=NEAT::pop_size-half_pop;
-			(*curspecies)->age_of_last_improvement=(*curspecies)->age;
-
-			++curspecies;
+        if(sorted_species.size() > 1) {
+            sorted_species[1]->first()->super_champ_offspring = total_organisms - half_pop;
+			sorted_species[1]->expected_offspring = total_organisms - half_pop;
+			sorted_species[1]->age_of_last_improvement = sorted_species[1]->age;
 
 			//Get rid of all species under the first 2
-			while(curspecies!=sorted_species.end()) {
-				(*curspecies)->expected_offspring=0;
-				++curspecies;
+            for(size_t i = 2, n = sorted_species.size(); i < n; i++) {
+                sorted_species[i]->expected_offspring = 0;
 			}
+		} else {
+            sorted_species[0]->first()->super_champ_offspring += total_organisms - half_pop;
+            sorted_species[0]->expected_offspring += total_organisms - half_pop;
 		}
-		else {
-			curspecies=sorted_species.begin();
-			(*(((*curspecies)->organisms).begin()))->super_champ_offspring+=NEAT::pop_size-half_pop;
-			(*curspecies)->expected_offspring=NEAT::pop_size-half_pop;
-		}
-
-	}
-	//STOLEN BABIES:  The system can take expected offspring away from
-	//  worse species and give them to superior species depending on
-	//  the system parameter babies_stolen (when babies_stolen > 0)
-	else if (NEAT::babies_stolen>0) {
+	} else if (NEAT::babies_stolen>0) {
         //todo: catch at ne parsing
-        trap("stolen babies not supported!");
+        trap("stolen babies no longer supported!");
 	}
 
 
@@ -592,7 +537,6 @@ bool Population::epoch(int generation) {
     innovations.clear();
 
 	return true;
-
 }
 
 bool Population::rank_within_species() {
