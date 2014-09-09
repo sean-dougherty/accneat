@@ -19,7 +19,7 @@ using namespace NEAT;
 using std::vector;
 
 Organism::Organism() {
-    init(0.0, 1, nullptr);
+    init(0.0, 0, nullptr);
 }
 
 void Organism::init(double fit, int gen, const char* md) {

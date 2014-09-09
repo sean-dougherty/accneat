@@ -76,6 +76,7 @@ namespace NEAT {
 		//Remove an organism from Species
 		bool remove_org(Organism *org);
         void remove_eliminated();
+        void remove_generation(int gen);
 
 		double size() {
 			return organisms.size();
@@ -84,9 +85,11 @@ namespace NEAT {
 		Organism *get_champ();
 
 		//Perform mating and mutation to form next generation
-        std::vector<Organism *> reproduce(int generation,
-                                          Population *pop,
-                                          std::vector<Species*> &sorted_species);
+        void reproduce(std::vector<Organism> &organisms,
+                       size_t &iorg,
+                       int generation,
+                       Population *pop,
+                       std::vector<Species*> &sorted_species);
 
 		// *** Real-time methods *** 
 

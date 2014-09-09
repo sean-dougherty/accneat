@@ -19,6 +19,8 @@
 #include "genome.h"
 #include "species.h"
 
+#include <iostream>
+
 namespace NEAT {
 
 	class Species;
@@ -63,14 +65,12 @@ namespace NEAT {
 		bool write_to_file(std::ostream &outFile);
 
 		Organism();
+		Organism(const Organism& org) {trap("shouldn't ever have to copy");}
 		~Organism();
 
         void init(double fit, int gen, const char *metadata = nullptr);
 
         void create_phenotype();
-
-    private:
-		Organism(const Organism& org);	// Copy Constructor
 	};
 
 	// This is used for list sorting of Organisms by fitness..highest fitness first

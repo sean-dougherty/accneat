@@ -23,6 +23,8 @@
 #include "species.h"
 #include "organism.h"
 
+#include <assert.h>
+
 namespace NEAT {
 
 	class Species;
@@ -34,18 +36,28 @@ namespace NEAT {
 	//   including their species                        
 	// ---------------------------------------------  
 	class Population {
-
-	protected: 
-
-		// A Population can be spawned off of a single Genome 
-		// There will be size Genomes added to the Population 
-		// The Population does not have to be empty to add Genomes 
-		bool spawn(Genome *g,int size);
+        struct Organisms {
+        private:
+            size_t _n;
+            std::vector<Organism> _a;
+            std::vector<Organism> _b;
+            std::vector<Organism> *_curr;
+        public:
+            Organisms(size_t n)
+            : _n(n) {
+                _a.resize(n);
+                _b.resize(n);
+                _curr = &_a;
+            }
+            inline size_t size() {return _n;}
+            inline std::vector<Organism> &curr() {return *_curr;}
+            inline void swap() {
+                if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
+                //assert( _curr->size() == _n );
+            }
+        } orgs;
 
 	public:
-
-        std::vector<Organism*> organisms; //The organisms in the Population
-
         std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
 
 		// ******* Member variables used during reproduction *******
@@ -65,6 +77,9 @@ namespace NEAT {
 		// ******* When do we need to delta code? *******
 		double highest_fitness;  //Stagnation detector
 		int highest_last_changed; //If too high, leads to delta coding
+
+        size_t size() {return orgs.size();}
+        Organism *get(size_t i) {return &orgs.curr()[i];}
 
 		// Separate the Organisms into species
 		bool speciate();
@@ -99,24 +114,15 @@ namespace NEAT {
 		// Construct off of a single spawning Genome without mutation
 		Population(Genome *g,int size, float power);
 		
-		bool clone(Genome *g,int size, float power);
-
-		//// Special constructor to create a population of random topologies     
-		//// uses Genome(int i, int o, int n,int nmax, bool r, double linkprob) 
-		//// See the Genome constructor for the argument specifications
-		//Population(int size,int i,int o, int nmax, bool r, double linkprob);
-
-		// Construct off of a file of Genomes 
-		Population(const char *filename);
-
 		// It can delete a Population in two ways:
 		//    -delete by killing off the species
 		//    -delete by killing off the organisms themselves (if not speciated)
 		// It does the latter if it sees the species list is empty
 		~Population();
 
-		
-
+    private:
+		bool clone(Genome *g, float power);
+		bool spawn(Genome *g);
 	};
 
 } // namespace NEAT

@@ -348,12 +348,12 @@ int epoch(Population *pop,
     bool best = false;
     size_t i_best;
 
-    const size_t n = pop->organisms.size();
+    const size_t n = pop->size();
     float *details_act = new float[n * nouts];
     float *details_err = new float[n * nouts];
 //#pragma omp parallel for
     for(size_t i = 0; i < n; i++) {
-        Organism *org = pop->organisms[i];
+        Organism *org = pop->get(i);
         size_t details_offset = i * nouts;
         if (evaluate(org, details_act + details_offset, details_err + details_offset)) {
 //#pragma omp critical
@@ -379,7 +379,7 @@ int epoch(Population *pop,
     if(best) {
         float *best_act = details_act + i_best * nouts;
         float *best_err = details_err + i_best * nouts;
-        Organism *org = pop->organisms[i_best];
+        Organism *org = pop->get(i_best);
         
         printf("new best_fitness=%f; fitness=%f, errorsum=%f -- activation (err)\n",
                (float)best_fitness, (float)org->fitness, (float)org->error);
@@ -422,7 +422,8 @@ int epoch(Population *pop,
 
 
     if (win) {
-        for(Organism *org: pop->organisms) {
+        for(size_t i = 0, n = pop->size(); i < n; i++) {
+            Organism *org = pop->get(i);
             if(org->winner) {
                 cout << "WINNER IS #" << org->genome.genome_id << endl;
                 //Prints the winner to file

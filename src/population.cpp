@@ -23,102 +23,21 @@
 using namespace NEAT;
 using std::vector;
 
-Population::Population(Genome *g,int size) {
+Population::Population(Genome *g,int size)
+    : orgs(size) {
 	winnergen=0;
 	highest_fitness=0.0;
 	highest_last_changed=0;
-	spawn(g,size);
+	spawn(g);
 }
 
-Population::Population(Genome *g,int size, float power) {
+Population::Population(Genome *g,int size, float power)
+    : orgs(size) {
 	winnergen=0;
 	highest_fitness=0.0;
 	highest_last_changed=0;
-	clone(g, size, power);
+	clone(g, power);
 }
-
-Population::Population(const char *filename) {
-
-	char curword[128];  //max word size of 128 characters
-	char curline[1024]; //max line size of 1024 characters
-
-	Genome *new_genome;
-
-	winnergen=0;
-
-	highest_fitness=0.0;
-	highest_last_changed=0;
-
-	cur_node_id=0;
-	cur_innov_num=0.0;
-
-	std::ifstream iFile(filename);
-	if (!iFile) {
-		printf("Can't open genomes file for input");
-		return;
-	}
-
-	else {
-		bool md = false;
-		char metadata[128];
-		//Loop until file is finished, parsing each line
-		while (!iFile.eof()) 
-		{
-			iFile.getline(curline, sizeof(curline));
-            std::stringstream ss(curline);
-            ss >> curword;
-
-			//Check for next
-			if (strcmp(curword,"genomestart")==0) 
-			{
-                int idcheck;
-                ss >> idcheck;
-
-				// If there isn't metadata, set metadata to ""
-				if(md == false)  {
-					strcpy(metadata, "");
-				}
-				md = false;
-
-                Organism *org = new Organism();
-                org->init(0, 1, metadata);
-				org->genome.load_from_file(idcheck, iFile);
-                org->create_phenotype();
-				organisms.push_back(org);
-				if (cur_node_id<(new_genome->get_last_node_id()))
-					cur_node_id=new_genome->get_last_node_id();
-
-				if (cur_innov_num<(new_genome->get_last_gene_innovnum()))
-					cur_innov_num=new_genome->get_last_gene_innovnum();
-			}
-			else if (strcmp(curword,"/*")==0) 
-			{
-				// New metadata possibly, so clear out the metadata
-				strcpy(metadata, "");
-                ss >> curword;
-
-				while(strcmp(curword,"*/")!=0)
-				{
-					// If we've started to form the metadata, put a space in the front
-					if(md) {
-						strncat(metadata, " ", 128 - strlen(metadata));
-					}
-
-					// Append the next word to the metadata, and say that there is metadata
-					strncat(metadata, curword, 128 - strlen(metadata));
-					md = true;
-
-                    ss >> curword;
-				}
-			}
-		}
-
-		iFile.close();
-
-		speciate();
-	}
-}
-
 
 Population::~Population() {
 	std::vector<Species*>::iterator curspec;
@@ -129,49 +48,40 @@ Population::~Population() {
 			delete (*curspec);
 		}
 	}
-	else {
-		for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-			delete (*curorg);
-		}
-	}
 
 	for (std::vector<Innovation*>::iterator iter = innovations.begin(); iter != innovations.end(); ++iter)
 		delete *iter;
 }
 
 void Population::verify() {
-    for(auto &org: organisms)
-        org->genome.verify();
+    for(auto &org: orgs.curr())
+        org.genome.verify();
 } 
 
-bool Population::clone(Genome *g,int size, float power) {
-	int count;
-	Genome *new_genome;
-	Organism *new_organism;
+bool Population::clone(Genome *g, float power) {
 
-    new_organism = new Organism();
-    new_genome = &new_organism->genome;
-    g->duplicate_into(*new_genome, 1);
-    new_organism->create_phenotype();
-	organisms.push_back(new_organism);
+    //Create an exact clone.
+    {
+        Organism &org = orgs.curr()[0];
+        g->duplicate_into(org.genome, 1);
+        org.create_phenotype();
+    }
 	
-	//Create size copies of the Genome
-	//Start with perturbed linkweights
-	for(count=2;count<=size;count++) {
-		new_organism = new Organism();
-        new_genome = &new_organism->genome;
-		g->duplicate_into(*new_genome, count); 
+	//Create copies of the Genome with perturbed linkweights
+	for(size_t i = 1; i < size(); i++) {
+        Organism &org = orgs.curr()[i];
+        
+        g->duplicate_into(org.genome, i+1);
 		if(power>0)
-			new_genome->mutate_link_weights(power,1.0,GAUSSIAN);
+			org.genome.mutate_link_weights(power, 1.0, GAUSSIAN);
 		
-		new_genome->randomize_traits();
-        new_organism->create_phenotype();
-		organisms.push_back(new_organism);
+        org.genome.randomize_traits();
+        org.create_phenotype();
 	}
 
 	//Keep a record of the innovation and node number we are on
-	cur_node_id=new_genome->get_last_node_id();
-	cur_innov_num=new_genome->get_last_gene_innovnum();
+	cur_node_id = orgs.curr().back().genome.get_last_node_id();
+	cur_innov_num = orgs.curr().back().genome.get_last_gene_innovnum();
 
 	//Separate the new Population into species
 	speciate();
@@ -179,26 +89,18 @@ bool Population::clone(Genome *g,int size, float power) {
 	return true;
 }
 
-bool Population::spawn(Genome *g,int size) {
-	int count;
-	Genome *new_genome;
-	Organism *new_organism;
-
-	//Create size copies of the Genome
-	//Start with perturbed linkweights
-	for(count=1;count<=size;count++) {
-		new_organism = new Organism();
-		new_genome = &new_organism->genome;
-        g->duplicate_into(*new_genome, count); 
-		new_genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		new_genome->randomize_traits();
-        new_organism->create_phenotype();
-		organisms.push_back(new_organism);
+bool Population::spawn(Genome *g) {
+    for(size_t i = 0; i < size(); i++) {
+        Organism &org = orgs.curr()[i];
+        g->duplicate_into(org.genome, i+1); 
+		org.genome.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
+		org.genome.randomize_traits();
+        org.create_phenotype();
 	}
 
 	//Keep a record of the innovation and node number we are on
-	cur_node_id=new_genome->get_last_node_id();
-	cur_innov_num=new_genome->get_last_gene_innovnum();
+	cur_node_id = orgs.curr().back().genome.get_last_node_id();
+	cur_innov_num = orgs.curr().back().genome.get_last_gene_innovnum();
 
 	//Separate the new Population into species
 	speciate();
@@ -208,20 +110,20 @@ bool Population::spawn(Genome *g,int size) {
 
 bool Population::speciate() {
     last_species = 0;
-    for(Organism *org: organisms) {
-        assert(org->species == nullptr);
+    for(Organism &org: orgs.curr()) {
+        assert(org.species == nullptr);
         for(Species *s: species) {
-            if( org->genome.compatibility(&s->first()->genome) < NEAT::compat_threshold ) {
-                org->species = s;
+            if( org.genome.compatibility(&s->first()->genome) < NEAT::compat_threshold ) {
+                org.species = s;
                 break;
             }
         }
-        if(!org->species) {
+        if(!org.species) {
             Species *s = new Species(++last_species);
             species.push_back(s);
-            org->species = s;
+            org.species = s;
         }
-        org->species->add_Organism(org);
+        org.species->add_Organism(&org);
     }
     return true;
 }
@@ -250,6 +152,12 @@ bool Population::print_to_file_by_species(std::ostream& outFile) {
 }
 
 bool Population::epoch(int generation) {
+#ifndef NDEBUG
+    for(Organism &org: orgs.curr()) {
+        assert(org.generation == generation - 1 );
+    }
+#endif
+
 	double total=0.0; //Used to compute average fitness over all Organisms
 	double overall_average;  //The average modified fitness among ALL organisms
 
@@ -258,7 +166,7 @@ bool Population::epoch(int generation) {
 	//Offspring
 	double skim; 
 	int total_expected;  //precision checking
-	int total_organisms = organisms.size();
+	int total_organisms = size(); // todo: get rid of this variable
     assert(total_organisms == NEAT::pop_size);
 	int max_expected;
 	Species *best_species = nullptr;
@@ -308,15 +216,15 @@ bool Population::epoch(int generation) {
 
 	//Go through the organisms and add up their fitnesses to compute the
 	//overall average
-    for(Organism *o: organisms) {
-        total += o->fitness;
+    for(Organism &o: orgs.curr()) {
+        total += o.fitness;
     }
 	overall_average=total/total_organisms;
 	std::cout<<"Generation "<<generation<<": "<<"overall_average = "<<overall_average<<std::endl;
 
 	//Now compute expected number of offspring for each individual organism
-    for(Organism *o: organisms) {
-		o->expected_offspring = o->fitness / overall_average;
+    for(Organism &o: orgs.curr()) {
+		o.expected_offspring = o.fitness / overall_average;
 	}
 
 	//Now add those offspring up within each Species to get the number of
@@ -413,57 +321,57 @@ bool Population::epoch(int generation) {
 
 	//Kill off all Organisms marked for death.  The remainder
 	//will be allowed to reproduce.
-    {
-        for(Species *s: species) {
-            s->remove_eliminated();
-        }
-
-        size_t n = 0;
-        for(size_t i = 0; i < organisms.size(); i++) {
-            Organism *org = organisms[i];
-            if(org->eliminate) {
-                delete org;
-            } else {
-                organisms[n++] = organisms[i];
-            }
-        }
-        organisms.resize(n);
+    for(Species *s: species) {
+        s->remove_eliminated();
     }
 
-    //Perform reproduction within the species. Note that new species may
-    //be created as we iterate over the vector.
-    for(size_t i = 0, n = species.size(); i < n; i++) {
-        vector<Organism *> offspring = species[i]->reproduce(generation,
-                                                             this,
-                                                             sorted_species);
+    {
+        orgs.swap();
+        if( (size_t)total_expected > size() ) {
+            std::cerr << "total_expected too big!!! " << total_expected << std::endl;
+            orgs.curr().resize(total_expected);
+        }
+        size_t iorg = 0;
 
-        for(Organism *org: offspring) {
-            assert(org->species == nullptr);
+        //Perform reproduction within the species. Note that new species may
+        //be created as we iterate over the vector.
+        for(size_t i = 0, n = species.size(); i < n; i++) {
+            size_t iorg0 = iorg;
+            species[i]->reproduce(orgs.curr(),
+                                  iorg,
+                                  generation,
+                                  this,
+                                  sorted_species);
+            size_t iorg1 = iorg;
+            assert( species[i]->expected_offspring == (iorg1 - iorg0) );
 
-            for(Species *s: species) {
-                if(s->size()) {
-                    double comp = org->genome.compatibility(&s->first()->genome);
-                    if(comp < NEAT::compat_threshold) {
-                        org->species = s;
-                        break;
+            for(size_t j = iorg0; j < iorg1; j++) {
+                Organism &org = orgs.curr()[j];
+                org.species = nullptr;
+
+                for(Species *s: species) {
+                    if(s->size()) {
+                        double comp = org.genome.compatibility(&s->first()->genome);
+                        if(comp < NEAT::compat_threshold) {
+                            org.species = s;
+                            break;
+                        }
                     }
                 }
-            }
 
-            if(!org->species) {
-                org->species = new Species(++last_species, true);
-                species.push_back(org->species);
+                if(!org.species) {
+                    org.species = new Species(++last_species, true);
+                    species.push_back(org.species);
+                }
+                org.species->add_Organism(&org);
             }
-            org->species->add_Organism(org);
         }
     }
 
 	//Destroy and remove the old generation from the organisms and species
-    for(Organism *org: organisms) {
-        org->species->remove_org(org);
-        delete org;
+    for(Species *s: species) {
+        s->remove_generation(generation - 1);
     }
-    organisms.clear();
 
 	//Remove all empty Species and age ones that survive
 	//As this happens, create master organism list for the new generation
@@ -490,13 +398,18 @@ bool Population::epoch(int generation) {
                 //the master list
                 for(Organism *org: s->organisms) {
                     org->genome.genome_id = orgcount++;
-                    organisms.push_back(org);
                 }
             }
         }
 
         species.resize(nspecies);
     }
+
+#ifndef NDEBUG
+    for(Organism &org: orgs.curr()) {
+        assert(org.generation == generation);
+    }
+#endif
 
 	//Remove the innovations of the current generation
     for(Innovation *innov: innovations) {

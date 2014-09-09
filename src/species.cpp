@@ -51,13 +51,6 @@ Species::Species(int i,bool n) {
 
 
 Species::~Species() {
-
-	std::vector<Organism*>::iterator curorg;
-
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		delete (*curorg);
-	}
-
 }
 
 bool Species::rank() {
@@ -108,6 +101,17 @@ void Species::remove_eliminated() {
     for(size_t i = 0; i < organisms.size(); i++) {
         Organism *org = organisms[i];
         if(!org->eliminate) {
+            organisms[n++] = organisms[i];
+        }
+    }
+    organisms.resize(n);    
+}
+
+void Species::remove_generation(int gen) {
+    size_t n = 0;
+    for(size_t i = 0; i < organisms.size(); i++) {
+        Organism *org = organisms[i];
+        if(org->generation != gen) {
             organisms[n++] = organisms[i];
         }
     }
@@ -293,11 +297,11 @@ static Organism *get_random(Species *thiz, const vector<Species *> &sorted_speci
     return result->first();
 }
 
-vector<Organism *> Species::reproduce(int generation,
-                                      Population *pop,
-                                      vector<Species*> &sorted_species) {
-
-    vector<Organism *> offspring; // The result
+void Species::reproduce(vector<Organism> &pop_orgs,
+                        size_t &iorg,
+                        int generation,
+                        Population *pop,
+                        vector<Species*> &sorted_species) {
 
 	Organism *mom = nullptr; //Parent Organisms
 	Organism *dad = nullptr;
@@ -314,7 +318,7 @@ vector<Organism *> Species::reproduce(int generation,
 
 	//Check for a mistake
 	if ((expected_offspring>0) && (organisms.size()==0)) {
-        return offspring;
+        trap("expected > size");
     }
 
     thechamp = organisms[0];
@@ -322,10 +326,11 @@ vector<Organism *> Species::reproduce(int generation,
     //Create the designated number of offspring for the Species
     //one at a time
     for(int count=0; count < expected_offspring; count++) {
-        Organism *baby = new Organism();
+        Organism *baby = &pop_orgs[iorg++];
         baby->init(0.0, generation);
 
         Genome *new_genome = &baby->genome;  //For holding baby's genes
+        new_genome->reset(iorg+1);
 
         mut_struct_baby=false;
         mate_baby=false;
@@ -506,10 +511,7 @@ vector<Organism *> Species::reproduce(int generation,
         baby->mate_baby=mate_baby;
 
         baby->create_phenotype();
-        offspring.push_back(baby);
     }
-
-    return offspring;
 }
 
 bool NEAT::order_species(Species *x, Species *y) { 
