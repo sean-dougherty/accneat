@@ -279,10 +279,7 @@ bool Population::print_to_file_by_species(std::ostream& outFile) {
 }
 
 bool Population::epoch(int generation) {
-    std::vector<Species *>::iterator curspecies;
-
 	double total=0.0; //Used to compute average fitness over all Organisms
-
 	double overall_average;  //The average modified fitness among ALL organisms
 
 	//The fractional parts of expected offspring that can be 
