@@ -55,7 +55,6 @@ namespace NEAT {
 		Organism *first();
 
 		bool print_to_file(std::ostream &outFile);
-		bool print_to_file(std::ofstream &outFile);
 
 		//Change the fitness of all the organisms in the species to possibly depend slightly on the age of the species
 		//and then divide it by the size of the species so that the organisms in the species "share" the fitness

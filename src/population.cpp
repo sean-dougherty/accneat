@@ -108,36 +108,21 @@ Population::Population(const char *filename) {
 					strncat(metadata, curword, 128 - strlen(metadata));
 					md = true;
 
-					//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
                     ss >> curword;
 				}
 			}
-			//Ignore comments - they get printed to screen
-			//else if (strcmp(curword,"/*")==0) {
-			//	iFile>>curword;
-			//	while (strcmp(curword,"*/")!=0) {
-			//cout<<curword<<" ";
-			//		iFile>>curword;
-			//	}
-			//	cout<<endl;
-
-			//}
-			//Ignore comments surrounded by - they get printed to screen
 		}
 
 		iFile.close();
 
 		speciate();
-
 	}
 }
 
 
 Population::~Population() {
-
 	std::vector<Species*>::iterator curspec;
 	std::vector<Organism*>::iterator curorg;
-	//std::vector<Generation_viz*>::iterator cursnap;
 
 	if (species.begin()!=species.end()) {
 		for(curspec=species.begin();curspec!=species.end();++curspec) {
@@ -152,11 +137,6 @@ Population::~Population() {
 
 	for (std::vector<Innovation*>::iterator iter = innovations.begin(); iter != innovations.end(); ++iter)
 		delete *iter;
-
-	//Delete the snapshots
-	//		for(cursnap=generation_snapshots.begin();cursnap!=generation_snapshots.end();++cursnap) {
-	//			delete (*cursnap);
-	//		}
 }
 
 void Population::verify() {
@@ -247,27 +227,18 @@ bool Population::speciate() {
 }
 
 bool Population::print_to_file_by_species(char *filename) {
-
-  std::vector<Species*>::iterator curspecies;
-
   std::ofstream outFile(filename,std::ios::out);
-
   //Make sure it worked
   if (!outFile) {
     std::cerr<<"Can't open "<<filename<<" for output"<<std::endl;
     return false;
   }
 
-
-  //Step through the Species and print them to the file
-  for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-    (*curspecies)->print_to_file(outFile);
-  }
+  bool result = print_to_file_by_species(outFile);
 
   outFile.close();
 
-  return true;
-
+  return result;
 }
 
 

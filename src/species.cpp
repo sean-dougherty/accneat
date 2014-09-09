@@ -21,8 +21,6 @@
 using namespace NEAT;
 using std::vector;
 
-#define VERBOSE false
-
 Species::Species(int i) {
 	id=i;
 	age=1;
@@ -75,22 +73,16 @@ bool Species::add_Organism(Organism *o){
 
 Organism *Species::get_champ() {
 	double champ_fitness=-1.0;
-	Organism *thechamp;
-	std::vector<Organism*>::iterator curorg;
+	Organism *thechamp = nullptr;
 
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		//TODO: Remove DEBUG code
-		//cout<<"searching for champ...looking at org "<<(*curorg)->gnome->genome_id<<" fitness: "<<(*curorg)->fitness<<endl;
-		if (((*curorg)->fitness)>champ_fitness) {
-			thechamp=(*curorg);
-			champ_fitness=thechamp->fitness;
-		}
-	}
-
-	//cout<<"returning champ #"<<thechamp->gnome->genome_id<<endl;
+    for(Organism *org: organisms) {
+        if(org->fitness > champ_fitness) {
+            thechamp = org;
+            champ_fitness = thechamp->fitness;
+        }
+    }
 
 	return thechamp;
-
 }
 
 bool Species::remove_org(Organism *org) {
@@ -127,75 +119,22 @@ Organism *Species::first() {
 }
 
 //Print Species to a file outFile
-bool Species::print_to_file(std::ofstream &outFile) {
-  std::vector<Organism*>::iterator curorg;
-
-  //Print a comment on the Species info
-  outFile<<std::endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<std::endl<<std::endl;
-
-#if VERBOSE
-  //Show user what's going on
-  std::cout<<std::endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<std::endl;
-#endif
-
-  //Print all the Organisms' Genomes to the outFile
-  for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-
-    //Put the fitness for each organism in a comment
-    outFile<<std::endl<<"/* Organism #"<<((*curorg)->genome).genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<std::endl;
-
-    //If it is a winner, mark it in a comment
-    if ((*curorg)->winner) outFile<<"/* ##------$ WINNER "<<((*curorg)->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
-
-    ((*curorg)->genome).print_to_file(outFile);
-    //We can confirm by writing the genome #'s to the screen
-    //std::cout<<((*curorg)->genome).genome_id<<std::endl;
-  }
-
-  return true;
-
-}
-
-
 bool Species::print_to_file(std::ostream &outFile) {
-	std::vector<Organism*>::iterator curorg;
+    //Print a comment on the Species info
+    outFile<<std::endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<std::endl<<std::endl;
 
-	//Print a comment on the Species info
-	//outFile<<std::endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<std::endl<<std::endl;
-	char tempbuf[1024];
-	sprintf(tempbuf,"/* Species #%d : (Size %d) (AF %f) (Age %d)  */\n\n", id, organisms.size(), average_est, age);
-	//sprintf(tempbuf, "/* Species #%d : (Size %d) (AF %f) (Age %d)  */\n\n", id, organisms.size(), ave_fitness, age);
-	outFile << tempbuf;
+    //Print all the Organisms' Genomes to the outFile
+    for(Organism *org: organisms) {
+        //Put the fitness for each organism in a comment
+        outFile<<std::endl<<"/* Organism #"<<(org->genome).genome_id<<" Fitness: "<<org->fitness<<" Error: "<<org->error<<" */"<<std::endl;
 
-	//Show user what's going on
-	//std::cout<<std::endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<std::endl;
+        //If it is a winner, mark it in a comment
+        if (org->winner) outFile<<"/* ##------$ WINNER "<<(org->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
 
-	//Print all the Organisms' Genomes to the outFile
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
+        (org->genome).print_to_file(outFile);
+    }
 
-		//Put the fitness for each organism in a comment
-		//outFile<<std::endl<<"/* Organism #"<<((*curorg)->genome).genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<std::endl;
-		char tempbuf2[1024];
-		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", ((*curorg)->genome).genome_id, (*curorg)->fitness, (*curorg)->time_alive);
-		outFile << tempbuf2;
-
-		//If it is a winner, mark it in a comment
-		if ((*curorg)->winner) {
-			char tempbuf3[1024];
-			sprintf(tempbuf3, "/* ##------$ WINNER %d SPECIES #%d $------## */\n", ((*curorg)->genome).genome_id, id);
-			//outFile<<"/* ##------$ WINNER "<<((*curorg)->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
-		}
-
-		((*curorg)->genome).print_to_file(outFile);
-		//We can confirm by writing the genome #'s to the screen
-		//std::cout<<((*curorg)->genome).genome_id<<std::endl;
-	}
-	char tempbuf4[1024];
-	sprintf(tempbuf4, "\n\n");
-	outFile << tempbuf4;
-
-	return true;
-
+    return true;
 }
 
 void Species::adjust_fitness() {
@@ -363,14 +302,8 @@ vector<Organism *> Species::reproduce(int generation,
 	Organism *mom = nullptr; //Parent Organisms
 	Organism *dad = nullptr;
 
-	Organism *comporg;  //For Species determination through comparison
-
 	bool outside;
-
-	bool found;  //When a Species is found
-
-	bool champ_done=false; //Flag the preservation of the champion  
-
+    bool champ_done=false; //Flag the preservation of the champion
 	Organism *thechamp = nullptr;
 
 	bool mut_struct_baby;
@@ -378,9 +311,6 @@ vector<Organism *> Species::reproduce(int generation,
 
 	//The weight mutation power is species specific depending on its age
 	double mut_power=NEAT::weight_mut_power;
-
-	//Roulette wheel variables
-	double total_fitness=0.0;
 
 	//Check for a mistake
 	if ((expected_offspring>0) && (organisms.size()==0)) {
@@ -396,7 +326,6 @@ vector<Organism *> Species::reproduce(int generation,
         baby->init(0.0, generation);
 
         Genome *new_genome = &baby->genome;  //For holding baby's genes
-        Species *newspecies; //For babies in new Species
 
         mut_struct_baby=false;
         mate_baby=false;
