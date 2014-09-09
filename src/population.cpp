@@ -298,61 +298,23 @@ bool Population::spawn(Genome *g,int size) {
 }
 
 bool Population::speciate() {
-	std::vector<Organism*>::iterator curorg;  //For stepping through Population
-	std::vector<Species*>::iterator curspecies; //Steps through species
-	Organism *comporg=0;  //Organism for comparison 
-	Species *newspecies; //For adding a new species
-
-	int counter=0; //Species counter
-
-	//Step through all existing organisms
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-
-		//For each organism, search for a species it is compatible to
-		curspecies=species.begin();
-		if (curspecies==species.end()){
-			//Create the first species
-			newspecies=new Species(++counter);
-			species.push_back(newspecies);
-			newspecies->add_Organism(*curorg);  //Add the current organism
-			(*curorg)->species=newspecies;  //Point organism to its species
-		} 
-		else {
-			comporg=(*curspecies)->first();
-			while((comporg!=0)&&
-				(curspecies!=species.end())) {
-
-					if ((((*curorg)->gnome)->compatibility(comporg->gnome))<NEAT::compat_threshold) {
-
-						//Found compatible species, so add this organism to it
-						(*curspecies)->add_Organism(*curorg);
-						(*curorg)->species=(*curspecies);  //Point organism to its species
-						comporg=0;  //Note the search is over
-					}
-					else {
-
-						//Keep searching for a matching species
-						++curspecies;
-						if (curspecies!=species.end()) 
-							comporg=(*curspecies)->first();
-					}
-				}
-
-				//If we didn't find a match, create a new species
-				if (comporg!=0) {
-					newspecies=new Species(++counter);
-					species.push_back(newspecies);
-					newspecies->add_Organism(*curorg);  //Add the current organism
-					(*curorg)->species=newspecies;  //Point organism to its species
-				}
-
-		} //end else 
-
-	} //end for
-
-	last_species=counter;  //Keep track of highest species
-
-	return true;
+    last_species = 0;
+    for(Organism *org: organisms) {
+        assert(org->species == nullptr);
+        for(Species *s: species) {
+            if( org->gnome->compatibility(s->first()->gnome) < NEAT::compat_threshold ) {
+                org->species = s;
+                break;
+            }
+        }
+        if(!org->species) {
+            Species *s = new Species(++last_species);
+            species.push_back(s);
+            org->species = s;
+        }
+        org->species->add_Organism(org);
+    }
+    return true;
 }
 
 bool Population::print_to_file_by_species(char *filename) {
