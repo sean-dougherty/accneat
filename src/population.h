@@ -82,7 +82,7 @@ namespace NEAT {
 		bool print_species_champs_tofiles(char *directory_prefix,int generation);
 
 		// Run verify on all Genomes in this Population (Debugging)
-		bool verify();
+		void verify();
 
 		// Turnover the population to a new generation using fitness 
 		// The generation argument is the next generation
@@ -99,10 +99,6 @@ namespace NEAT {
 		// Construct off of a single spawning Genome without mutation
 		Population(Genome *g,int size, float power);
 		
-		//MSC Addition
-		// Construct off of a vector of genomes with a mutation rate of "power"
-		Population(std::vector<Genome*> genomeList, float power);
-
 		bool clone(Genome *g,int size, float power);
 
 		//// Special constructor to create a population of random topologies     

@@ -120,6 +120,13 @@ public:
     
 };
 
+void Genome::reset(int new_id) {
+    genome_id = new_id;
+    traits.clear();
+    nodes.clear();
+    genes.clear();
+}
+
 Genome::Genome()
     : node_lookup(nodes) {
 }
@@ -135,6 +142,86 @@ Genome::Genome(int id, const vector<Trait> &t, const vector<NNode> &n, const vec
 Genome::Genome(int id, std::ifstream &iFile)
     : node_lookup(nodes) {
 
+    load_from_file(id, iFile);
+}
+
+Genome* Genome::new_Genome_load(char *filename) {
+	Genome *newgenome;
+	int id;
+
+	char curword[20];  //max word size of 20 characters
+	std::ifstream iFile(filename);
+	iFile>>curword;
+
+	//Bypass initial comment
+	if (strcmp(curword,"/*")==0) {
+		iFile>>curword;
+		while (strcmp(curword,"*/")!=0) {
+			printf("%s ",curword);
+			iFile>>curword;
+		}
+		iFile>>curword;
+	}
+	iFile>>id;
+	newgenome=new Genome(id,iFile);
+	iFile.close();
+
+	return newgenome;
+}
+
+Genome::~Genome() {
+}
+
+void Genome::verify() {
+#ifdef NDEBUG
+    return;
+#else
+
+	//Check for NNodes being out of order
+    for(size_t i = 1, n = nodes.size(); i < n; i++) {
+        assert( nodes[i-1].node_id < nodes[i].node_id );
+    }
+
+    {
+        //Check genes reference valid nodes.
+        for(Gene &gene: genes) {
+            assert( get_node(gene.in_node_id()) );
+            assert( get_node(gene.out_node_id()) );
+        }
+    }
+
+	//Make sure there are no duplicate genes
+	for(Gene &gene: genes) {
+		for(Gene &gene2: genes) {
+            if(&gene != &gene2) {
+                assert( (gene.is_recurrent() != gene2.is_recurrent())
+                        || (gene2.in_node_id() != gene.in_node_id())
+                        || (gene2.out_node_id() != gene.out_node_id()) );
+            }
+		}
+	}
+#endif
+}
+
+void Genome::print_to_file(std::ostream &outFile) {
+    outFile<<"genomestart "<<genome_id<<std::endl;
+
+	//Output the traits
+    for(auto &t: traits)
+        t.print_to_file(outFile);
+
+    //Output the nodes
+    for(auto &n: nodes)
+        n.print_to_file(outFile);
+
+    //Output the genes
+    for(auto &g: genes)
+        g.print_to_file(outFile);
+
+    outFile << "genomeend " << genome_id << std::endl;
+}
+
+void Genome::load_from_file(int id, std::istream &iFile) {
 	char curword[128];  //max word size of 128 characters
 	char curline[1024]; //max line size of 1024 characters
 	char delimiters[] = " \n";
@@ -230,160 +317,6 @@ Genome::Genome(int id, std::ifstream &iFile)
 		}
 
 	}
-
-}
-
-Genome* Genome::new_Genome_load(char *filename) {
-	Genome *newgenome;
-	int id;
-
-	char curword[20];  //max word size of 20 characters
-	std::ifstream iFile(filename);
-	iFile>>curword;
-
-	//Bypass initial comment
-	if (strcmp(curword,"/*")==0) {
-		iFile>>curword;
-		while (strcmp(curword,"*/")!=0) {
-			printf("%s ",curword);
-			iFile>>curword;
-		}
-		iFile>>curword;
-	}
-	iFile>>id;
-	newgenome=new Genome(id,iFile);
-	iFile.close();
-
-	return newgenome;
-}
-
-Genome::~Genome() {
-}
-
-Network *Genome::genesis(int id) {
-	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
-	double weight_mag; //Measures absolute value of weights
-
-	//Inputs and outputs will be collected here for the network
-	//All nodes are collected in an all_list- 
-	//this will be used for later safe destruction of the net
-	//The new network
-	Network *newnet;
-
-    vector<NNode> netnodes;
-
-	//Create the nodes
-	for(NNode &node: nodes) {
-        netnodes.emplace_back(node);
-        netnodes.back().derive_trait( get_trait(node) );
-	}
-
-    class NetNodeLookup {
-        std::vector<NNode> &nodes;
-
-        static bool cmp(const NNode &node, int node_id) {
-            return node.node_id < node_id;
-        }
-    public:
-        // Must be sorted by node_id in ascending order
-        NetNodeLookup(std::vector<NNode> &nodes_)
-            : nodes(nodes_) {
-        }
-
-        node_index_t find(int node_id) {
-            auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
-            assert(it != nodes.end());
-
-            node_index_t i = it - nodes.begin();
-            assert(nodes[i].node_id == node_id);
-
-            return i;
-        }
-    } node_lookup(netnodes);
-
-	//Create the links by iterating through the genes
-    for(Gene &gene: genes) {
-		//Only create the link if the gene is enabled
-		if(gene.enable) {
-            node_index_t inode = node_lookup.find(gene.in_node_id());
-            node_index_t onode = node_lookup.find(gene.out_node_id());
-
-			//NOTE: This line could be run through a recurrency check if desired
-			// (no need to in the current implementation of NEAT)
-			netnodes[onode].incoming.emplace_back(gene.weight(),
-                                                  inode,
-                                                  onode,
-                                                  gene.is_recurrent());
-
-            Link &newlink = netnodes[onode].incoming.back();
-
-			//Derive link's parameters from its Trait pointer
-			newlink.derive_trait( get_trait(gene) );
-			//Keep track of maximum weight
-			if (newlink.weight>0)
-				weight_mag=newlink.weight;
-			else weight_mag=-newlink.weight;
-			if (weight_mag>maxweight)
-				maxweight=weight_mag;
-		}
-	}
-
-	//Create the new network
-	newnet = new Network(std::move(netnodes), id, false, maxweight);
-
-	return newnet;
-
-}
-
-bool Genome::verify() {
-#ifdef NDEBUG
-    return true;
-#else
-
-	//Check for NNodes being out of order
-    for(size_t i = 1, n = nodes.size(); i < n; i++) {
-        assert( nodes[i-1].node_id < nodes[i].node_id );
-    }
-
-    {
-        //Check genes reference valid nodes.
-        for(Gene &gene: genes) {
-            assert( get_node(gene.in_node_id()) );
-            assert( get_node(gene.out_node_id()) );
-        }
-    }
-
-	//Make sure there are no duplicate genes
-	for(Gene &gene: genes) {
-		for(Gene &gene2: genes) {
-            if(&gene != &gene2) {
-                assert( (gene.is_recurrent() != gene2.is_recurrent())
-                        || (gene2.in_node_id() != gene.in_node_id())
-                        || (gene2.out_node_id() != gene.out_node_id()) );
-            }
-		}
-	}
-
-	return true;
-#endif
-}
-
-void Genome::print_to_file(std::ostream &outFile) {
-    outFile<<"genomestart "<<genome_id<<std::endl;
-
-	//Output the traits
-    for(auto &t: traits)
-        t.print_to_file(outFile);
-
-    //Output the nodes
-    for(auto &n: nodes)
-        n.print_to_file(outFile);
-
-    //Output the genes
-    for(auto &g: genes)
-        g.print_to_file(outFile);
-
-    outFile << "genomeend " << genome_id << std::endl;
 }
 
 int Genome::get_last_node_id() {
@@ -816,15 +749,15 @@ void Genome::node_insert(vector<NNode> &nlist, const NNode &n) {
 
 }
 
-Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fitness2, bool interspec_flag) {
+void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double fitness1,double fitness2, bool interspec_flag) {
     vector<Gene> &genes1 = this->genes;
     vector<Gene> &genes2 = g->genes;
 
 	//The baby Genome will contain these new Traits, NNodes, and Genes
-	vector<Trait> newtraits;
-	vector<NNode> newnodes;   
-	vector<Gene> newgenes;    
-	Genome *new_genome;
+    offspring->reset(genomeid);
+	vector<Trait> &newtraits = offspring->traits;
+	vector<NNode> &newnodes = offspring->nodes;   
+	vector<Gene> &newgenes = offspring->genes;    
 
 	vector<Gene>::iterator curgene2;  //Checks for link duplication
 
@@ -1052,22 +985,22 @@ Genome *Genome::mate_multipoint(Genome *g,int genomeid,double fitness1,double fi
         }
 
     }
-
-    new_genome=new Genome(genomeid,newtraits,newnodes,newgenes);
-
-    //Return the baby Genome
-    return (new_genome);
-
 }
 
-Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,double fitness2,bool interspec_flag) {
+void Genome::mate_multipoint_avg(Genome *g,
+                                 Genome *offspring,
+                                 int genomeid,
+                                 double fitness1,
+                                 double fitness2,
+                                 bool interspec_flag) {
     vector<Gene> &genes1 = this->genes;
     vector<Gene> &genes2 = g->genes;
 
 	//The baby Genome will contain these new Traits, NNodes, and Genes
-	vector<Trait> newtraits;
-	vector<NNode> newnodes;
-	vector<Gene> newgenes;
+    offspring->reset(genomeid);
+	vector<Trait> &newtraits = offspring->traits;
+	vector<NNode> &newnodes = offspring->nodes;
+	vector<Gene> &newgenes = offspring->genes;
 
 	vector<Gene>::iterator curgene2; //Checking for link duplication
 
@@ -1316,9 +1249,6 @@ Genome *Genome::mate_multipoint_avg(Genome *g,int genomeid,double fitness1,doubl
         }  //End if which checked for link duplicationb
 
     }
-
-    //Return the baby Genome
-    return (new Genome(genomeid,newtraits,newnodes,newgenes));
 }
 
 double Genome::compatibility(Genome *g) {

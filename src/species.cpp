@@ -142,14 +142,14 @@ bool Species::print_to_file(std::ofstream &outFile) {
   for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 
     //Put the fitness for each organism in a comment
-    outFile<<std::endl<<"/* Organism #"<<((*curorg)->gnome)->genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<std::endl;
+    outFile<<std::endl<<"/* Organism #"<<((*curorg)->genome).genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<std::endl;
 
     //If it is a winner, mark it in a comment
-    if ((*curorg)->winner) outFile<<"/* ##------$ WINNER "<<((*curorg)->gnome)->genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
+    if ((*curorg)->winner) outFile<<"/* ##------$ WINNER "<<((*curorg)->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
 
-    ((*curorg)->gnome)->print_to_file(outFile);
+    ((*curorg)->genome).print_to_file(outFile);
     //We can confirm by writing the genome #'s to the screen
-    //std::cout<<((*curorg)->gnome)->genome_id<<std::endl;
+    //std::cout<<((*curorg)->genome).genome_id<<std::endl;
   }
 
   return true;
@@ -174,21 +174,21 @@ bool Species::print_to_file(std::ostream &outFile) {
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 
 		//Put the fitness for each organism in a comment
-		//outFile<<std::endl<<"/* Organism #"<<((*curorg)->gnome)->genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<std::endl;
+		//outFile<<std::endl<<"/* Organism #"<<((*curorg)->genome).genome_id<<" Fitness: "<<(*curorg)->fitness<<" Error: "<<(*curorg)->error<<" */"<<std::endl;
 		char tempbuf2[1024];
-		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", ((*curorg)->gnome)->genome_id, (*curorg)->fitness, (*curorg)->time_alive);
+		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", ((*curorg)->genome).genome_id, (*curorg)->fitness, (*curorg)->time_alive);
 		outFile << tempbuf2;
 
 		//If it is a winner, mark it in a comment
 		if ((*curorg)->winner) {
 			char tempbuf3[1024];
-			sprintf(tempbuf3, "/* ##------$ WINNER %d SPECIES #%d $------## */\n", ((*curorg)->gnome)->genome_id, id);
-			//outFile<<"/* ##------$ WINNER "<<((*curorg)->gnome)->genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
+			sprintf(tempbuf3, "/* ##------$ WINNER %d SPECIES #%d $------## */\n", ((*curorg)->genome).genome_id, id);
+			//outFile<<"/* ##------$ WINNER "<<((*curorg)->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
 		}
 
-		((*curorg)->gnome)->print_to_file(outFile);
+		((*curorg)->genome).print_to_file(outFile);
 		//We can confirm by writing the genome #'s to the screen
-		//std::cout<<((*curorg)->gnome)->genome_id<<std::endl;
+		//std::cout<<((*curorg)->genome).genome_id<<std::endl;
 	}
 	char tempbuf4[1024];
 	sprintf(tempbuf4, "\n\n");
@@ -360,12 +360,9 @@ vector<Organism *> Species::reproduce(int generation,
 
     vector<Organism *> offspring; // The result
 
-	Organism *mom; //Parent Organisms
-	Organism *dad;
-	Organism *baby;  //The new Organism
+	Organism *mom = nullptr; //Parent Organisms
+	Organism *dad = nullptr;
 
-	Genome *new_genome;  //For holding baby's genes
-	Species *newspecies; //For babies in new Species
 	Organism *comporg;  //For Species determination through comparison
 
 	bool outside;
@@ -374,7 +371,7 @@ vector<Organism *> Species::reproduce(int generation,
 
 	bool champ_done=false; //Flag the preservation of the champion  
 
-	Organism *thechamp;
+	Organism *thechamp = nullptr;
 
 	bool mut_struct_baby;
 	bool mate_baby;
@@ -395,6 +392,9 @@ vector<Organism *> Species::reproduce(int generation,
     //Create the designated number of offspring for the Species
     //one at a time
     for(int count=0; count < expected_offspring; count++) {
+        Organism *baby = new Organism(0.0, generation);
+        Genome *new_genome = &baby->genome;  //For holding baby's genes
+        Species *newspecies; //For babies in new Species
 
         mut_struct_baby=false;
         mate_baby=false;
@@ -404,7 +404,7 @@ vector<Organism *> Species::reproduce(int generation,
         //If we have a super_champ (Population champion), finish off some special clones
         if ((thechamp->super_champ_offspring) > 0) {
             mom=thechamp;
-            new_genome=(mom->gnome)->duplicate(count);
+            mom->genome.duplicate_into(*new_genome, count);
 
             //Most superchamp offspring will have their connection weights mutated only
             //The last offspring will be an exact duplicate of this super_champ
@@ -423,8 +423,6 @@ vector<Organism *> Species::reproduce(int generation,
                 }
             }
 
-            baby=new Organism(0.0,new_genome,generation);
-
             if ((thechamp->super_champ_offspring) == 1) {
                 if (thechamp->pop_champ) {
                     baby->pop_champ_child=true;
@@ -439,13 +437,9 @@ vector<Organism *> Species::reproduce(int generation,
                  (expected_offspring>5)) {
 
             mom=thechamp; //Mom is the champ
-
-            new_genome=(mom->gnome)->duplicate(count);
-
-            baby=new Organism(0.0,new_genome,generation);  //Baby is just like mommy
+            mom->genome.duplicate_into(*new_genome, count);
 
             champ_done=true;
-
         }
         //First, decide whether to mate or mutate
         //If there is only one organism in the pool, then always mutate
@@ -453,8 +447,7 @@ vector<Organism *> Species::reproduce(int generation,
 
             //Choose the random parent
             mom = get_random(organisms);
-
-            new_genome=(mom->gnome)->duplicate(count);
+            mom->genome.duplicate_into(*new_genome, count);
 
             //Do the mutation depending on probabilities of 
             //various mutations
@@ -492,8 +485,6 @@ vector<Organism *> Species::reproduce(int generation,
                 }
             }
 
-            baby=new Organism(0.0,new_genome,generation);
-
         }
 
         //Otherwise we should mate 
@@ -513,10 +504,20 @@ vector<Organism *> Species::reproduce(int generation,
 
             //Perform mating based on probabilities of differrent mating types
             if (randfloat()<NEAT::mate_multipoint_prob) { 
-                new_genome=(mom->gnome)->mate_multipoint(dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
+                mom->genome.mate_multipoint(&dad->genome,
+                                            new_genome,
+                                            count,
+                                            mom->orig_fitness,
+                                            dad->orig_fitness,
+                                            outside);
             }
             else if (randfloat()<(NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob))) {
-                new_genome=(mom->gnome)->mate_multipoint_avg(dad->gnome,count,mom->orig_fitness,dad->orig_fitness,outside);
+                mom->genome.mate_multipoint_avg(&dad->genome,
+                                                new_genome,
+                                                count,
+                                                mom->orig_fitness,
+                                                dad->orig_fitness,
+                                                outside);
             }
             else {
                 // todo: catch non-zero probability at time of parsing. completely elim this
@@ -529,8 +530,8 @@ vector<Organism *> Species::reproduce(int generation,
             //Determine whether to mutate the baby's Genome
             //This is done randomly or if the mom and dad are the same organism
             if ((randfloat()>NEAT::mate_only_prob)||
-                ((dad->gnome)->genome_id==(mom->gnome)->genome_id)||
-                (((dad->gnome)->compatibility(mom->gnome))==0.0))
+                ((dad->genome).genome_id==(mom->genome).genome_id)||
+                (((dad->genome).compatibility(&mom->genome))==0.0))
             {
 
                 //Do the mutation depending on probabilities of 
@@ -564,15 +565,7 @@ vector<Organism *> Species::reproduce(int generation,
                         new_genome->mutate_gene_reenable(); 
                     }
                 }
-
-                //Create the baby
-                baby = new Organism(0.0,new_genome,generation);
             }
-            else {
-                //Create the baby without mutating first
-                baby=new Organism(0.0,new_genome,generation);
-            }
-
         }
 
         //Add the baby to its proper Species
@@ -581,6 +574,7 @@ vector<Organism *> Species::reproduce(int generation,
         baby->mut_struct_baby=mut_struct_baby;
         baby->mate_baby=mate_baby;
 
+        baby->create_phenotype();
         offspring.push_back(baby);
     }
 

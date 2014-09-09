@@ -49,6 +49,8 @@ namespace NEAT {
 		std::vector<NNode> nodes; //List of NNodes for the Network
 		std::vector<Gene> genes; //List of innovation-tracking genes
 
+        void reset(int new_id);
+
 		int get_last_node_id(); //Return id of final NNode in Genome
 		double get_last_gene_innovnum(); //Return last innovation number in Genome
 
@@ -74,11 +76,9 @@ namespace NEAT {
 		//Destructor kills off all lists (including the trait vector)
 		~Genome();
 
-		//Generate a network phenotype from this Genome with specified id
-		Network *genesis(int);
-
 		// Dump this genome to specified file
 		void print_to_file(std::ostream &outFile);
+        void load_from_file(int id, std::istream &iFile);
 
 		// Duplicate this Genome to create a new one with the specified id 
 		Genome *duplicate(int new_id);
@@ -89,7 +89,7 @@ namespace NEAT {
 		// integrity
 		// Note: Some of these tests do not indicate a bug, but rather are meant
 		// to be used to detect specific system states
-		bool verify();
+		void verify();
 
 		// ******* MUTATORS *******
 
@@ -131,12 +131,22 @@ namespace NEAT {
 		//   the other, the baby will inherit the innovation 
 		//   Interspecies mating leads to all genes being inherited.
 		//   Otherwise, excess genes come from most fit parent.
-		Genome *mate_multipoint(Genome *g,int genomeid,double fitness1, double fitness2, bool interspec_flag);
+		void mate_multipoint(Genome *g,
+                             Genome *offspring,
+                             int genomeid,
+                             double fitness1,
+                             double fitness2,
+                             bool interspec_flag);
 
 		//This method mates like multipoint but instead of selecting one
 		//   or the other when the innovation numbers match, it averages their
 		//   weights 
-		Genome *mate_multipoint_avg(Genome *g,int genomeid,double fitness1,double fitness2, bool interspec_flag);
+		void mate_multipoint_avg(Genome *g,
+                                 Genome *offspring,
+                                 int genomeid,
+                                 double fitness1,
+                                 double fitness2,
+                                 bool interspec_flag);
 
 		// ******** COMPATIBILITY CHECKING METHODS ********
 
@@ -158,6 +168,9 @@ namespace NEAT {
 		// Randomize the trait pointers of all the node and connection genes 
 		void randomize_traits();
 
+        Trait &get_trait(const NNode &node);
+        Trait &get_trait(const Gene &gene);
+
 	protected:
 		//Inserts a NNode into a given ordered list of NNodes in order
 		void node_insert(std::vector<NNode> &nlist, const NNode &n);
@@ -167,8 +180,6 @@ namespace NEAT {
 		void add_gene(std::vector<Gene> &glist, const Gene &g);
 
     private:
-        Trait &get_trait(const NNode &node);
-        Trait &get_trait(const Gene &gene);
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
         NNode *get_node(int id);
         

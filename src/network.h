@@ -29,7 +29,7 @@ namespace NEAT {
 	//   or learn on its own, even though it may be part of a larger framework 
 	class Network {
     private:
-        friend class Genome; // todo: remove friend. just for testing genome topology
+        friend class Organism; // todo: remove friend
 
 		std::vector<NNode> nodes;  // A list of all the nodes
         size_t ninput_nodes;
@@ -41,12 +41,11 @@ namespace NEAT {
 
         Network(const Network &network);
 	public:
-		Network(std::vector<NNode> &&nodes,
-                int netid, 
-                bool adaptval,
-                double maxweight);
-
+        Network();
 		~Network();
+
+        void reset(int id);
+        void init(bool adaptval, double maxweight);
 
 		// Puts the network back into an inactive state
 		void flush();

@@ -16,12 +16,11 @@
 #include "organism.h"
 
 using namespace NEAT;
+using std::vector;
 
-Organism::Organism(double fit, Genome *g,int gen, const char* md) {
+Organism::Organism(double fit, int gen, const char* md) {
 	fitness=fit;
 	orig_fitness=fitness;
-	gnome=g;
-	net=gnome->genesis(gnome->genome_id);
 	species=0;  //Start it in no Species
 	expected_offspring=0;
 	generation=gen;
@@ -51,19 +50,72 @@ Organism::Organism(double fit, Genome *g,int gen, const char* md) {
 }
 
 Organism::~Organism() {
-	delete net;
-	delete gnome;
 }
 
-void Organism::update_phenotype() {
+void Organism::create_phenotype() {
+	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
+	double weight_mag; //Measures absolute value of weights
 
-	//First, delete the old phenotype (net)
-	delete net;
+    net.reset(genome.genome_id);
+    vector<NNode> &netnodes = net.nodes;
 
-	//Now, recreate the phenotype off the new genotype
-	net=gnome->genesis(gnome->genome_id);
+	//Create the nodes
+	for(NNode &node: genome.nodes) {
+        netnodes.emplace_back(node);
+        netnodes.back().derive_trait( genome.get_trait(node) );
+	}
 
-	modified = true;
+    class NetNodeLookup {
+        std::vector<NNode> &nodes;
+
+        static bool cmp(const NNode &node, int node_id) {
+            return node.node_id < node_id;
+        }
+    public:
+        // Must be sorted by node_id in ascending order
+        NetNodeLookup(std::vector<NNode> &nodes_)
+            : nodes(nodes_) {
+        }
+
+        node_index_t find(int node_id) {
+            auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
+            assert(it != nodes.end());
+
+            node_index_t i = it - nodes.begin();
+            assert(nodes[i].node_id == node_id);
+
+            return i;
+        }
+    } node_lookup(netnodes);
+
+	//Create the links by iterating through the genes
+    for(Gene &gene: genome.genes) {
+		//Only create the link if the gene is enabled
+		if(gene.enable) {
+            node_index_t inode = node_lookup.find(gene.in_node_id());
+            node_index_t onode = node_lookup.find(gene.out_node_id());
+
+			//NOTE: This line could be run through a recurrency check if desired
+			// (no need to in the current implementation of NEAT)
+			netnodes[onode].incoming.emplace_back(gene.weight(),
+                                                  inode,
+                                                  onode,
+                                                  gene.is_recurrent());
+
+            Link &newlink = netnodes[onode].incoming.back();
+
+			//Derive link's parameters from its Trait pointer
+			newlink.derive_trait( genome.get_trait(gene) );
+			//Keep track of maximum weight
+			if (newlink.weight>0)
+				weight_mag=newlink.weight;
+			else weight_mag=-newlink.weight;
+			if (weight_mag>maxweight)
+				maxweight=weight_mag;
+		}
+	}
+
+    net.init(false, maxweight);
 }
 
 bool Organism::print_to_file(char *filename) {
@@ -77,37 +129,14 @@ bool Organism::write_to_file(std::ostream &outFile) {
 	
 	char tempbuf2[1024];
 	if(modified == true) {
-		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", (gnome)->genome_id, fitness, time_alive);
+		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", genome.genome_id, fitness, time_alive);
 	} else {
 		sprintf(tempbuf2, "/* %s */\n", metadata);
 	}
 	outFile << tempbuf2;
-	gnome->print_to_file(outFile);
+	genome.print_to_file(outFile);
 	return 1;
 }
-
-//// Print the Organism's genome to a file preceded by a comment             
-////   detailing the organism's species, number, and fitness
-//bool Organism::print_to_file(char *filename) {
-//
-//ofstream oFile(filename,ios::out);
-//
-//cout<<"FILENAME: "<<filename<<endl;
-//
-////Make sure it worked
-//if (!oFile) {
-//cerr<<"Can't open "<<filename<<" for output"<<endl;
-//return 0;
-//}
-//
-////Put the fitness and other information for each organism in a comment
-//oFile<<endl<<"/* Organism #"<<gnome->genome_id<<" Fitness: "<<fitness<<" *///"<<endl;
-//
-//gnome->print_to_file(oFile);
-//
-//return 1;
-//}
-
 bool NEAT::order_orgs(Organism *x, Organism *y) {
 	return (x)->fitness > (y)->fitness;
 }

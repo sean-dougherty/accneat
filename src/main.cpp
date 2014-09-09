@@ -17,10 +17,7 @@
 #include <vector>
 #include "neat.h"
 #include "population.h"
-#include "experiments.h"
-#include "mem_experiment.h"
 #include "seq_experiment.h"
-#include "polylogic.h"
 using namespace std;
 
 #if false
@@ -49,40 +46,6 @@ int main(int argc, char *argv[]) {
     NEAT::load_neat_params(argv[2],true);
 
     p = seq_experiment(maxgens, argv[3]);
-/*
-  int choice;
-
-  cout<<"Please choose an experiment: "<<endl;
-  cout<<"1 - 1-pole balancing"<<endl;
-  cout<<"2 - 2-pole balancing, velocity info provided"<<endl;
-  cout<<"3 - 2-pole balancing, no velocity info provided (non-markov)"<<endl;
-  cout<<"4 - XOR"<<endl;
-  cout<<"5 - polylogic"<<endl;
-  cout<<"Number: ";
-
-  cin>>choice;
-
-  switch ( choice )
-  {
-  case 1:
-  p = pole1_test(100);
-  break;
-  case 2:
-  p = pole2_test(100,1);
-  break;
-  case 3:
-  p = pole2_test(100,0);
-  break;
-  case 4:
-  p=xor_test(100);
-  break;
-  case 5:
-  p=polylogic_test(100);
-  break;
-  default:
-  cout<<"Not an available option."<<endl;
-  }
-*/
 
     if (p)
         delete p;

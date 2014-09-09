@@ -39,40 +39,6 @@ Population::Population(Genome *g,int size, float power) {
 	clone(g, size, power);
 }
 
-//MSC Addition
-//Added the ability for a population to be spawned
-//off of a vector of Genomes.  Useful when converging.
-Population::Population(std::vector<Genome*> genomeList, float power) {
-	
-	winnergen=0;
-	highest_fitness=0.0;
-	highest_last_changed=0;
-		
-	Genome *new_genome;
-	Organism *new_organism;
-
-	//Create size copies of the Genome
-	//Start with perturbed linkweights
-	for (std::vector<Genome*>::iterator iter = genomeList.begin(); iter != genomeList.end(); ++iter)
-	{
-
-		new_genome=(*iter); 
-		if(power>0)
-			new_genome->mutate_link_weights(power,1.0,GAUSSIAN);
-		//new_genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		new_genome->randomize_traits();
-		new_organism=new Organism(0.0,new_genome,1);
-		organisms.push_back(new_organism);
-	}
-
-	//Keep a record of the innovation and node number we are on
-	cur_node_id=new_genome->get_last_node_id();
-	cur_innov_num=new_genome->get_last_gene_innovnum();
-
-	//Separate the new Population into species
-	speciate();
-}
-
 Population::Population(const char *filename) {
 
 	char curword[128];  //max word size of 128 characters
@@ -111,9 +77,6 @@ Population::Population(const char *filename) {
 			//Check for next
 			if (strcmp(curword,"genomestart")==0) 
 			{
-				//strcpy(curword, NEAT::getUnit(curline, 1, delimiters));
-				//int idcheck = atoi(curword);
-
                 int idcheck;
                 ss >> idcheck;
 
@@ -123,8 +86,10 @@ Population::Population(const char *filename) {
 				}
 				md = false;
 
-				new_genome=new Genome(idcheck,iFile);
-				organisms.push_back(new Organism(0,new_genome,1, metadata));
+                Organism *org = new Organism(0, 1, metadata);
+				org->genome.load_from_file(idcheck, iFile);
+                org->create_phenotype();
+				organisms.push_back(org);
 				if (cur_node_id<(new_genome->get_last_node_id()))
 					cur_node_id=new_genome->get_last_node_id();
 
@@ -201,16 +166,9 @@ Population::~Population() {
 	//		}
 }
 
-bool Population::verify() {
-	std::vector<Organism*>::iterator curorg;
-
-	bool verification = false;
-
-	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		verification=((*curorg)->gnome)->verify();
-	}
-
-	return verification;
+void Population::verify() {
+    for(auto &org: organisms)
+        org->genome.verify();
 } 
 
 bool Population::clone(Genome *g,int size, float power) {
@@ -218,20 +176,23 @@ bool Population::clone(Genome *g,int size, float power) {
 	Genome *new_genome;
 	Organism *new_organism;
 
-	new_genome = g->duplicate(1); 
-	new_organism = new Organism(0.0,new_genome,1);
+    new_organism = new Organism(0.0, 1);
+    new_genome = &new_organism->genome;
+    g->duplicate_into(*new_genome, 1);
+    new_organism->create_phenotype();
 	organisms.push_back(new_organism);
 	
 	//Create size copies of the Genome
 	//Start with perturbed linkweights
 	for(count=2;count<=size;count++) {
-		//cout<<"CREATING ORGANISM "<<count<<endl;
-		new_genome=g->duplicate(count); 
+		new_organism = new Organism(0.0, 1);
+        new_genome = &new_organism->genome;
+		g->duplicate_into(*new_genome, count); 
 		if(power>0)
 			new_genome->mutate_link_weights(power,1.0,GAUSSIAN);
 		
 		new_genome->randomize_traits();
-		new_organism=new Organism(0.0,new_genome,1);
+        new_organism->create_phenotype();
 		organisms.push_back(new_organism);
 	}
 
@@ -253,13 +214,12 @@ bool Population::spawn(Genome *g,int size) {
 	//Create size copies of the Genome
 	//Start with perturbed linkweights
 	for(count=1;count<=size;count++) {
-		//cout<<"CREATING ORGANISM "<<count<<endl;
-
-		new_genome=g->duplicate(count); 
-		//new_genome->mutate_link_weights(1.0,1.0,GAUSSIAN);
+		new_organism = new Organism(0.0, 1);
+		new_genome = &new_organism->genome;
+        g->duplicate_into(*new_genome, count); 
 		new_genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
 		new_genome->randomize_traits();
-		new_organism=new Organism(0.0,new_genome,1);
+        new_organism->create_phenotype();
 		organisms.push_back(new_organism);
 	}
 
@@ -278,7 +238,7 @@ bool Population::speciate() {
     for(Organism *org: organisms) {
         assert(org->species == nullptr);
         for(Species *s: species) {
-            if( org->gnome->compatibility(s->first()->gnome) < NEAT::compat_threshold ) {
+            if( org->genome.compatibility(&s->first()->genome) < NEAT::compat_threshold ) {
                 org->species = s;
                 break;
             }
@@ -592,7 +552,7 @@ bool Population::epoch(int generation) {
 				(*curspecies)->expected_offspring+=one_fifth_stolen;
 				stolen_babies-=one_fifth_stolen;
 				//cout<<"Gave "<<one_fifth_stolen<<" babies to Species "<<(*curspecies)->id<<endl;
-				//      cout<<"The best superchamp is "<<(*(((*curspecies)->organisms).begin()))->gnome->genome_id<<endl;
+				//      cout<<"The best superchamp is "<<(*(((*curspecies)->organisms).begin()))->genome.genome_id<<endl;
 
 				//Print this champ to file "champ" for observation if desired
 				//IMPORTANT:  This causes generational file output 
@@ -711,7 +671,7 @@ bool Population::epoch(int generation) {
 
             for(Species *s: species) {
                 if(s->size()) {
-                    double comp = org->gnome->compatibility(s->first()->gnome);
+                    double comp = org->genome.compatibility(&s->first()->genome);
                     if(comp < NEAT::compat_threshold) {
                         org->species = s;
                         break;
@@ -758,7 +718,7 @@ bool Population::epoch(int generation) {
                 //Go through the organisms of the curspecies and add them to 
                 //the master list
                 for(Organism *org: s->organisms) {
-                    org->gnome->genome_id = orgcount++;
+                    org->genome.genome_id = orgcount++;
                     organisms.push_back(org);
                 }
             }

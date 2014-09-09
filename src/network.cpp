@@ -24,11 +24,21 @@ using namespace NEAT;
 using std::cerr;
 using std::endl;
 
-Network::Network(std::vector<NNode> &&nodes_,
-                 int netid,
-                 bool adaptval,
-                 double maxweight_)
-    : nodes(std::move(nodes_)) {
+Network::Network() {
+}
+
+void Network::reset(int id) {
+    net_id = id;
+    nodes.clear();
+    ninput_nodes = 0;
+    noutput_nodes = 0;
+}
+
+void Network::init(bool adaptval,
+                   double maxweight_) {
+
+    adaptable = adaptval;
+    maxweight = maxweight_;
 
     size_t i = 0;
     for(i = 0; (i < nodes.size()) && (nodes[i].type == SENSOR); i++) {
@@ -45,17 +55,13 @@ Network::Network(std::vector<NNode> &&nodes_,
     for(; (i < nodes.size()); i++) {
         if(nodes[i].type != NEURON) {
             cerr << "Bad neuron type at " << i << ": " << nodes[i].type << endl;
-            exit(1);
+            abort();
         }
         if(nodes[i].gen_node_label != HIDDEN) {
             cerr << "Bad neuron 'place' at " << i << ": " << nodes[i].gen_node_label << endl;
-            exit(1);
+            abort();
         }
     }
-
-    net_id = netid;
-    adaptable = adaptval;
-    maxweight = maxweight_;
 }
 
 Network::~Network() {

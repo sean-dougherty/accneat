@@ -290,7 +290,7 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
     int net_depth; //The max depth of the network to be activated
 
 
-    net=org->net;
+    net=&org->net;
     net_depth=net->max_depth();
 
     auto activate = [net, net_depth] (vector<double> &input) {
@@ -351,23 +351,23 @@ int epoch(Population *pop,
     const size_t n = pop->organisms.size();
     float *details_act = new float[n * nouts];
     float *details_err = new float[n * nouts];
-#pragma omp parallel for
+//#pragma omp parallel for
     for(size_t i = 0; i < n; i++) {
         Organism *org = pop->organisms[i];
         size_t details_offset = i * nouts;
         if (evaluate(org, details_act + details_offset, details_err + details_offset)) {
-#pragma omp critical
+//#pragma omp critical
             {
                 win=true;
-                winnernum=org->gnome->genome_id;
-                winnergenes=org->gnome->extrons();
-                winnernodes=org->gnome->nodes.size();
-                winnerdepth=org->net->max_depth();
+                winnernum=org->genome.genome_id;
+                winnergenes=org->genome.extrons();
+                winnernodes=org->genome.nodes.size();
+                winnerdepth=org->net.max_depth();
             }
         }
 
         if(org->fitness > best_fitness) {
-#pragma omp critical
+//#pragma omp critical
             if(org->fitness > best_fitness) {
                 best = true;
                 i_best = i;
@@ -424,10 +424,10 @@ int epoch(Population *pop,
     if (win) {
         for(Organism *org: pop->organisms) {
             if(org->winner) {
-                cout << "WINNER IS #" << org->gnome->genome_id << endl;
+                cout << "WINNER IS #" << org->genome.genome_id << endl;
                 //Prints the winner to file
                 //IMPORTANT: This causes generational file output!
-                print_Genome_tofile(org->gnome,"seq_experiment_winner");
+                print_Genome_tofile(&org->genome,"seq_experiment_winner");
             }
         }
     
