@@ -49,14 +49,14 @@ namespace NEAT {
 		std::vector<NNode> nodes; //List of NNodes for the Network
 		std::vector<Gene> genes; //List of innovation-tracking genes
 
-		Network *phenotype; //Allows Genome to be matched with its Network
-
 		int get_last_node_id(); //Return id of final NNode in Genome
 		double get_last_gene_innovnum(); //Return last innovation number in Genome
 
 		void print_genome(); //Displays Genome on screen
 
         // todo: use c++11 move for constructor vectors?
+
+        Genome();
 
 		//Constructor which takes full genome specs and puts them into the new one
 		Genome(int id,
@@ -82,6 +82,8 @@ namespace NEAT {
 
 		// Duplicate this Genome to create a new one with the specified id 
 		Genome *duplicate(int new_id);
+
+        void duplicate_into(Genome &offspring, int new_id);
 
 		// For debugging: A number of tests can be run on a genome to check its
 		// integrity

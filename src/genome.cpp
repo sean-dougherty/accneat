@@ -120,6 +120,10 @@ public:
     
 };
 
+Genome::Genome()
+    : node_lookup(nodes) {
+}
+
 Genome::Genome(int id, const vector<Trait> &t, const vector<NNode> &n, const vector<Gene> &g)
     : node_lookup(nodes) {
 	genome_id=id;
@@ -327,9 +331,6 @@ Network *Genome::genesis(int id) {
 	//Create the new network
 	newnet = new Network(std::move(netnodes), id, false, maxweight);
 
-	//Attach genotype and phenotype together
-	phenotype=newnet;
-
 	return newnet;
 
 }
@@ -394,24 +395,19 @@ double Genome::get_last_gene_innovnum() {
 }
 
 Genome *Genome::duplicate(int new_id) {
-	//Collections for the new Genome
-	vector<Trait> traits_dup;
-	vector<NNode> nodes_dup;
-	vector<Gene> genes_dup;
+    Genome *offspring = new Genome();
+    duplicate_into(*offspring, new_id);
+    return offspring;
+}
 
-	//Duplicate the traits
-    traits_dup = traits;
-
+void Genome::duplicate_into(Genome &offspring, int new_id) {
+    offspring.genome_id = new_id;
+    offspring.traits = traits;
+    offspring.genes = genes;
     //todo: should be able to simply copy whole vector
-	//Duplicate NNodes
     for(NNode &node: nodes) {
-		nodes_dup.emplace_back(NNode::partial_copy(&node));    
+		offspring.nodes.emplace_back(NNode::partial_copy(&node));    
 	}
-
-    genes_dup = genes;
-
-	//Finally, return the genome
-	return new Genome(new_id,traits_dup,nodes_dup,genes_dup);
 }
 
 void Genome::mutate_random_trait() {

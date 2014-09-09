@@ -39,30 +39,6 @@ Population::Population(Genome *g,int size, float power) {
 	clone(g, size, power);
 }
 
-//Population::Population(int size,int i,int o, int nmax, bool r, double linkprob) {    
-//int count;
-//Genome *new_genome; 
-
-//cout<<"Making a random pop"<<endl;
-
-//winnergen=0;
-//highest_fitness=0.0;
-//highest_last_changed=0;
-
-//for(count=0;count<size;count++) {
-//new_genome=new Genome(count,i,o,randint(0,nmax),nmax,r,linkprob);
-//organisms.push_back(new Organism(0,new_genome,1));
-//}
-
-//cur_node_id=i+o+nmax+1;;
-//cur_innov_num=(i+o+nmax)*(i+o+nmax)+1;
-
-//cout<<"Calling speciate"<<endl;
-//speciate(); 
-
-//}
-
-
 //MSC Addition
 //Added the ability for a population to be spawned
 //off of a vector of Genomes.  Useful when converging.
@@ -343,27 +319,10 @@ bool Population::print_to_file_by_species(char *filename) {
 
 
 bool Population::print_to_file_by_species(std::ostream& outFile) {
-
-	std::vector<Species*>::iterator curspecies;
-
-	//ofstream outFile(filename,ios::out);
-	//std::ostream outFile;
-	//ResourceManager->openFileForWrite(outFile, fileName, std::ostream::Write);
-
-	//Make sure it worked
-	//if (!outFile) {
-	//	cerr<<"Can't open "<<filename<<" for output"<<endl;
-	//	return false;
-	//}
-
-
-	//Step through the Species and print them to the file
-	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-		(*curspecies)->print_to_file(outFile);
-	}
+    for(auto &s: species)
+        s->print_to_file(outFile);
 
 	return true;
-
 }
 
 bool Population::epoch(int generation) {
