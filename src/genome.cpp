@@ -367,28 +367,6 @@ bool Genome::verify() {
 #endif
 }
 
-
-//Print the genome to a file
-void Genome::print_to_file(std::ofstream &outFile) {
-  outFile<<"genomestart "<<genome_id<<std::endl;
-
-  //Output the traits
-  for(auto &t: traits)
-      t.print_to_file(outFile);
-
-  //Output the nodes
-  for(auto &n: nodes)
-      n.print_to_file(outFile);
-
-  //Output the genes
-  for(auto &g: genes)
-      g.print_to_file(outFile);
-
-  outFile<<"genomeend "<<genome_id<<std::endl;
-
-}
-
-//todo: don't need both of these versions
 void Genome::print_to_file(std::ostream &outFile) {
     outFile<<"genomestart "<<genome_id<<std::endl;
 
@@ -404,14 +382,7 @@ void Genome::print_to_file(std::ostream &outFile) {
     for(auto &g: genes)
         g.print_to_file(outFile);
 
-    outFile << "genomeend " << genome_id << std::endl << std::endl << std::endl;
-}
-
-void Genome::print_to_filename(char *filename) {
-	std::ofstream oFile(filename);
-	//oFile.open(filename, std::ostream::Write);
-	print_to_file(oFile);
-	oFile.close();
+    outFile << "genomeend " << genome_id << std::endl;
 }
 
 int Genome::get_last_node_id() {

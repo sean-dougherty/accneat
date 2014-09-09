@@ -85,34 +85,12 @@ Trait::Trait(const Trait &t1, const Trait &t2) {
 		params[count] = (t1.params[count] + t2.params[count]) / 2.0;
 }
 
-void Trait::print_to_file(std::ofstream &outFile) {
+void Trait::print_to_file(std::ostream &outFile) { 
   outFile<<"trait "<<trait_id<<" ";
   for(int count=0;count<NEAT::num_trait_params;count++)
     outFile<<params[count]<<" ";
 
   outFile<<std::endl;
-
-}
-
-
-void Trait::print_to_file(std::ostream &outFile) { 
-
-	//outFile<<"trait "<<trait_id<<" ";
-	//for(int count=0;count<NEAT::num_trait_params;count++)
-	//	outFile<<params[count]<<" ";
-	//outFile<<endl;
-
-	char tempbuf[128];
-	sprintf(tempbuf, "trait %d ", trait_id);
-	outFile << tempbuf;
-
-	for (int count = 0; count<NEAT::num_trait_params;count++) {
-		char tempbuf2[128];
-		sprintf(tempbuf2, "%f ", params[count]);
-		outFile << tempbuf2;
-	}
-
-    outFile << std::endl;
 }
 
 void Trait::mutate() {

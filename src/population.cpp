@@ -778,8 +778,8 @@ bool Population::epoch(int generation) {
         organisms.resize(n);
     }
 
-    // Perform reproduction within the species. Note that new species may
-    // be created as we iterate over the vector.
+    //Perform reproduction within the species. Note that new species may
+    //be created as we iterate over the vector.
     for(size_t i = 0, n = species.size(); i < n; i++) {
         vector<Organism *> offspring = species[i]->reproduce(generation,
                                                              this,

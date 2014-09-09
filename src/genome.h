@@ -79,10 +79,6 @@ namespace NEAT {
 
 		// Dump this genome to specified file
 		void print_to_file(std::ostream &outFile);
-		void print_to_file(std::ofstream &outFile);
-
-		// Wrapper for print_to_file above
-		void print_to_filename(char *filename);
 
 		// Duplicate this Genome to create a new one with the specified id 
 		Genome *duplicate(int new_id);

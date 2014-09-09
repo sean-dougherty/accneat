@@ -56,7 +56,6 @@ namespace NEAT {
 
 		// Dump trait to a stream
         void print_to_file(std::ostream &outFile);
-	void print_to_file(std::ofstream &outFile);
 
 		// Perturb the trait parameters slightly
 		void mutate();
