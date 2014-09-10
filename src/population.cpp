@@ -326,12 +326,13 @@ bool Population::epoch(int generation) {
         s->remove_eliminated();
     }
 
+    assert(total_expected <= (int)size());
+
     {
+        static Timer timer("reproduce");
+        timer.start();
+
         orgs.swap();
-        if( (size_t)total_expected > size() ) {
-            std::cerr << "total_expected too big!!! " << total_expected << std::endl;
-            orgs.curr().resize(total_expected);
-        }
         size_t iorg = 0;
 
         //Perform reproduction within the species. Note that new species may
@@ -339,51 +340,71 @@ bool Population::epoch(int generation) {
         for(size_t i = 0, n = species.size(); i < n; i++) {
             size_t iorg0 = iorg;
 
-            {
-                static Timer timer("reproduce");
-                timer.start();
-
-                species[i]->reproduce(orgs.curr(),
-                                      iorg,
-                                      generation,
-                                      this,
-                                      sorted_species);
-
-                timer.stop();
-            }
+            species[i]->reproduce(orgs.curr(),
+                                  iorg,
+                                  generation,
+                                  this,
+                                  sorted_species);
 
             size_t iorg1 = iorg;
             assert( species[i]->expected_offspring == int(iorg1 - iorg0) );
+        }
 
-            {
-                static Timer timer("speciate");
-                timer.start();
+        timer.stop();
 
-                for(size_t j = iorg0; j < iorg1; j++) {
-                    Organism &org = orgs.curr()[j];
-                    org.species = nullptr;
+        assert(iorg == size());
+    }
 
-                    for(Species *s: species) {
-                        if(s->size()) {
-                            double comp = org.genome.compatibility(&s->first()->genome);
-                            if(comp < NEAT::compat_threshold) {
-                                org.species = s;
-                                break;
-                            }
+    {
+        static Timer timer("speciate");
+        timer.start();
+
+        {
+            size_t n = size();
+#pragma omp parallel for
+            for(size_t i = 0; i < n; i++) {
+                Organism &org = orgs.curr()[i];
+                org.species = nullptr;
+
+                for(Species *s: species) {
+                    if(s->size()) {
+                        double comp = org.genome.compatibility(&s->first()->genome);
+                        if(comp < NEAT::compat_threshold) {
+                            org.species = s;
+                            break;
                         }
                     }
-
-                    if(!org.species) {
-                        org.species = new Species(++last_species, true);
-                        species.push_back(org.species);
-                    }
-                    org.species->add_Organism(&org);
                 }
-
-                timer.stop();
             }
-
         }
+
+        size_t index_new_species = species.size();
+
+        for(Organism &org: orgs.curr()) {
+            if(!org.species) {
+                //It didn't fit into any of the existing species. Check if it fits
+                //into one we've just created.
+                for(size_t i = index_new_species, n = species.size();
+                    i < n;
+                    i++) {
+
+                    Species *s = species[i];
+                    double comp = org.genome.compatibility(&s->first()->genome);
+                    if(comp < NEAT::compat_threshold) {
+                        org.species = s;
+                        break;
+                    }
+                }
+                //It didn't fit into a newly created species, so make one for it. 
+                if(!org.species) {
+                    org.species = new Species(++last_species, true);
+                    species.push_back(org.species);
+                }
+            }
+            org.species->add_Organism(&org);
+        }
+
+        timer.stop();
     }
 
 	//Destroy and remove the old generation from the organisms and species
