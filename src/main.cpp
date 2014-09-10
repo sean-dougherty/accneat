@@ -18,6 +18,7 @@
 #include "neat.h"
 #include "population.h"
 #include "seq_experiment.h"
+#include "timer.h"
 using namespace std;
 
 #if false
@@ -49,6 +50,8 @@ int main(int argc, char *argv[]) {
 
     if (p)
         delete p;
+
+    Timer::report();
 
     return(0);
  

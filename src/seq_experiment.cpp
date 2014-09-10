@@ -1,6 +1,7 @@
 #include "seq_experiment.h"
 
 #include "organism.h"
+#include "timer.h"
 
 #include <assert.h>
 #include <omp.h>
@@ -348,15 +349,18 @@ int epoch(Population *pop,
     bool best = false;
     size_t i_best;
 
+    static Timer timer("evaluate");
+    timer.start();
+
     const size_t n = pop->size();
     float *details_act = new float[n * nouts];
     float *details_err = new float[n * nouts];
-//#pragma omp parallel for
+#pragma omp parallel for
     for(size_t i = 0; i < n; i++) {
         Organism *org = pop->get(i);
         size_t details_offset = i * nouts;
         if (evaluate(org, details_act + details_offset, details_err + details_offset)) {
-//#pragma omp critical
+#pragma omp critical
             {
                 win=true;
                 winnernum=org->genome.genome_id;
@@ -367,7 +371,7 @@ int epoch(Population *pop,
         }
 
         if(org->fitness > best_fitness) {
-//#pragma omp critical
+#pragma omp critical
             if(org->fitness > best_fitness) {
                 best = true;
                 i_best = i;
@@ -375,6 +379,8 @@ int epoch(Population *pop,
             }
         }
     }
+
+    timer.stop();
 
     if(best) {
         float *best_act = details_act + i_best * nouts;

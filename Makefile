@@ -3,7 +3,7 @@ OBJECTS=${SOURCES:src/%.cpp=obj/%.o}
 DEPENDS=${OBJECTS:%.o=%.d}
 
 #PROFILE=-pg
-#OPENMP=-fopenmp
+OPENMP=-fopenmp
 OPT=-O3
 
 ./neat: ${OBJECTS}

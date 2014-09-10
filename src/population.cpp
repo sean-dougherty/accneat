@@ -15,6 +15,7 @@
 */
 #include "population.h"
 #include "organism.h"
+#include "timer.h"
 #include <assert.h>
 #include <iostream>
 #include <sstream>
@@ -337,34 +338,51 @@ bool Population::epoch(int generation) {
         //be created as we iterate over the vector.
         for(size_t i = 0, n = species.size(); i < n; i++) {
             size_t iorg0 = iorg;
-            species[i]->reproduce(orgs.curr(),
-                                  iorg,
-                                  generation,
-                                  this,
-                                  sorted_species);
+
+            {
+                static Timer timer("reproduce");
+                timer.start();
+
+                species[i]->reproduce(orgs.curr(),
+                                      iorg,
+                                      generation,
+                                      this,
+                                      sorted_species);
+
+                timer.stop();
+            }
+
             size_t iorg1 = iorg;
             assert( species[i]->expected_offspring == int(iorg1 - iorg0) );
 
-            for(size_t j = iorg0; j < iorg1; j++) {
-                Organism &org = orgs.curr()[j];
-                org.species = nullptr;
+            {
+                static Timer timer("speciate");
+                timer.start();
 
-                for(Species *s: species) {
-                    if(s->size()) {
-                        double comp = org.genome.compatibility(&s->first()->genome);
-                        if(comp < NEAT::compat_threshold) {
-                            org.species = s;
-                            break;
+                for(size_t j = iorg0; j < iorg1; j++) {
+                    Organism &org = orgs.curr()[j];
+                    org.species = nullptr;
+
+                    for(Species *s: species) {
+                        if(s->size()) {
+                            double comp = org.genome.compatibility(&s->first()->genome);
+                            if(comp < NEAT::compat_threshold) {
+                                org.species = s;
+                                break;
+                            }
                         }
                     }
+
+                    if(!org.species) {
+                        org.species = new Species(++last_species, true);
+                        species.push_back(org.species);
+                    }
+                    org.species->add_Organism(&org);
                 }
 
-                if(!org.species) {
-                    org.species = new Species(++last_species, true);
-                    species.push_back(org.species);
-                }
-                org.species->add_Organism(&org);
+                timer.stop();
             }
+
         }
     }
 
