@@ -99,8 +99,6 @@ bool Network::activate() {
 
 	onetime=false;
 
-    //todo: this outputsoff doesn't make sense... must be from an earlier design?
-    //      test if can still pass seq test without it.
 	while(outputsoff()||!onetime) {
 
 		if(++abortcount==20) {
