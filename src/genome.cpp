@@ -692,7 +692,6 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             int trait_id = randint(1, (int)traits.size());
 
             //Choose the new weight
-            //newweight=(gaussrand())/1.5;  //Could use a gaussian
             double newweight = randposneg() * randfloat() * 1.0; //used to be 10.0
 
             //Create the new gene

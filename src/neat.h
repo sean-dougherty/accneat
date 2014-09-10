@@ -140,9 +140,6 @@ namespace NEAT {
 	// Algorithm is from Numerical Recipes in C, Second Edition
 	extern double gaussrand();
 
-	//This is an incorrect gassian distribution...but it is faster than gaussrand (maybe it's good enough?)
-	//inline double gaussrand_wrong() {return (randposneg())*(sqrt(-log((rand()*1.0)/RAND_MAX)));}   
-
 	bool load_neat_params(const char *filename, bool output = false);
 
 #define trap(msg) {std::cout << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; abort();}

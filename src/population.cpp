@@ -343,7 +343,7 @@ bool Population::epoch(int generation) {
                                   this,
                                   sorted_species);
             size_t iorg1 = iorg;
-            assert( species[i]->expected_offspring == (iorg1 - iorg0) );
+            assert( species[i]->expected_offspring == int(iorg1 - iorg0) );
 
             for(size_t j = iorg0; j < iorg1; j++) {
                 Organism &org = orgs.curr()[j];

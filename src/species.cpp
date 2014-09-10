@@ -290,7 +290,7 @@ static Organism *get_random(Species *thiz, const vector<Species *> &sorted_speci
     Species *result = thiz;
     for(int i = 0; (result == thiz) && (i < 5); i++) {
         double randmult = std::min(1.0, gaussrand() / 4);
-        int randspeciesnum = (int)floor((randmult*(sorted_species.size()-1.0))+0.5);
+        int randspeciesnum = std::max(0, (int)floor((randmult*(sorted_species.size()-1.0))+0.5));
         result = sorted_species[randspeciesnum];
     }
 
