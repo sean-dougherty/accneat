@@ -18,6 +18,7 @@
 
 #include <fstream>
 #include "neat.h"
+#include "rng.h"
 
 namespace NEAT {
 
@@ -58,7 +59,7 @@ namespace NEAT {
         void print_to_file(std::ostream &outFile);
 
 		// Perturb the trait parameters slightly
-		void mutate();
+		void mutate(rng_t &rng);
 
 	};
 

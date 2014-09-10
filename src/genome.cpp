@@ -344,14 +344,13 @@ void Genome::duplicate_into(Genome &offspring, int new_id) {
 }
 
 void Genome::mutate_random_trait() {
-    traits[ randint(0,(traits.size())-1) ].mutate();
-	//TRACK INNOVATION? (future possibility)
+    rng.element(traits).mutate(rng);
 }
 
 void Genome::mutate_link_trait(int times) {
     for(int i = 0; i < times; i++) {
-        int trait_id = randint(1, traits.size());
-        Gene &gene = genes[ randint(0,genes.size()-1) ];
+        int trait_id = 1 + rng.index(traits);
+        Gene &gene = rng.element(genes);
         
         if(!gene.frozen) {
             gene.set_trait_id(trait_id);
@@ -361,8 +360,8 @@ void Genome::mutate_link_trait(int times) {
 
 void Genome::mutate_node_trait(int times) {
     for(int i = 0; i < times; i++) {
-        int trait_id = randint(1, traits.size());
-        NNode &node = nodes[ randint(0,nodes.size()-1) ];
+        int trait_id = 1 + rng.index(traits);
+        NNode &node = rng.element(nodes);
 
         if(!node.frozen) {
             node.set_trait_id(trait_id);
@@ -385,7 +384,7 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 	//on the theory that the older genes are more fit since
 	//they have stood the test of time
 
-	bool severe = randfloat() > 0.5;  //Once in a while really shake things up
+	bool severe = rng.prob() > 0.5;  //Once in a while really shake things up
 
 	//Loop on all genes  (ORIGINAL METHOD)
 	for(Gene &gene: genes) {
@@ -412,7 +411,7 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 			}
 			else {
 				//Half the time don't do any cold mutations
-				if (randfloat()>0.5) {
+				if (rng.prob()>0.5) {
 					gausspoint=1.0-rate;
 					coldgausspoint=1.0-rate-0.1;
 				}
@@ -423,9 +422,9 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 			}
 
 			//Possible methods of setting the perturbation:
-			double randnum = randposneg()*randfloat()*power*powermod;
+			double randnum = rng.posneg()*rng.prob()*power*powermod;
 			if (mut_type==GAUSSIAN) {
-				double randchoice = randfloat();
+				double randchoice = rng.prob();
 				if (randchoice > gausspoint)
 					gene.weight()+=randnum;
 				else if (randchoice > coldgausspoint)
@@ -449,7 +448,7 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 
 void Genome::mutate_toggle_enable(int times) {
     for(int i = 0; i < times; i++) {
-        Gene &gene = genes[ randint(0,genes.size()-1) ];
+        Gene &gene = rng.element(genes);
 
         if(!gene.enable) {
             gene.enable = true;
@@ -501,7 +500,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
     Gene *thegene = nullptr;
     {
         for(int i = 0; !thegene && i < 20; i++) {
-            Gene &g = genes[ randint(0,genes.size()-1) ];
+            Gene &g = rng.element(genes);
             //If either the gene is disabled, or it has a bias input, try again
             if( g.enable && get_node(g.in_node_id())->gen_node_label != BIAS ) {
                 thegene = &g;
@@ -618,7 +617,7 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 	NNode *out_node = nullptr; //Pointers to the nodes
 
 	//Decide whether to make this recurrent
-	bool do_recur = randfloat() < NEAT::recur_only_prob;
+	bool do_recur = rng.prob() < NEAT::recur_only_prob;
 
     // Try to find nodes for link.
     {
@@ -635,19 +634,19 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             if(do_recur) {
                 //Some of the time try to make a recur loop
                 // todo: make this an NE parm?
-                if (randfloat() > 0.5) {
-                    in_node = &nodes[ randint(first_nonsensor,nodes.size()-1) ];
+                if (rng.prob() > 0.5) {
+                    in_node = &rng.element(nodes, first_nonsensor);
                     out_node = in_node;
                 }
                 else {
                     //Choose random nodenums
-                    in_node = &nodes[ randint(0,nodes.size()-1) ];
-                    out_node = &nodes[ randint(first_nonsensor,nodes.size()-1) ];
+                    in_node = &rng.element(nodes);
+                    out_node = &rng.element(nodes, first_nonsensor);
                 }
             } else {
                 //Choose random nodenums
-                in_node = &nodes[ randint(0,nodes.size()-1) ];
-                out_node = &nodes[ randint(first_nonsensor,nodes.size()-1) ];
+                in_node = &rng.element(nodes);
+                out_node = &rng.element(nodes, first_nonsensor);
             }
 
             found_nodes = !link_exists(in_node->node_id, out_node->node_id, do_recur)
@@ -689,10 +688,10 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
         //The innovation is totally novel
         if(!created_gene) {
             //Choose a random trait
-            int trait_id = randint(1, (int)traits.size());
+            int trait_id = 1 + rng.index(traits);
 
             //Choose the new weight
-            double newweight = randposneg() * randfloat() * 1.0; //used to be 10.0
+            double newweight = rng.posneg() * rng.prob() * 1.0; //used to be 10.0
 
             //Create the new gene
             newgene = Gene(trait_id,
@@ -836,7 +835,7 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
             p2innov=p2gene->innovation_num;
 
             if (p1innov==p2innov) {
-                if (randfloat()<0.5) {
+                if (rng.prob()<0.5) {
                     protogene.set_gene(genome1, &*p1gene);
                 } else {
                     protogene.set_gene(genome2, &*p2gene);
@@ -846,7 +845,7 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
                 //will likely be disabled
                 if (((p1gene->enable)==false)||
                     ((p2gene->enable)==false)) 
-                    if (randfloat()<0.75) disable=true;
+                    if (rng.prob()<0.75) disable=true;
 
                 ++p1gene;
                 ++p2gene;
@@ -1083,7 +1082,7 @@ void Genome::mate_multipoint_avg(Genome *g,
                 protogene.set_gene(nullptr, &avgene);
 
                 //Average them into the avgene
-                if (randfloat()>0.5) {
+                if (rng.prob()>0.5) {
                     avgene.set_trait_id(p1gene->trait_id());
                 } else {
                     avgene.set_trait_id(p2gene->trait_id());
@@ -1092,19 +1091,19 @@ void Genome::mate_multipoint_avg(Genome *g,
                 //WEIGHTS AVERAGED HERE
                 avgene.weight() = (p1gene->weight()+p2gene->weight())/2.0;
 
-                if(randfloat() > 0.5) {
+                if(rng.prob() > 0.5) {
                     protogene.set_in(genome1->get_node(p1gene->in_node_id()));
                 } else {
                     protogene.set_in(genome2->get_node(p2gene->in_node_id()));
                 }
 
-                if(randfloat() > 0.5) {
+                if(rng.prob() > 0.5) {
                     protogene.set_out(genome1->get_node(p1gene->out_node_id()));
                 } else {
                     protogene.set_out(genome2->get_node(p2gene->out_node_id()));
                 }
 
-                if (randfloat()>0.5) avgene.set_recurrent(p1gene->is_recurrent());
+                if (rng.prob()>0.5) avgene.set_recurrent(p1gene->is_recurrent());
                 else avgene.set_recurrent(p2gene->is_recurrent());
 
                 avgene.innovation_num=p1gene->innovation_num;
@@ -1112,7 +1111,7 @@ void Genome::mate_multipoint_avg(Genome *g,
 
                 if (((p1gene->enable)==false)||
                     ((p2gene->enable)==false)) 
-                    if (randfloat()<0.75) avgene.enable=false;
+                    if (rng.prob()<0.75) avgene.enable=false;
 
                 ++p1gene;
                 ++p2gene;
@@ -1365,17 +1364,12 @@ int Genome::extrons() {
 }
 
 void Genome::randomize_traits() {
-
-	int numtraits = (int)traits.size();
-
     for(NNode &node: nodes) {
-		int trait_id = randint(1,numtraits); //randomize trait
-		node.set_trait_id(trait_id);
+		node.set_trait_id(1 + rng.index(traits));
 	}
 
     for(Gene &gene: genes) {
-		int trait_id = randint(1,numtraits); //randomize trait
-		gene.set_trait_id(trait_id);
+		gene.set_trait_id(1 + rng.index(traits));
 	}
 }
 

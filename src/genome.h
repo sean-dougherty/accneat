@@ -19,6 +19,7 @@
 #include <vector>
 #include "gene.h"
 #include "innovation.h"
+#include "rng.h"
 
 namespace NEAT {
 
@@ -42,6 +43,7 @@ namespace NEAT {
 	//    link-building.
 
 	class Genome {
+        rng_t rng;
 	public:
 		int genome_id;
 

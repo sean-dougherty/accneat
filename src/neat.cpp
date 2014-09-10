@@ -417,45 +417,6 @@ bool NEAT::load_neat_params(const char *filename, bool output) {
 	return true;
 }
 
-/* Inline Functions in Header file
-int NEAT::randposneg() {
-	if (NEAT::NEATRandGen.randI()%2) 
-		return 1; 
-	else 
-		return -1;
-}
-
-int NEAT::randint(int x,int y) {
-	return NEAT::NEATRandGen.randI()%(y-x+1)+x;
-}
-
-double NEAT::randfloat() {
-	return NEAT::NEATRandGen.randF();
-}
-*/
-
-double NEAT::gaussrand() {
-	static int iset=0;
-	static double gset;
-	double fac,rsq,v1,v2;
-
-	if (iset==0) {
-		do {
-			v1=2.0*(randfloat())-1.0;
-			v2=2.0*(randfloat())-1.0;
-			rsq=v1*v1+v2*v2;
-		} while (rsq>=1.0 || rsq==0.0);
-		fac=sqrt(-2.0*log(rsq)/rsq);
-		gset=v1*fac;
-		iset=1;
-		return v2*fac;
-	}
-	else {
-		iset=0;
-		return gset;
-	}
-}
-
 double NEAT::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
 
 	bool neg=false;
@@ -474,11 +435,6 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 		weight=-weight;
 	}
 
-	//if (weight<0) {
-	//  weight_mag=-weight;
-	//}
-	//else weight_mag=weight;
-
 	if (!(neg)) {
 		//if (true) {
 		delta=
@@ -486,18 +442,8 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 			pre_rate*(weight)*active_in*(active_out-1.0)+
 			post_rate*(weight)*(active_in-1.0)*active_out;
 
-		//delta=delta-hebb_rate/2; //decay
-
-		//delta=delta+randposneg()*randfloat()*0.01; //noise
-
-		//cout<<"delta: "<<delta<<endl;
-
 		if (weight+delta>0)
 			return weight+delta;
-		//else return 0.01;
-
-		//return weight+delta;
-
 	}
 	else {
 		//In the inhibatory case, we strengthen the synapse when output is low and
@@ -512,8 +458,6 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 			0;
 
 		//delta=delta-hebb_rate; //decay
-
-		//delta=delta+randposneg()*randfloat()*0.01; //noise
 
 		if (-(weight+delta)<0)
 			return -(weight+delta);
@@ -564,16 +508,6 @@ double NEAT::hebbian(double weight, double maxweight, double active_in, double a
 			pre_rate*(topweight)*active_in*(active_out-1.0);
 		//post_rate*(weight+1.0)*(active_in-1.0)*active_out;
 
-		//delta=delta-hebb_rate/2; //decay
-
-		//delta=delta+randposneg()*randfloat()*0.01; //noise
-
-		//cout<<"delta: "<<delta<<endl;
-
-		//if (weight+delta>0)
-		//  return weight+delta;
-		//else return 0.01;
-
 		return weight+delta;
 
 	}
@@ -591,14 +525,7 @@ double NEAT::hebbian(double weight, double maxweight, double active_in, double a
 
 		//delta=delta-hebb_rate; //decay
 
-		//delta=delta+randposneg()*randfloat()*0.01; //noise
-
-		//if (-(weight+delta)<0)
-		//  return -(weight+delta);
-		//  else return -0.01;
-
 		return -(weight+delta);
-
 	}
 
 }

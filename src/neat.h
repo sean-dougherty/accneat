@@ -77,23 +77,6 @@ namespace NEAT {
 	//const char *getUnits(const char *string, int startIndex, int endIndex, const char *set);
 	int getUnitCount(const char *string, const char *set);
 
-	// Inline Random Functions 
-	extern inline int randposneg() {
-        if (rand()%2) 
-            return 1; 
-        else 
-            return -1;
-    }
-    
-	extern inline int randint(int x,int y) {
-        return rand()%(y-x+1)+x;
-    }
-
-    extern inline double randfloat() {
-        return rand() / (double) RAND_MAX;        
-    }
-
-
 	// SIGMOID FUNCTION ********************************
 	// This is a signmoidal activation function, which is an S-shaped squashing function
 	// It smoothly limits the amplitude of the output of a neuron to between 0 and 1
@@ -135,10 +118,6 @@ namespace NEAT {
 	// NOTE: For an inhibatory connection, it makes sense to
 	//      emphasize decorrelation on hebbian learning!	
 	extern double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
-
-	// Returns a normally distributed deviate with 0 mean and unit variance
-	// Algorithm is from Numerical Recipes in C, Second Edition
-	extern double gaussrand();
 
 	bool load_neat_params(const char *filename, bool output = false);
 

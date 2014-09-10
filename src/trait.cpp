@@ -93,10 +93,10 @@ void Trait::print_to_file(std::ostream &outFile) {
   outFile<<std::endl;
 }
 
-void Trait::mutate() {
+void Trait::mutate(rng_t &rng) {
 	for(int count=0;count<NEAT::num_trait_params;count++) {
-		if (randfloat()>NEAT::trait_param_mut_prob) {
-			params[count]+=(randposneg()*randfloat())*NEAT::trait_mutation_power;
+		if (rng.prob()>NEAT::trait_param_mut_prob) {
+			params[count]+=(rng.posneg()*rng.prob())*NEAT::trait_mutation_power;
 			if (params[count]<0) params[count]=0;
 			if (params[count]>1.0) params[count]=1.0;
 		}
