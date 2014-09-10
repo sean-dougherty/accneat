@@ -286,7 +286,7 @@ bool Population::epoch(int generation) {
         } else {
             ++highest_last_changed;
 
-            printf("%uz generations since last population fitness record: %lg\n",
+            printf("%zu generations since last population fitness record: %lg\n",
                    size_t(highest_last_changed), highest_fitness);
         }
     }

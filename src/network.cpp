@@ -80,7 +80,6 @@ void Network::flush() {
 bool Network::outputsoff() {
     for(size_t i = 0; i < noutput_nodes; i++) {
         NNode &node = nodes[i + ninput_nodes];
-        assert(node.gen_node_label == OUTPUT);
         if(node.activation_count == 0)
             return true;
     }
@@ -100,6 +99,8 @@ bool Network::activate() {
 
 	onetime=false;
 
+    //todo: this outputsoff doesn't make sense... must be from an earlier design?
+    //      test if can still pass seq test without it.
 	while(outputsoff()||!onetime) {
 
 		if(++abortcount==20) {
