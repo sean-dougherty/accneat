@@ -20,14 +20,9 @@ using namespace NEAT;
 using std::vector;
 
 NNode::NNode(nodetype ntype,int nodeid) {
-    in_depth = false;
-	active_flag=false;
-	activesum=0;
 	activation=0;
 	last_activation=0;
-	last_activation2=0;
 	type=ntype; //NEURON or SENSOR type
-	activation_count=0; //Inactive upon creation
 	node_id=nodeid;
 	ftype=SIGMOID;
 	gen_node_label=HIDDEN;
@@ -36,14 +31,9 @@ NNode::NNode(nodetype ntype,int nodeid) {
 }
 
 NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
-    in_depth = false;
-	active_flag=false;
-	activesum=0;
 	activation=0;
 	last_activation=0;
-	last_activation2=0;
 	type=ntype; //NEURON or SENSOR type
-	activation_count=0; //Inactive upon creation
 	node_id=nodeid;
 	ftype=SIGMOID;
 	gen_node_label=placement;
@@ -53,13 +43,9 @@ NNode::NNode(nodetype ntype,int nodeid, nodeplace placement) {
 
 NNode NNode::partial_copy(NNode *n) {
     NNode copy;
-    copy.in_depth = false;
-	copy.active_flag=false;
 	copy.activation=0;
 	copy.last_activation=0;
-	copy.last_activation2=0;
 	copy.type=n->type; //NEURON or SENSOR type
-	copy.activation_count=0; //Inactive upon creation
 	copy.node_id=n->node_id;
 	copy.ftype=SIGMOID;
 	copy.gen_node_label=n->gen_node_label;
@@ -69,10 +55,6 @@ NNode NNode::partial_copy(NNode *n) {
 }
 
 NNode::NNode (const char *argline) {
-    in_depth = false;
-
-	activesum=0;
-
     std::stringstream ss(argline);
     int nodety, nodepl;
     ss >> node_id >> trait_id >> nodety >> nodepl;
@@ -101,58 +83,18 @@ nodetype NNode::set_type(nodetype newtype) {
 	return newtype;
 }
 
-//If the node is a SENSOR, returns true and loads the value
-bool NNode::sensor_load(double value) {
-	if (type==SENSOR) {
-
-		//Time delay memory
-		last_activation2=last_activation;
-		last_activation=activation;
-
-		activation_count++;  //Puts sensor into next time-step
-		activation=value;
-		return true;
-	}
-	else return false;
+void NNode::flush() {
+    if(type != SENSOR) {
+        activation = 0.0;
+        last_activation = 0.0;
+    }
 }
 
-// Return activation currently in node from PREVIOUS (time-delayed) time step,
-// if there is one
-double NNode::get_active_out_td() {
-	if (activation_count>1)
-		return last_activation;
-	else return 0.0;
-}
+// Sets activation level of sensor
+void NNode::sensor_load(double value) {
+    assert(type==SENSOR);
 
-// This recursively flushes everything leading into and including this NNode, including recurrencies
-//todo: this doesn't need to be recursive
-void NNode::flushback(vector<NNode> &nodes) {
-	//A sensor should not flush black
-	if (type!=SENSOR) {
-
-		if (activation_count>0) {
-			activation_count=0;
-			activation=0;
-			last_activation=0;
-			last_activation2=0;
-		}
-
-		//Flush back recursively
-		for(Link &link: incoming) {
-			//Flush the link itself (For future learning parameters possibility) 
-			link.added_weight=0;
-            NNode &inode = nodes[link.in_node_index];
-			if(inode.activation_count > 0)
-				inode.flushback(nodes);
-		}
-	} else {
-		//Flush the SENSOR
-		activation_count=0;
-		activation=0;
-		last_activation=0;
-		last_activation2=0;
-
-	}
+    last_activation = activation = value;
 }
 
 // Reserved for future system expansion
@@ -167,31 +109,4 @@ void NNode::print_to_file(std::ostream &outFile) {
   outFile<<trait_id<<" ";
   outFile<<type<<" ";
   outFile<<gen_node_label<<std::endl;
-}
-
-//Find the greatest depth starting from this neuron at depth d
-int NNode::depth(int d, vector<NNode> &nodes) {
-    const int MAX_DEPTH = 10;
-    int cur_depth; //The depth of the current node
-    int max=d; //The max depth
-
-    if (d>=MAX_DEPTH) {
-        return MAX_DEPTH;
-    }
-
-    //Base Case
-    if ((this->type)==SENSOR) {
-        return d;
-        //Recursion
-    } else {
-
-        for(Link &link: incoming) {
-            cur_depth = nodes[link.in_node_index].depth(d+1, nodes);
-            if (cur_depth>max) max=cur_depth;
-        }
-  
-        return max;
-
-    } //end else
-
 }

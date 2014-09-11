@@ -60,7 +60,7 @@ void Organism::create_phenotype() {
 	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
 	double weight_mag; //Measures absolute value of weights
 
-    net.reset(genome.genome_id);
+    net.reset();
     vector<NNode> &netnodes = net.nodes;
 
 	//Create the nodes
@@ -119,7 +119,7 @@ void Organism::create_phenotype() {
 		}
 	}
 
-    net.init(false, maxweight);
+    net.init(maxweight);
 }
 
 bool Organism::print_to_file(char *filename) {

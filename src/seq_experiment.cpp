@@ -12,6 +12,8 @@
 using namespace NEAT;
 using namespace std;
 
+#define NACTIVATES_PER_INPUT 10
+
 struct Step {
     vector<double> input;
     vector<double> output;
@@ -152,8 +154,7 @@ static int epoch(NEAT::Population *pop,
                  char *filename,
                  int &winnernum,
                  int &winnergenes,
-                 int &winnernodes,
-                 int &winnerdepth);
+                 int &winnernodes);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
 Population *seq_experiment(int gens, char const *startgenes_path) {
@@ -168,16 +169,13 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
     int evals[NEAT::num_runs];
     int genes[NEAT::num_runs];
     int nodes[NEAT::num_runs];
-    int depth[NEAT::num_runs];
     int winnernum;
     int winnergenes;
     int winnernodes;
-    int winnerdepth;
     //For averaging
     int totalevals=0;
     int totalgenes=0;
     int totalnodes=0;
-    int totaldepth=0;
     int totalgens=0;
     int expcount;
     int samples;  //For averaging
@@ -185,7 +183,6 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
     memset (evals, 0, NEAT::num_runs * sizeof(int));
     memset (genes, 0, NEAT::num_runs * sizeof(int));
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
-    memset (depth, 0, NEAT::num_runs * sizeof(int));
 
     ifstream iFile(startgenes_path);
 
@@ -221,13 +218,12 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
             static Timer timer("epoch");
             timer.start();
             //Check for success
-            if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes, winnerdepth)) {
+            if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
                 //	if (seq_experiment_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
                 //Collect Stats on end of experiment
                 evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
                 genes[expcount]=winnergenes;
                 nodes[expcount]=winnernodes;
-                depth[expcount]=winnerdepth;
                 totalgens += gen;
                 gen=gens;
             }
@@ -269,18 +265,11 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
         }
     }
 
-    cout<<"Depth: "<<endl;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-        cout<<depth[expcount]<<endl;
-        totaldepth+=depth[expcount];
-    }
-    
     cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
     cout<<"Average Generations: "<<double(totalgens)/expcount<<endl;
     cout<<"Average Nodes: "<<(samples>0 ? (double)totalnodes/samples : 0)<<endl;
     cout<<"Average Genes: "<<(samples>0 ? (double)totalgenes/samples : 0)<<endl;
     cout<<"Average Evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<endl;
-    cout<<"Average Depth: "<<(samples>0 ? (double)totaldepth/samples : 0)<<endl;
 
     return pop;
 
@@ -288,20 +277,13 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
 
 bool evaluate(Organism *org, float *details_act, float *details_err) {
     Network *net;
-    int net_depth; //The max depth of the network to be activated
-
 
     net=&org->net;
-    net_depth=net->max_depth();
 
-    auto activate = [net, net_depth] (vector<double> &input) {
+    auto activate = [net] (vector<double> &input) {
         net->load_sensors(input);
 
-        //Relax net and get output
-        net->activate();
-
-        //use depth to ensure relaxation
-        for(int relax=0; relax <= net_depth; relax++) {
+        for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
             net->activate();
         }
     };
@@ -336,8 +318,7 @@ int epoch(Population *pop,
           char *filename,
           int &winnernum,
           int &winnergenes,
-          int &winnernodes,
-          int &winnerdepth) {
+          int &winnernodes) {
 
     static float best_fitness = 0.0f;
 
@@ -366,7 +347,6 @@ int epoch(Population *pop,
                 winnernum=org->genome.genome_id;
                 winnergenes=org->genome.extrons();
                 winnernodes=org->genome.nodes.size();
-                winnerdepth=org->net.max_depth();
             }
         }
 

@@ -35,7 +35,6 @@ namespace NEAT {
         size_t ninput_nodes;
         size_t noutput_nodes;
 
-		int net_id; // Allow for a network id
 		bool adaptable; // Tells whether network can adapt or not
 		double maxweight; // Maximum weight in network for adaptation purposes
 
@@ -44,14 +43,14 @@ namespace NEAT {
         Network();
 		~Network();
 
-        void reset(int id);
-        void init(bool adaptval, double maxweight);
+        void reset();
+        void init(double maxweight);
 
 		// Puts the network back into an inactive state
 		void flush();
 		
 		// Activates the net such that all outputs are active
-		bool activate();
+		void activate();
 
 		// Prints the values of its outputs
 		void show_activation();
@@ -61,17 +60,6 @@ namespace NEAT {
 		void load_sensors(const std::vector<double> &sensvals);
 
         double get_output(size_t index);
-
-		// This checks a POTENTIAL link between a potential in_node
-		// and potential out_node to see if it must be recurrent 
-		// Use count and thresh to jump out in the case of an infinite loop 
-		bool is_recur(NNode *potin_node,NNode *potout_node,int &count,int thresh); 
-
-		// If all output are not active then return true
-		bool outputsoff();
-
-		int max_depth();
-
 	};
 
 } // namespace NEAT

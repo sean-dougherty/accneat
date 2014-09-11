@@ -27,17 +27,13 @@ using std::endl;
 Network::Network() {
 }
 
-void Network::reset(int id) {
-    net_id = id;
+void Network::reset() {
     nodes.clear();
     ninput_nodes = 0;
     noutput_nodes = 0;
 }
 
-void Network::init(bool adaptval,
-                   double maxweight_) {
-
-    adaptable = adaptval;
+void Network::init(double maxweight_) {
     maxweight = maxweight_;
 
     size_t i = 0;
@@ -69,118 +65,34 @@ Network::~Network() {
 
 // Puts the network back into an initial state
 void Network::flush() {
-    for(size_t i = 0; i < noutput_nodes; i++) {
-        NNode &node = nodes[i + ninput_nodes];
-        assert(node.gen_node_label == OUTPUT);
-        node.flushback(nodes);
+    for(NNode &node: nodes) {
+        node.flush();
     }
-}
-
-// If all output are not active then return true
-bool Network::outputsoff() {
-    for(size_t i = 0; i < noutput_nodes; i++) {
-        NNode &node = nodes[i + ninput_nodes];
-        if(node.activation_count == 0)
-            return true;
-    }
-    return false;
 }
 
 // Activates the net such that all outputs are active
-// Returns true on success;
-bool Network::activate() {
-	double add_amount;  //For adding to the activesum
-	bool onetime; //Make sure we at least activate once
-	int abortcount=0;  //Used in case the output is somehow truncated from the network
+void Network::activate() {
+    // For each non-sensor node, compute the sum of its incoming activation
+    for(size_t i = ninput_nodes; i < nodes.size(); i++) {
+        NNode &node = nodes[i];
 
-	//Keep activating until all the outputs have become active 
-	//(This only happens on the first activation, because after that they
-	// are always active)
+        double activation = 0.0;
+        // For each incoming connection, add the activity from the connection to the activesum 
+        for(Link &link: node.incoming) {
+            NNode &inode = nodes[link.in_node_index];
 
-	onetime=false;
+            activation += link.weight * inode.last_activation;
+        } //End for over incoming links
 
-	while(outputsoff()||!onetime) {
+        node.activation = NEAT::fsigmoid(activation,
+                                         4.924273,
+                                         2.4621365);  //Sigmoidal activation- see comments under fsigmoid
+    }
 
-		if(++abortcount==20) {
-			return false;
-		}
-
-        // For each non-sensor node, compute the sum of its incoming activation
-        for(size_t i = ninput_nodes; i < nodes.size(); i++) {
-            NNode &node = nodes[i];
-            node.activesum = 0;
-            node.active_flag = false;  //This will tell us if it has any active inputs
-
-            // For each incoming connection, add the activity from the connection to the activesum 
-            for(Link &link: node.incoming) {
-                NNode &inode = nodes[link.in_node_index];
-
-                add_amount=(link.weight)*(inode.get_active_out());
-                if ( inode.active_flag || (inode.type==SENSOR))
-                    node.active_flag=true;
-
-                node.activesum+=add_amount;
-            } //End for over incoming links
-        }
-
-		// Now activate all the non-sensor nodes off their incoming activation 
-        for(size_t i = ninput_nodes; i < nodes.size(); i++) {
-            NNode &node = nodes[i];
-            //Only activate if some active input came in
-            if (node.active_flag) {
-                //Keep a memory of activations for potential time delayed connections
-                node.last_activation2=node.last_activation;
-                node.last_activation=node.activation;
-                //Now run the net activation through an activation function
-                node.activation=NEAT::fsigmoid(node.activesum,4.924273,2.4621365);  //Sigmoidal activation- see comments under fsigmoid
-                //Increment the activation_count
-                //First activation cannot be from nothing!!
-                node.activation_count++;
-            }
-		}
-
-		onetime=true;
-	}
-
-	if (adaptable) {
-        // ADAPTATION:  Adapt weights based on activations 
-        for(size_t i = ninput_nodes; i < nodes.size(); i++) {
-            // For each incoming connection, perform adaptation based on the trait of the connection 
-            NNode &node = nodes[i];
-            for(Link &link: node.incoming) {
-                NNode &inode = nodes[link.in_node_index];
-                NNode &onode = nodes[link.out_node_index];
-		
-                if ((link.trait_id==2)||
-                    (link.trait_id==3)||
-                    (link.trait_id==4)) {
-		  
-                    //In the recurrent case we must take the last activation of the input for calculating hebbian changes
-                    if (link.is_recurrent) {
-                        link.weight=
-                            hebbian(link.weight,maxweight,
-                                    inode.last_activation, 
-                                    onode.get_active_out(),
-                                    link.params[0],link.params[1],
-                                    link.params[2]);
-		    
-		    
-                    }
-                    else { //non-recurrent case
-                        link.weight=
-                            hebbian(link.weight,maxweight,
-                                    inode.get_active_out(), 
-                                    onode.get_active_out(),
-                                    link.params[0],link.params[1],
-                                    link.params[2]);
-                    }
-                }
-		
-            }	      
-        }
-	} //end if (adaptable)
-
-	return true;  
+    for(size_t i = ninput_nodes; i < nodes.size(); i++) {
+        NNode &node = nodes[i];
+        node.last_activation = node.activation;
+    }
 }
 
 // Takes an array of sensor values and loads it into SENSOR inputs ONLY
@@ -201,17 +113,3 @@ double Network::get_output(size_t index) {
 
     return nodes[ninput_nodes + index].activation;
 }
-
-//Find the maximum number of neurons between an ouput and an input
-int Network::max_depth() {
-    int cur_depth; //The depth of the current node
-    int max = 0; //The max depth
-
-    for(size_t i = 0; i < noutput_nodes; i++) {
-        cur_depth = nodes[i + ninput_nodes].depth(0, nodes);
-        if(cur_depth > max) max = cur_depth;
-    }
-
-    return max;
-}
-

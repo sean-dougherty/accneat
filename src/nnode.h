@@ -53,23 +53,14 @@ namespace NEAT {
 	class NNode {
 		int trait_id;  // identify the trait derived by this node
     public:
-		int activation_count;  // keeps track of which activation the node is currently in
+		double activation; // The total activation entering the NNode 
 		double last_activation; // Holds the previous step's activation for recurrency
-		double last_activation2; // Holds the activation BEFORE the prevous step's
-
-	protected:
-
-        bool in_depth;
 
 	public:
 		bool frozen; // When frozen, cannot be mutated (meaning its trait pointer is fixed)
 
 		functype ftype; // type is either SIGMOID ..or others that can be added
 		nodetype type; // type is either NEURON or SENSOR 
-
-		double activesum;  // The incoming activity before being processed 
-		double activation; // The total activation entering the NNode 
-		bool active_flag;  // To make sure outputs are active
 
 		// ************ LEARNING PARAMETERS *********** 
 		// The following parameters are for use in    
@@ -79,12 +70,6 @@ namespace NEAT {
 		double params[NEAT::num_trait_params];
 
 		std::vector<Link> incoming; // A list of pointers to incoming weighted signals from other nodes
-
-		// These members are used for graphing with GTK+/GDK
-		std::vector<double> rowlevels;  // Depths from output where this node appears
-		int row;  // Final row decided upon for drawing this NNode in
-		int ypos;
-		int xpos;
 
 		int node_id;  // A node can be given an identification number for saving in files
 
@@ -106,18 +91,14 @@ namespace NEAT {
 		~NNode();
 
         // Return activation currently in node, if it has been activated
-        inline double get_active_out() {return (activation_count > 0) ? activation : 0.0;}
+        inline double get_active_out() {return activation;}
 
         inline void set_trait_id(int id) { assert(id > 0); trait_id = id; }
-
         inline int get_trait_id() const {
             return trait_id;
         }
 
     public:
-
-		// Return activation from PREVIOUS time step
-		double get_active_out_td();
 
 		// Returns the type of the node, NEURON or SENSOR
 		const nodetype get_type();
@@ -125,11 +106,10 @@ namespace NEAT {
 		// Allows alteration between NEURON and SENSOR.  Returns its argument
 		nodetype set_type(nodetype);
 
-		// If the node is a SENSOR, returns true and loads the value
-		bool sensor_load(double);
+        void flush();
 
-		// Recursively deactivate backwards through the network
-		void flushback(std::vector<NNode> &nodes);
+		// If the node is a SENSOR, returns true and loads the value
+		void sensor_load(double);
 
 		// Print the node to a file
         void  print_to_file(std::ostream &outFile);
@@ -140,10 +120,6 @@ namespace NEAT {
 		// Writes back changes weight values into the genome
 		// (Lamarckian trasnfer of characteristics)
 		void Lamarck();
-
-		//Find the greatest depth starting from this neuron at depth d
-		int depth(int d, std::vector<NNode> &nodes); 
-
 	};
 
 
