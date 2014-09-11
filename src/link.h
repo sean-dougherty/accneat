@@ -37,7 +37,6 @@ namespace NEAT {
 
 		double weight; // Weight of connection
 		bool is_recurrent;
-		bool time_delay;
 
 
 		int trait_id;  // identify the trait derived by this link

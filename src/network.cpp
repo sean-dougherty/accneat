@@ -115,18 +115,11 @@ bool Network::activate() {
             for(Link &link: node.incoming) {
                 NNode &inode = nodes[link.in_node_index];
 
-                //Handle possible time delays
-                if (!(link.time_delay)) {
-                    add_amount=(link.weight)*(inode.get_active_out());
-                    if ((inode.active_flag)||
-                        (inode.type==SENSOR)) node.active_flag=true;
-                    node.activesum+=add_amount;
-                } else {
-                    //Input over a time delayed connection
-                    add_amount=(link.weight)*(inode.get_active_out_td());
-                    node.activesum+=add_amount;
-                }
+                add_amount=(link.weight)*(inode.get_active_out());
+                if ( inode.active_flag || (inode.type==SENSOR))
+                    node.active_flag=true;
 
+                node.activesum+=add_amount;
             } //End for over incoming links
         }
 

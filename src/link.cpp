@@ -29,7 +29,6 @@ Link::Link(int tid,
     out_node_index = onode_index;
 	is_recurrent = recur;
 	added_weight = 0;
-	time_delay = false;
 }	
 
 Link::Link(double w,
