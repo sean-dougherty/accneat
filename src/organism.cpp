@@ -101,15 +101,10 @@ void Organism::create_phenotype() {
 
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
-			netnodes[onode].incoming.emplace_back(gene.weight(),
-                                                  inode,
-                                                  onode,
-                                                  gene.is_recurrent());
+			netnodes[onode].incoming.emplace_back(gene.weight(), inode);
 
             Link &newlink = netnodes[onode].incoming.back();
 
-			//Derive link's parameters from its Trait pointer
-			newlink.derive_trait( genome.get_trait(gene) );
 			//Keep track of maximum weight
 			if (newlink.weight>0)
 				weight_mag=newlink.weight;

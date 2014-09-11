@@ -28,48 +28,13 @@ namespace NEAT {
 
 	// ----------------------------------------------------------------------- 
 	// A LINK is a connection from one node to another with an associated weight 
-	// It can be marked as recurrent 
-	// Its parameters are made public for efficiency 
 	class Link {
 	public: 
-        node_index_t in_node_index; // NNode inputting into the link
-        node_index_t out_node_index; // NNode that the link affects
-
 		double weight; // Weight of connection
-		bool is_recurrent;
-
-
-		int trait_id;  // identify the trait derived by this link
-
-		// ************ LEARNING PARAMETERS *********** 
-		// These are link-related parameters that change during Hebbian type learning
-
-		double added_weight;  // The amount of weight adjustment 
-		double params[NEAT::num_trait_params];
-
-		// Including a trait in the Link creation
-		Link(int trait_id,
-             double w,
-             node_index_t inode_index,
-             node_index_t onode_index,
-             bool recur);
+        node_index_t in_node_index; // NNode inputting into the link
 
 		Link(double w,
-             node_index_t inode_index,
-             node_index_t onode_index,
-             bool recur);
-
-		// For when you don't know the connections yet
-		Link(double w);
-
-        inline int get_trait_id() {
-            return trait_id;
-        }
-        inline void set_trait_id(int trait_id_) {trait_id = trait_id_;}
-
-		// Derive a trait into link params
-		void derive_trait(const Trait &curtrait);
-
+             node_index_t inode_index);
 	};
 
 } // namespace NEAT

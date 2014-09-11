@@ -18,32 +18,8 @@
 using namespace NEAT;
 
 
-Link::Link(int tid,
-           double w,
-           node_index_t inode_index,
-           node_index_t onode_index,
-           bool recur) {
-    trait_id = tid;
-	weight = w;
-    in_node_index = inode_index;
-    out_node_index = onode_index;
-	is_recurrent = recur;
-	added_weight = 0;
-}	
-
 Link::Link(double w,
-           node_index_t inode_index,
-           node_index_t onode_index,
-           bool recur)
-    : Link(1, w, inode_index, onode_index, recur) {
-}
-
-Link::Link(double w)
-    : Link(1, w, 0, 0, false) {
-}
-
-void Link::derive_trait(const Trait &t) {
-    trait_id = t.trait_id;
-    for(int count=0; count < NEAT::num_trait_params; count++)
-        params[count] = t.params[count];
-}
+           node_index_t inode_index)
+    : weight(w)
+    , in_node_index(inode_index) {
+}	
