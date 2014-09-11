@@ -28,14 +28,11 @@ namespace NEAT {
 		bool frozen; // When frozen, cannot be mutated (meaning its trait pointer is fixed)
 		nodetype type; // type is either NEURON or SENSOR 
 		int node_id;  // A node can be given an identification number for saving in files
-		nodeplace gen_node_label;  // Used for genetic marking of nodes
+		nodeplace place;  // Used for genetic marking of nodes
 
         // Construct NodeGene with invalid state.
         NodeGene() {}
-		NodeGene(nodetype ntype,int nodeid);
 		NodeGene(nodetype ntype,int nodeid, nodeplace placement);
-		//todo: figure out why this is needed instead of copy ctor
-		static NodeGene partial_copy(NodeGene *n);
 		// Construct the node out of a file specification using given list of traits
 		NodeGene (const char *argline);
 

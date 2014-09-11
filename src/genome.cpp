@@ -107,12 +107,12 @@ public:
         }
 
         //ADDED: CONSIDER connections out of outputs recurrent
-        //todo: this was fixed to use gen_node_label instead of type,
+        //todo: this was fixed to use place instead of type,
         //      but not clear if this logic is desirable. Shouldn't it
         //      just be checking if the output node is OUTPUT?
         /*
-          if (((in_node->gen_node_label)==OUTPUT)||
-          ((out_node->gen_node_label)==OUTPUT))
+          if (((in_node->place)==OUTPUT)||
+          ((out_node->place)==OUTPUT))
           return true;
         */
         return false;
@@ -339,7 +339,7 @@ void Genome::duplicate_into(Genome &offspring, int new_id) {
     offspring.genes = genes;
     //todo: should be able to simply copy whole vector
     for(NodeGene &node: nodes) {
-		offspring.nodes.emplace_back(NodeGene::partial_copy(&node));    
+		offspring.nodes.emplace_back(node);    
 	}
 }
 
@@ -502,7 +502,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
         for(int i = 0; !thegene && i < 20; i++) {
             LinkGene &g = rng.element(genes);
             //If either the gene is disabled, or it has a bias input, try again
-            if( g.enable && get_node(g.in_node_id())->gen_node_label != BIAS ) {
+            if( g.enable && get_node(g.in_node_id())->place != BIAS ) {
                 thegene = &g;
             }
         }
@@ -802,12 +802,12 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
 
 	//Make sure all sensors and outputs are included
     for(NodeGene &node: g->nodes) {
-		if( (node.gen_node_label == INPUT)
-            || (node.gen_node_label == BIAS)
-            || (node.gen_node_label == OUTPUT)) {
+		if( (node.place == INPUT)
+            || (node.place == BIAS)
+            || (node.place == OUTPUT)) {
 
             //Add the new node
-            node_insert(newnodes, NodeGene::partial_copy(&node));
+            node_insert(newnodes, node);
         }
     }
 
@@ -909,7 +909,7 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
 
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_inode = NodeGene::partial_copy(inode);
+                    new_inode = *inode;
                     node_insert(newnodes,new_inode);
 
                 }
@@ -925,7 +925,7 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_onode = NodeGene::partial_copy(onode);
+                    new_onode = *onode;
                     node_insert(newnodes,new_onode);
 
                 }
@@ -943,7 +943,7 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_onode = NodeGene::partial_copy(onode);
+                    new_onode = *onode;
                     //newnodes.push_back(new_onode);
                     node_insert(newnodes,new_onode);
 
@@ -960,7 +960,7 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_inode = NodeGene::partial_copy(inode);
+                    new_inode = *inode;
                     node_insert(newnodes,new_inode);
                 }
                 else {
@@ -1026,11 +1026,11 @@ void Genome::mate_multipoint_avg(Genome *g,
 
 	//NEW 3/17/03 Make sure all sensors and outputs are included
     for(NodeGene &node: g->nodes) {
-		if (((node.gen_node_label)==INPUT)||
-			((node.gen_node_label)==OUTPUT)||
-			((node.gen_node_label)==BIAS)) {
+		if (((node.place)==INPUT)||
+			((node.place)==OUTPUT)||
+			((node.place)==BIAS)) {
 
-            node_insert(newnodes, NodeGene::partial_copy(&node));
+            node_insert(newnodes, node);
         }
 	}
 
@@ -1178,7 +1178,7 @@ void Genome::mate_multipoint_avg(Genome *g,
 
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_inode = NodeGene::partial_copy(inode);
+                    new_inode = *inode;
                     node_insert(newnodes,new_inode);
                 }
                 else {
@@ -1193,7 +1193,7 @@ void Genome::mate_multipoint_avg(Genome *g,
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_onode = NodeGene::partial_copy(onode);
+                    new_onode = *onode;
 
                     node_insert(newnodes,new_onode);
                 }
@@ -1210,7 +1210,7 @@ void Genome::mate_multipoint_avg(Genome *g,
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_onode = NodeGene::partial_copy(onode);
+                    new_onode = *onode;
 
                     node_insert(newnodes,new_onode);
                 }
@@ -1225,7 +1225,7 @@ void Genome::mate_multipoint_avg(Genome *g,
                     ++curnode;
                 if (curnode==newnodes.end()) {
                     //Here we know the node doesn't exist so we have to add it
-                    new_inode = NodeGene::partial_copy(inode);
+                    new_inode = *inode;
 
                     node_insert(newnodes,new_inode);
                 }

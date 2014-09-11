@@ -32,13 +32,10 @@ namespace NEAT {
     public:
 		double activation;
 		double last_activation;
-
-	public:
 		nodetype type; // type is either NEURON or SENSOR 
-		std::vector<Link> incoming; // A list of pointers to incoming weighted signals from other nodes
-
+		std::vector<Link> incoming;
 		int node_id;
-		nodeplace gen_node_label;
+		nodeplace place;
 
         NNode() {}
         NNode(NodeGene &gene);

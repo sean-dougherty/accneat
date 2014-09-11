@@ -18,30 +18,12 @@
 #include <sstream>
 using namespace NEAT;
 
-NodeGene::NodeGene(nodetype ntype,int nodeid) {
-	type=ntype; //NEURON or SENSOR type
-	node_id=nodeid;
-	gen_node_label=HIDDEN;
-	frozen=false;
-	trait_id=1;
-}
-
 NodeGene::NodeGene(nodetype ntype,int nodeid, nodeplace placement) {
 	type=ntype; //NEURON or SENSOR type
 	node_id=nodeid;
-	gen_node_label=placement;
+	place=placement;
 	frozen=false;
 	trait_id=1;
-}
-
-NodeGene NodeGene::partial_copy(NodeGene *n) {
-    NodeGene copy;
-	copy.type=n->type; //NEURON or SENSOR type
-	copy.node_id=n->node_id;
-	copy.gen_node_label=n->gen_node_label;
-	copy.frozen=false;
-    copy.trait_id = n->trait_id;
-    return copy;
 }
 
 NodeGene::NodeGene (const char *argline) {
@@ -49,7 +31,7 @@ NodeGene::NodeGene (const char *argline) {
     int nodety, nodepl;
     ss >> node_id >> trait_id >> nodety >> nodepl;
     type = (nodetype)nodety;
-    gen_node_label = (nodeplace)nodepl;
+    place = (nodeplace)nodepl;
 
     if(trait_id == 0)
         trait_id = 1;
@@ -66,5 +48,5 @@ void NodeGene::print_to_file(std::ostream &outFile) {
   outFile<<"node "<<node_id<<" ";
   outFile<<trait_id<<" ";
   outFile<<type<<" ";
-  outFile<<gen_node_label<<std::endl;
+  outFile<<place<<std::endl;
 }

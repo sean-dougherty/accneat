@@ -42,7 +42,7 @@ void Network::init(double maxweight_) {
     ninput_nodes = i;
     assert(ninput_nodes > 0);
 
-    for(; (i < nodes.size()) && (nodes[i].type == NEURON) && (nodes[i].gen_node_label == OUTPUT); i++) {
+    for(; (i < nodes.size()) && (nodes[i].type == NEURON) && (nodes[i].place == OUTPUT); i++) {
     }
 
     noutput_nodes = i - ninput_nodes;
@@ -53,8 +53,8 @@ void Network::init(double maxweight_) {
             cerr << "Bad neuron type at " << i << ": " << nodes[i].type << endl;
             abort();
         }
-        if(nodes[i].gen_node_label != HIDDEN) {
-            cerr << "Bad neuron 'place' at " << i << ": " << nodes[i].gen_node_label << endl;
+        if(nodes[i].place != HIDDEN) {
+            cerr << "Bad neuron 'place' at " << i << ": " << nodes[i].place << endl;
             abort();
         }
     }

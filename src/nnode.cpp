@@ -24,7 +24,7 @@ NNode::NNode(NodeGene &gene) {
 	last_activation=0;
     type = gene.type;
     node_id = gene.node_id;
-    gen_node_label = gene.gen_node_label;
+    place = gene.place;
 }
 
 NNode::~NNode() {
