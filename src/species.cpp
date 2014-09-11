@@ -301,13 +301,6 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                         Population *pop,
                         vector<Species*> &sorted_species) {
 
-    bool champ_done=false; //Flag the preservation of the champion
-
-	//Check for a mistake
-	if ((expected_offspring>0) && (organisms.size()==0)) {
-        trap("expected > 0 && norgs = 0");
-    }
-
     Organism *thechamp = organisms[0];
 
     //Create the designated number of offspring for the Species
@@ -320,14 +313,14 @@ void Species::reproduce(vector<Organism> &pop_orgs,
         new_genome.reset(iorg+1);
 
         //If we have a super_champ (Population champion), finish off some special clones
-        if ((thechamp->super_champ_offspring) > 0) {
+        if( count < thechamp->super_champ_offspring ) {
             thechamp->genome.duplicate_into(new_genome, count);
 
             //Most superchamp offspring will have their connection weights mutated only
             //The last offspring will be an exact duplicate of this super_champ
             //Note: Superchamp offspring only occur with stolen babies!
             //      Settings used for published experiments did not use this
-            if ((thechamp->super_champ_offspring) > 1) {
+            if( count < (thechamp->super_champ_offspring - 1) ) {
                 if ( (rng.prob() < 0.8)|| (NEAT::mutate_add_link_prob == 0.0)) {
                     new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
                 } else {
@@ -338,13 +331,10 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                 }
             }
 
-            thechamp->super_champ_offspring--;
-
-        } else if( !champ_done && (expected_offspring > 5) ) {
+        } else if( (count == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
 
             //Clone the species champion
             thechamp->genome.duplicate_into(new_genome, count);
-            champ_done=true;
 
         } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
 
