@@ -304,12 +304,9 @@ void Species::reproduce(vector<Organism> &pop_orgs,
     bool champ_done=false; //Flag the preservation of the champion
 	Organism *thechamp = nullptr;
 
-	//The weight mutation power is species specific depending on its age
-	double mut_power=NEAT::weight_mut_power;
-
 	//Check for a mistake
 	if ((expected_offspring>0) && (organisms.size()==0)) {
-        trap("expected > size");
+        trap("expected > 0 && norgs = 0");
     }
 
     thechamp = organisms[0];
@@ -337,7 +334,7 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                     (NEAT::mutate_add_link_prob==0.0)) 
                     //ABOVE LINE IS FOR:
                     //Make sure no links get added when the system has link adding disabled
-                    new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
+                    new_genome->mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
                 else {
                     //Sometimes we add a link to a superchamp
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
@@ -387,7 +384,7 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                     new_genome->mutate_node_trait(1);
                 }
                 if (rng.prob()<NEAT::mutate_link_weights_prob) {
-                    new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
+                    new_genome->mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
                 }
                 if (rng.prob()<NEAT::mutate_toggle_enable_prob) {
                     new_genome->mutate_toggle_enable(1);
@@ -461,7 +458,7 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                         new_genome->mutate_node_trait(1);
                     }
                     if (rng.prob()<NEAT::mutate_link_weights_prob) {
-                        new_genome->mutate_link_weights(mut_power,1.0,GAUSSIAN);
+                        new_genome->mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
                     }
                     if (rng.prob()<NEAT::mutate_toggle_enable_prob) {
                         new_genome->mutate_toggle_enable(1);
