@@ -327,20 +327,11 @@ double Genome::get_last_gene_innovnum() {
     return genes.back().innovation_num + 1;
 }
 
-Genome *Genome::duplicate(int new_id) {
-    Genome *offspring = new Genome();
-    duplicate_into(*offspring, new_id);
-    return offspring;
-}
-
 void Genome::duplicate_into(Genome &offspring, int new_id) {
     offspring.genome_id = new_id;
     offspring.traits = traits;
     offspring.genes = genes;
-    //todo: should be able to simply copy whole vector
-    for(NodeGene &node: nodes) {
-		offspring.nodes.emplace_back(node);    
-	}
+    offspring.nodes = nodes;
 }
 
 void Genome::mutate_random_trait() {

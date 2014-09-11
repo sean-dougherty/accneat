@@ -83,9 +83,6 @@ namespace NEAT {
 		void print_to_file(std::ostream &outFile);
         void load_from_file(int id, std::istream &iFile);
 
-		// Duplicate this Genome to create a new one with the specified id 
-		Genome *duplicate(int new_id);
-
         void duplicate_into(Genome &offspring, int new_id);
 
 		// For debugging: A number of tests can be run on a genome to check its
