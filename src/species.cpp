@@ -360,7 +360,7 @@ void Species::reproduce(vector<Organism> &pop_orgs,
 
             //Choose random dad
             Organism *dad;
-            if ((rng.prob()>NEAT::interspecies_mate_rate)) {
+            if ((rng.prob() > NEAT::interspecies_mate_rate)) {
                 //Mate within Species
                 dad = rng.element(organisms);
             } else {
@@ -368,21 +368,19 @@ void Species::reproduce(vector<Organism> &pop_orgs,
             }
 
             //Perform mating based on probabilities of differrent mating types
-            if (rng.prob()<NEAT::mate_multipoint_prob) { 
+            if( rng.prob()<NEAT::mate_multipoint_prob ) { 
                 mom->genome.mate_multipoint(&dad->genome,
                                             &new_genome,
                                             count,
                                             mom->orig_fitness,
                                             dad->orig_fitness);
-            }
-            else if (rng.prob()<(NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob))) {
+            } else if( rng.prob() < (NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob)) ) {
                 mom->genome.mate_multipoint_avg(&dad->genome,
                                                 &new_genome,
                                                 count,
                                                 mom->orig_fitness,
                                                 dad->orig_fitness);
-            }
-            else {
+            } else {
                 // todo: catch non-zero probability at time of parsing. completely elim this
                 // from code.
                 std::cerr << "singlepoint mating no longer supported" << std::endl;
