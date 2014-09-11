@@ -738,7 +738,12 @@ void Genome::node_insert(vector<NodeGene> &nlist, const NodeGene &n) {
 
 }
 
-void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double fitness1,double fitness2, bool interspec_flag) {
+void Genome::mate_multipoint(Genome *g,
+                             Genome *offspring,
+                             int genomeid,
+                             double fitness1,
+                             double fitness2) {
+
     vector<LinkGene> &genes1 = this->genes;
     vector<LinkGene> &genes2 = g->genes;
 
@@ -853,15 +858,6 @@ void Genome::mate_multipoint(Genome *g, Genome *offspring, int genomeid,double f
                 if (p1better) skip=true;
             }
         }
-
-        /*
-        //Uncomment this line to let growth go faster (from both parents excesses)
-        skip=false;
-
-        //For interspecies mating, allow all genes through:
-        if (interspec_flag)
-        skip=false;
-        */
 
         //Check to see if the protogene conflicts with an already chosen gene
         //i.e. do they represent the same link    
@@ -980,8 +976,7 @@ void Genome::mate_multipoint_avg(Genome *g,
                                  Genome *offspring,
                                  int genomeid,
                                  double fitness1,
-                                 double fitness2,
-                                 bool interspec_flag) {
+                                 double fitness2) {
     vector<LinkGene> &genes1 = this->genes;
     vector<LinkGene> &genes2 = g->genes;
 
@@ -1118,15 +1113,6 @@ void Genome::mate_multipoint_avg(Genome *g,
                 if (p1better) skip=true;
             }
         }
-
-        /*
-        //THIS LINE MUST BE DELETED TO SLOW GROWTH
-        skip=false;
-
-        //For interspecies mating, allow all genes through:
-        if (interspec_flag)
-        skip=false;
-        */
 
         //Check to see if the chosengene conflicts with an already chosen gene
         //i.e. do they represent the same link    

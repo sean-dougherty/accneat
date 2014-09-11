@@ -276,7 +276,6 @@ bool Population::epoch(int generation) {
 	//Check for Population-level stagnation
     {
         Organism *pop_champ = sorted_species[0]->first();
-        pop_champ->pop_champ = true; //DEBUG marker of the best of pop
         if(pop_champ->orig_fitness > highest_fitness) {
             double old_highest = highest_fitness;
             highest_fitness = pop_champ->orig_fitness;

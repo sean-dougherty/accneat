@@ -43,13 +43,6 @@ void Organism::init(double fit, int gen, const char* md) {
 
 	time_alive=0;
 
-	//DEBUG vars
-	pop_champ=false;
-	pop_champ_child=false;
-	high_fit=0;
-	mut_struct_baby=0;
-	mate_baby=0;
-
 	modified = true;
 }
 

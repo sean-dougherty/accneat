@@ -47,14 +47,7 @@ namespace NEAT {
 		bool eliminate;  //Marker for destruction of inferior Organisms
 		bool champion; //Marks the species champ
 		int super_champ_offspring;  //Number of reserved offspring for a population leader
-		bool pop_champ;  //Marks the best in population
-		bool pop_champ_child; //Marks the duplicate child of a champion (for tracking purposes)
-		double high_fit; //DEBUG variable- high fitness of champ
 		int time_alive; //When playing in real-time allows knowing the maturity of an individual
-
-		// Track its origin- for debugging or analysis- we can tell how the organism was born
-		bool mut_struct_baby;
-		bool mate_baby;
 
 		// MetaData for the object
 		char metadata[128];

@@ -301,12 +301,8 @@ void Species::reproduce(vector<Organism> &pop_orgs,
 	Organism *mom = nullptr; //Parent Organisms
 	Organism *dad = nullptr;
 
-	bool outside;
     bool champ_done=false; //Flag the preservation of the champion
 	Organism *thechamp = nullptr;
-
-	bool mut_struct_baby;
-	bool mate_baby;
 
 	//The weight mutation power is species specific depending on its age
 	double mut_power=NEAT::weight_mut_power;
@@ -327,11 +323,6 @@ void Species::reproduce(vector<Organism> &pop_orgs,
         Genome *new_genome = &baby->genome;  //For holding baby's genes
         new_genome->reset(iorg+1);
 
-        mut_struct_baby=false;
-        mate_baby=false;
-
-        outside=false;
-
         //If we have a super_champ (Population champion), finish off some special clones
         if ((thechamp->super_champ_offspring) > 0) {
             mom=thechamp;
@@ -350,14 +341,6 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                 else {
                     //Sometimes we add a link to a superchamp
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
-                    mut_struct_baby=true;
-                }
-            }
-
-            if ((thechamp->super_champ_offspring) == 1) {
-                if (thechamp->pop_champ) {
-                    baby->pop_champ_child=true;
-                    baby->high_fit=mom->orig_fitness;
                 }
             }
 
@@ -385,11 +368,9 @@ void Species::reproduce(vector<Organism> &pop_orgs,
 
             if (rng.prob()<NEAT::mutate_add_node_prob) {
                 new_genome->mutate_add_node(pop->innovations,pop->cur_node_id,pop->cur_innov_num);
-                mut_struct_baby=true;
             }
             else if (rng.prob()<NEAT::mutate_add_link_prob) {
                 new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
-                mut_struct_baby=true;
             }
             //NOTE:  A link CANNOT be added directly after a node was added because the phenotype
             //       will not be appropriately altered to reflect the change
@@ -430,7 +411,6 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                 dad = rng.element(organisms);
             } else {
                 dad = get_random(rng, this, sorted_species);
-                outside=true;	
             }
 
             //Perform mating based on probabilities of differrent mating types
@@ -439,24 +419,20 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                                             new_genome,
                                             count,
                                             mom->orig_fitness,
-                                            dad->orig_fitness,
-                                            outside);
+                                            dad->orig_fitness);
             }
             else if (rng.prob()<(NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob))) {
                 mom->genome.mate_multipoint_avg(&dad->genome,
                                                 new_genome,
                                                 count,
                                                 mom->orig_fitness,
-                                                dad->orig_fitness,
-                                                outside);
+                                                dad->orig_fitness);
             }
             else {
                 // todo: catch non-zero probability at time of parsing. completely elim this
                 // from code.
                 std::cerr << "singlepoint mating no longer supported" << std::endl;
             }
-
-            mate_baby=true;
 
             //Determine whether to mutate the baby's Genome
             //This is done randomly or if the mom and dad are the same organism
@@ -470,10 +446,8 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                 if (rng.prob()<NEAT::mutate_add_node_prob) {
                     new_genome->mutate_add_node(pop->innovations,pop->cur_node_id,pop->cur_innov_num);
                     //  std::cout<<"mutate_add_node: "<<new_genome<<std::endl;
-                    mut_struct_baby=true;
                 } else if (rng.prob()<NEAT::mutate_add_link_prob) {
                     new_genome->mutate_add_link(pop->innovations,pop->cur_innov_num,NEAT::newlink_tries);
-                    mut_struct_baby=true;
                 } else {
                     //Only do other mutations when not doing sturctural mutations
 
@@ -498,12 +472,6 @@ void Species::reproduce(vector<Organism> &pop_orgs,
                 }
             }
         }
-
-        //Add the baby to its proper Species
-        //If it doesn't fit a Species, create a new one
-
-        baby->mut_struct_baby=mut_struct_baby;
-        baby->mate_baby=mate_baby;
 
         baby->create_phenotype();
     }

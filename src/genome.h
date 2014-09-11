@@ -135,8 +135,7 @@ namespace NEAT {
                              Genome *offspring,
                              int genomeid,
                              double fitness1,
-                             double fitness2,
-                             bool interspec_flag);
+                             double fitness2);
 
 		//This method mates like multipoint but instead of selecting one
 		//   or the other when the innovation numbers match, it averages their
@@ -145,8 +144,7 @@ namespace NEAT {
                                  Genome *offspring,
                                  int genomeid,
                                  double fitness1,
-                                 double fitness2,
-                                 bool interspec_flag);
+                                 double fitness2);
 
 		// ******** COMPATIBILITY CHECKING METHODS ********
 
