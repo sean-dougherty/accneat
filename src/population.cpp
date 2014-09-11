@@ -456,6 +456,23 @@ bool Population::epoch(int generation) {
     }
     innovations.clear();
 
+    {
+        size_t nnodes = 0;
+        size_t nlinks = 0;
+        size_t ndisabled = 0;
+
+        for(Organism &org: orgs.curr()) {
+            nnodes += org.genome.nodes.size();
+            nlinks += org.genome.genes.size();
+            for(Gene &g: org.genome.genes)
+                if(!g.enable)
+                    ndisabled++;
+        }
+
+        double n = double(size());
+        std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/double(nlinks)) << std::endl;
+    }
+
 	return true;
 }
 

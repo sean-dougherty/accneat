@@ -215,13 +215,11 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
             fnamebuf=new ostringstream();
             (*fnamebuf)<<"gen_"<<gen<<ends;  //needs end marker
 
-#ifndef NO_SCREEN_OUT
-            cout<<"name of fname: "<<fnamebuf->str()<<endl;
-#endif
-
             char temp[50];
             sprintf (temp, "gen_%d", gen);
 
+            static Timer timer("epoch");
+            timer.start();
             //Check for success
             if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes, winnerdepth)) {
                 //	if (seq_experiment_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
@@ -232,8 +230,10 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
                 depth[expcount]=winnerdepth;
                 totalgens += gen;
                 gen=gens;
-
             }
+            timer.stop();
+
+            Timer::report();
 	
             //Clear output filename
             fnamebuf->clear();

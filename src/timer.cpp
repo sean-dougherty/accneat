@@ -35,6 +35,7 @@ void Timer::stop() {
     assert(_start != 0.0);
 
     double t = seconds() - _start;
+    _recent = t;
     _start = 0.0;
 
     if(_n == 0) {
@@ -49,6 +50,6 @@ void Timer::stop() {
 
 void Timer::report() {
     for(Timer *t: timers) {
-        cout << t->_name << ": n=" << t->_n << ", total=" << t->_total << ", mean=" << (t->_total / t->_n) << ", min=" << t->_min << ", max=" << t->_max << endl;
+        cout << t->_name << ": n=" << t->_n << ", recent=" << t->_recent << ", mean=" << (t->_total / t->_n) << ", min=" << t->_min << ", max=" << t->_max << ", total=" << t->_total << endl;
     }
 }
