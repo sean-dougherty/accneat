@@ -7,12 +7,13 @@ function err() {
     exit 1
 }
 
-if [[ $# != 2 ]]; then
-    err "usage: $0 runid comment"
+if [[ $# != 3 ]]; then
+    err "usage: $0 maxgens runid comment"
 fi
 
-runid="$1"
-comment="$2"
+maxgens="$1"
+runid="$2"
+comment="$3"
 
 neat_dir=$(readlink -f $(dirname $0)/..)
 runs_dir=$(readlink -f $neat_dir/../runs)
@@ -30,6 +31,7 @@ touch $run_dir/neat_out
 rm -f $neat_dir/out
 ln -s $run_dir/neat_out $neat_dir/out
 
+echo $maxgens > $run_dir/maxgens
 echo "$comment" > $run_dir/comment.txt
 submit_script=$run_dir/pbs_submit.sh
 
@@ -40,7 +42,7 @@ cat > $submit_script <<EOF
 #PBS -o $run_dir/pbs_out 
 #PBS -e $run_dir/pbs_err
 
-#PBS -l nodes=1:ppn=6
+#PBS -l nodes=1:ppn=10
 #PBS -q m1060
 
 cd $neat_dir
@@ -54,7 +56,7 @@ cd $run_dir
 cp -r $neat_dir/src src
 cp $ne ne
 cp $sg sg
-time $neat_dir/neat $ne $sg > neat_out
+time $neat_dir/neat $maxgens $ne $sg > neat_out
 EOF
 
 qsub $submit_script
