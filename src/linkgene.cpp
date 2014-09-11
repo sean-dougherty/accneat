@@ -13,13 +13,13 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#include "gene.h"
+#include "linkgene.h"
 
 #include <iostream>
 #include <sstream>
 using namespace NEAT;
 
-Gene::Gene(double w,
+LinkGene::LinkGene(double w,
            int inode_id,
            int onode_id,
            bool recur,
@@ -39,7 +39,7 @@ Gene::Gene(double w,
 
 
 //Construct a gene with a trait
-Gene::Gene(int trait_id,
+LinkGene::LinkGene(int trait_id,
            double w,
            int inode_id,
            int onode_id,
@@ -58,7 +58,7 @@ Gene::Gene(int trait_id,
 	frozen=false;
 }
 
-Gene::Gene(Gene *g,
+LinkGene::LinkGene(LinkGene *g,
            int trait_id,
            int inode_id,
            int onode_id) {
@@ -76,8 +76,8 @@ Gene::Gene(Gene *g,
 }
 
 //todo: use NodeLookup
-Gene::Gene(const char *argline) {
-	//Gene parameter holders
+LinkGene::LinkGene(const char *argline) {
+	//LinkGene parameter holders
 	int trait_id;
 	int inodenum;
 	int onodenum;
@@ -97,7 +97,7 @@ Gene::Gene(const char *argline) {
     _trait_id = trait_id;
 }
 
-Gene::Gene(const Gene& gene)
+LinkGene::LinkGene(const LinkGene& gene)
 {
 	innovation_num = gene.innovation_num;
 	mutation_num = gene.mutation_num;
@@ -111,11 +111,11 @@ Gene::Gene(const Gene& gene)
     _trait_id = gene._trait_id;
 }
 
-Gene::~Gene() {
+LinkGene::~LinkGene() {
 }
 
 
-void Gene::print_to_file(std::ostream &outFile) {
+void LinkGene::print_to_file(std::ostream &outFile) {
 	outFile<<"gene ";
 
 	//Start off with the trait number for this gene

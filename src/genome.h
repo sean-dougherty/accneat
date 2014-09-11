@@ -17,7 +17,8 @@
 #define _GENOME_H_
 
 #include <vector>
-#include "gene.h"
+#include "linkgene.h"
+#include "nodegene.h"
 #include "innovation.h"
 #include "rng.h"
 
@@ -32,14 +33,14 @@ namespace NEAT {
 	//A Genome is the primary source of genotype information used to create   
 	//a phenotype.  It contains 3 major constituents:                         
 	//  1) A list of Traits                                                 
-	//  2) A list of NNodes pointing to a Trait from (1)                      
-	//  3) A list of Genes with Links that point to Traits from (1)           
+	//  2) A list of NodeGenes pointing to a Trait from (1)                      
+	//  3) A list of LinkGenes with Links that point to Traits from (1)           
 	//(1) Reserved parameter space for future use
-	//(2) NNode specifications                                                
+	//(2) NodeGene specifications                                                
 	//(3) Is the primary source of innovation in the evolutionary Genome.     
-	//    Each Gene in (3) has a marker telling when it arose historically.   
-	//    Thus, these Genes can be used to speciate the population, and the   
-	//    list of Genes provide an evolutionary history of innovation and     
+	//    Each LinkGene in (3) has a marker telling when it arose historically.   
+	//    Thus, these LinkGenes can be used to speciate the population, and the   
+	//    list of LinkGenes provide an evolutionary history of innovation and     
 	//    link-building.
 
 	class Genome {
@@ -48,12 +49,12 @@ namespace NEAT {
 		int genome_id;
 
 		std::vector<Trait> traits; //parameter conglomerations
-		std::vector<NNode> nodes; //List of NNodes for the Network
-		std::vector<Gene> genes; //List of innovation-tracking genes
+		std::vector<NodeGene> nodes; //List of NodeGenes for the Network
+		std::vector<LinkGene> genes; //List of innovation-tracking genes
 
         void reset(int new_id);
 
-		int get_last_node_id(); //Return id of final NNode in Genome
+		int get_last_node_id(); //Return id of final NodeGene in Genome
 		double get_last_gene_innovnum(); //Return last innovation number in Genome
 
 		void print_genome(); //Displays Genome on screen
@@ -65,8 +66,8 @@ namespace NEAT {
 		//Constructor which takes full genome specs and puts them into the new one
 		Genome(int id,
                const std::vector<Trait> &t,
-               const std::vector<NNode> &n,
-               const std::vector<Gene> &g);
+               const std::vector<NodeGene> &n,
+               const std::vector<LinkGene> &g);
 
 		//Special constructor which spawns off an input file
 		//This constructor assumes that some routine has already read in GENOMESTART
@@ -121,14 +122,14 @@ namespace NEAT {
 		// Mutate genome by adding a node respresentation 
 		bool mutate_add_node(std::vector<Innovation*> &innovs,int &curnode_id,double &curinnov);
 
-		// Mutate the genome by adding a new link between 2 random NNodes 
+		// Mutate the genome by adding a new link between 2 random NodeGenes 
 		bool mutate_add_link(std::vector<Innovation*> &innovs,double &curinnov,int tries); 
 
 		// ****** MATING METHODS ***** 
 
 		// This method mates this Genome with another Genome g.  
 		//   For every point in each Genome, where each Genome shares
-		//   the innovation number, the Gene is chosen randomly from 
+		//   the innovation number, the LinkGene is chosen randomly from 
 		//   either parent.  If one parent has an innovation absent in 
 		//   the other, the baby will inherit the innovation 
 		//   Interspecies mating leads to all genes being inherited.
@@ -170,79 +171,79 @@ namespace NEAT {
 		// Randomize the trait pointers of all the node and connection genes 
 		void randomize_traits();
 
-        Trait &get_trait(const NNode &node);
-        Trait &get_trait(const Gene &gene);
+        Trait &get_trait(const NodeGene &node);
+        Trait &get_trait(const LinkGene &gene);
 
 	protected:
-		//Inserts a NNode into a given ordered list of NNodes in order
-		void node_insert(std::vector<NNode> &nlist, const NNode &n);
+		//Inserts a NodeGene into a given ordered list of NodeGenes in order
+		void node_insert(std::vector<NodeGene> &nlist, const NodeGene &n);
 
 		//Adds a new gene that has been created through a mutation in the
 		//*correct order* into the list of genes in the genome
-		void add_gene(std::vector<Gene> &glist, const Gene &g);
+		void add_gene(std::vector<LinkGene> &glist, const LinkGene &g);
 
     private:
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
-        NNode *get_node(int id);
+        NodeGene *get_node(int id);
         
     private:
         class NodeLookup {
-            std::vector<NNode> &nodes;
+            std::vector<NodeGene> &nodes;
 
-            static bool cmp(const NNode &node, int node_id) {
+            static bool cmp(const NodeGene &node, int node_id) {
                 return node.node_id < node_id;
             }
         public:
             // Must be sorted by node_id in ascending order
-        NodeLookup(std::vector<NNode> &nodes_)
+        NodeLookup(std::vector<NodeGene> &nodes_)
             : nodes(nodes_) {
             }
 
-            NNode *find(int node_id) {
+            NodeGene *find(int node_id) {
                 auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
                 if(it == nodes.end())
                     return nullptr;
 
-                NNode &node = *it;
+                NodeGene &node = *it;
                 if(node.node_id != node_id)
                     return nullptr;
 
                 return &node;
             }
 
-            NNode *find(NNode *n) {
+            NodeGene *find(NodeGene *n) {
                 return find(n->node_id);
             }
         };
 
-        class ProtoGene {
+        class ProtoLinkGene {
             Genome *_genome = nullptr;
-            //todo: does this have to be a Gene* now?
-            Gene *_gene = nullptr;
-            NNode *_in = nullptr;
-            NNode *_out = nullptr;
+            //todo: does this have to be a LinkGene* now?
+            LinkGene *_gene = nullptr;
+            NodeGene *_in = nullptr;
+            NodeGene *_out = nullptr;
         public:
-            void set_gene(Genome *genome, Gene *gene) {
+            void set_gene(Genome *genome, LinkGene *gene) {
                 _genome = genome;
                 _gene = gene;
             }
-            Gene *gene() {
+            LinkGene *gene() {
                 return _gene;
             }
 
-            void set_out(NNode *out) {
+            void set_out(NodeGene *out) {
                 _out = out;
                 _gene->set_out_node_id(out->node_id);
             }
-            NNode *out() {
+            NodeGene *out() {
                 return _out ? _out : _genome->get_node(_gene->out_node_id());
             }
 
-            void set_in(NNode *in) {
+            void set_in(NodeGene *in) {
                 _in = in;
                 _gene->set_in_node_id(in->node_id);
             }
-            NNode *in() {
+            NodeGene *in() {
                 return _in ? _in : _genome->get_node(_gene->in_node_id());
             }
         };

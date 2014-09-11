@@ -22,6 +22,22 @@
 
 namespace NEAT {
 
+	enum nodetype {
+		NEURON = 0,
+		SENSOR = 1
+	};
+
+	enum nodeplace {
+		HIDDEN = 0,
+		INPUT = 1,
+		OUTPUT = 2,
+		BIAS = 3
+	};
+
+	enum functype {
+		SIGMOID = 0
+	};
+
 	const int num_trait_params = 8;
 
 	extern double trait_param_mut_prob;

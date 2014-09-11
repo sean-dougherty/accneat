@@ -23,7 +23,7 @@
 
 namespace NEAT {
 
-	class Gene {
+	class LinkGene {
 		double _weight; // Weight of connection
 		int _in_node_id; // NNode inputting into the link
 		int _out_node_id; // NNode that the link affects
@@ -48,14 +48,14 @@ namespace NEAT {
 
 		double innovation_num;
 		double mutation_num;  //Used to see how much mutation has changed the link
-		bool enable;  //When this is off the Gene is disabled
+		bool enable;  //When this is off the LinkGene is disabled
 		bool frozen;  //When frozen, the linkweight cannot be mutated
 
         // Construct a gene in an invalid default state.
-        Gene() {}
+        LinkGene() {}
 
 		//Construct a gene with no trait
-		Gene(double w,
+		LinkGene(double w,
              int inode_id,
              int onode_id,
              bool recur,
@@ -63,7 +63,7 @@ namespace NEAT {
              double mnum);
 
 		//Construct a gene with a trait
-		Gene(int trait_id,
+		LinkGene(int trait_id,
              double w,
              int inode_id,
              int onode_id,
@@ -72,18 +72,18 @@ namespace NEAT {
              double mnum);
 
 		//Construct a gene off of another gene as a duplicate
-		Gene(Gene *g,
+		LinkGene(LinkGene *g,
              int trait_id,
              int inode_id,
              int onode_id);
 
 		//Construct a gene from a file spec given traits and nodes
-		Gene(const char *argline);
+		LinkGene(const char *argline);
 
 		// Copy Constructor
-		Gene(const Gene& gene);
+		LinkGene(const LinkGene& gene);
 
-		~Gene();
+		~LinkGene();
 
 		//Print gene to a file- called from Genome
         void print_to_file(std::ostream &outFile);

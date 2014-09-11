@@ -64,9 +64,8 @@ void Organism::create_phenotype() {
     vector<NNode> &netnodes = net.nodes;
 
 	//Create the nodes
-	for(NNode &node: genome.nodes) {
+	for(NodeGene &node: genome.nodes) {
         netnodes.emplace_back(node);
-        netnodes.back().derive_trait( genome.get_trait(node) );
 	}
 
     class NetNodeLookup {
@@ -93,7 +92,7 @@ void Organism::create_phenotype() {
     } node_lookup(netnodes);
 
 	//Create the links by iterating through the genes
-    for(Gene &gene: genome.genes) {
+    for(LinkGene &gene: genome.genes) {
 		//Only create the link if the gene is enabled
 		if(gene.enable) {
             node_index_t inode = node_lookup.find(gene.in_node_id());
