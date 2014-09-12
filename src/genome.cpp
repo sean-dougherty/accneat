@@ -646,7 +646,7 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             }
 
             found_nodes = !link_exists(in_node->node_id, out_node->node_id, do_recur)
-                && (do_recur == recur_checker.is_recur(in_node->node_id, out_node->node_id));
+                                 && (do_recur == recur_checker.is_recur(in_node->node_id, out_node->node_id));
         }
 
         assert( out_node->type != SENSOR );
@@ -659,7 +659,7 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 
     // Create the gene.
     {
-        LinkGene newgene;
+        LinkGene newlink;
         bool created_gene = false;
 
         // Try to find existing innovation.
@@ -671,13 +671,13 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 
                 //Create new gene using existing innovation.
                 created_gene = true;
-                newgene = LinkGene(innov->new_trait_id,
-                               innov->new_weight,
-                               in_node->node_id,
-                               out_node->node_id,
-                               do_recur,
-                               innov->innovation_num1,
-                               0);
+                newlink = LinkGene(innov->new_trait_id,
+                                   innov->new_weight,
+                                   in_node->node_id,
+                                   out_node->node_id,
+                                   do_recur,
+                                   innov->innovation_num1,
+                                   0);
             }
         }
 
@@ -690,13 +690,13 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             double newweight = rng.posneg() * rng.prob() * 1.0; //used to be 10.0
 
             //Create the new gene
-            newgene = LinkGene(trait_id,
-                           newweight,
-                           in_node->node_id,
-                           out_node->node_id,
-                           do_recur,
-                           curinnov,
-                           newweight);
+            newlink = LinkGene(trait_id,
+                               newweight,
+                               in_node->node_id,
+                               out_node->node_id,
+                               do_recur,
+                               curinnov,
+                               newweight);
 
             //Add the innovation
             innovs.push_back(new Innovation(in_node->node_id,
@@ -707,7 +707,7 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             curinnov += 1.0;
         }
 
-        add_link(this->links, newgene);  //Adds the gene in correct order
+        add_link(this->links, newlink);  //Adds the gene in correct order
     }
 
     return true;
