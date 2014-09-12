@@ -499,7 +499,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
         LinkGene newlink1(splitlink->trait_id(),
                           1.0,
-                          innov->node_in_id,
+                          innov->id.node_in_id,
                           innov->newnode_id,
                           splitlink->is_recurrent(),
                           innov->innovation_num1,
@@ -508,7 +508,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
         LinkGene newlink2(splitlink->trait_id(),
                           splitlink->weight(),
                           innov->newnode_id,
-                          innov->node_out_id,
+                          innov->id.node_out_id,
                           false,
                           innov->innovation_num2,
                           0);    
@@ -518,6 +518,11 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
         add_node(this->nodes, newnode);
     };
 
+    InnovationId innov_id(splitlink->in_node_id(),
+                          splitlink->out_node_id(),
+                          splitlink->innovation_num);
+    InnovationParms innov_parms();
+
 	//Check to see if this innovation has already been done   
 	//in another genome
 	//Innovations are used to make sure the same innovation in
@@ -525,11 +530,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 	//the same innovation number.
     Innovation *innov = nullptr;
     for(Innovation *existing: innovs) {
-        if( (existing->innovation_type == NEWNODE)
-            && (existing->node_in_id == splitlink->in_node_id())
-            && (existing->node_out_id == splitlink->out_node_id())
-            && (existing->old_innov_num == splitlink->innovation_num) ) {
-
+        if( existing->id == innov_id ) {
             innov = existing;
             break;
         }
@@ -607,15 +608,15 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 
     // Create the gene.
     {
+        InnovationId innov_id(in_node->node_id,
+                              out_node->node_id,
+                              do_recur);
+
         Innovation *innov = nullptr;
 
         // Try to find existing innovation.
         for(Innovation *existing: innovs) {
-            if( (existing->innovation_type == NEWLINK) &&
-                (existing->node_in_id == in_node->node_id) &&
-                (existing->node_out_id == out_node->node_id) &&
-                (existing->recur_flag == do_recur)) {
-
+            if( existing->id == innov_id ) {
                 innov = existing;
                 break;
             }
@@ -626,6 +627,8 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
         //but it's impossible to know at this point who is first.
         int trait_id = 1 + rng.index(traits);
         double newweight = rng.posneg() * rng.prob() * 1.0;
+
+        InnovationParms innov_parms(newweight, trait_id);
 
         if(innov == nullptr) {
             innov = new Innovation(in_node->node_id,
@@ -642,9 +645,9 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 
             LinkGene newlink(innov->new_trait_id,
                              innov->new_weight,
-                             innov->node_in_id,
-                             innov->node_out_id,
-                             innov->recur_flag,
+                             innov->id.node_in_id,
+                             innov->id.node_out_id,
+                             innov->id.recur_flag,
                              innov->innovation_num1,
                              innov->new_weight);
 
