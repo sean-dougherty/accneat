@@ -476,11 +476,29 @@ void Genome::mutate_gene_reenable() {
 
 //todo: delete debug code
 namespace NEAT {
-static map<InnovationId, Innovation*> id2innov;
-void reset_debug() {
-    id2innov.clear();
+
+    static map<InnovationId, Innovation*> id2innov;
+    static map<InnovationId, vector<IndividualInnovation>> id2inds;
+
+    void reset_debug() {
+        id2innov.clear();
+        id2inds.clear();
+    }
+
+    void apply_debug() {
+        for(auto &kv: id2inds) {
+            auto &id = kv.first;
+            auto &inds = kv.second;
+
+            Innovation *innov = id2innov[id];
+
+            for(IndividualInnovation &ind: inds) {
+                ind.apply(innov);
+            }
+        }
+    }
 }
-}
+
 
 bool Genome::mutate_add_node(int population_index,
                              vector<Innovation*> &innovs,
@@ -503,7 +521,7 @@ bool Genome::mutate_add_node(int population_index,
 
     splitlink->enable = false;
 
-    auto create_genes = [this, splitlink] (Innovation *innov) {
+    auto create_genes = [this, splitlink] (const Innovation *innov) {
 
         NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
 
@@ -551,7 +569,7 @@ bool Genome::mutate_add_node(int population_index,
         id2innov[innov_id] = innov;
     }
 
-    create_genes(innov);
+    id2inds[innov_id].emplace_back(population_index, innov_id, innov_parms, create_genes);
 
 	return true;
 
@@ -638,7 +656,7 @@ bool Genome::mutate_add_link(int population_index,
             curinnov += 1.0;
         }
 
-        auto create_genes = [this] (Innovation *innov) {
+        auto create_genes = [this] (const Innovation *innov) {
 
             LinkGene newlink(innov->parms.new_trait_id,
                              innov->parms.new_weight,
@@ -651,7 +669,7 @@ bool Genome::mutate_add_link(int population_index,
             add_link(this->links, newlink);
         };
 
-        create_genes(innov);
+        id2inds[innov_id].emplace_back(population_index, innov_id, innov_parms, create_genes);
     }
 
     return true;

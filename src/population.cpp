@@ -354,6 +354,10 @@ bool Population::epoch(int generation) {
             }
         }
 
+        //todo: delete debug code
+        extern void apply_debug();
+        apply_debug();
+
         //Create the neural nets for the new organisms.
         for(Organism &baby: orgs.curr())
             baby.create_phenotype();
