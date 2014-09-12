@@ -476,21 +476,52 @@ void Genome::mutate_gene_reenable() {
 
 //todo: delete debug code
 namespace NEAT {
+    int *__cur_node_id;
+    double *__cur_innov_num;
 
-    static map<InnovationId, Innovation*> id2innov;
     static map<InnovationId, vector<IndividualInnovation>> id2inds;
 
     void reset_debug() {
-        id2innov.clear();
         id2inds.clear();
     }
 
     void apply_debug() {
+        vector<IndividualInnovation> masters;
         for(auto &kv: id2inds) {
-            auto &id = kv.first;
             auto &inds = kv.second;
+            auto &master = inds.front();
+            masters.push_back(master);
+        }        
 
-            Innovation *innov = id2innov[id];
+        std::sort(masters.begin(), masters.end(),
+                  [] (const IndividualInnovation &x, const IndividualInnovation &y) {
+                      return x.population_index < y.population_index;
+                  });
+        
+
+        for(auto &master: masters) {
+            auto &inds = id2inds[master.id];
+
+            Innovation *innov;
+            switch(master.id.innovation_type) {
+            case NEWNODE: {
+                innov = new Innovation(master.id,
+                                       master.parms,
+                                       *__cur_innov_num,
+                                       *__cur_innov_num + 1,
+                                       *__cur_node_id);
+                *__cur_innov_num += 2;
+                *__cur_node_id += 1;
+            } break;
+            case NEWLINK: {
+                innov = new Innovation(master.id,
+                                           master.parms,
+                                           *__cur_innov_num);
+                    *__cur_innov_num += 1.0;
+            } break;
+            default:
+                trap("here");
+            }
 
             for(IndividualInnovation &ind: inds) {
                 ind.apply(innov);
@@ -550,24 +581,6 @@ bool Genome::mutate_add_node(int population_index,
                           splitlink->out_node_id(),
                           splitlink->innovation_num);
     InnovationParms innov_parms;
-
-	//Check to see if this innovation has already been done   
-	//in another genome
-	//Innovations are used to make sure the same innovation in
-	//two separate genomes in the same generation receives
-	//the same innovation number.
-    Innovation *innov = nullptr;
-    auto it_innov = id2innov.find(innov_id);
-    if(it_innov != id2innov.end()) {
-        innov = id2innov[innov_id];
-    } else {
-        innov = new Innovation(innov_id,
-                               innov_parms,
-                               curinnov++,
-                               curinnov++,
-                               curnode_id++);
-        id2innov[innov_id] = innov;
-    }
 
     id2inds[innov_id].emplace_back(population_index, innov_id, innov_parms, create_genes);
 
@@ -643,18 +656,6 @@ bool Genome::mutate_add_link(int population_index,
         double newweight = rng.posneg() * rng.prob() * 1.0;
 
         InnovationParms innov_parms(newweight, trait_id);
-
-        Innovation *innov = nullptr;
-        auto it_innov = id2innov.find(innov_id);
-        if(it_innov != id2innov.end()) {
-            innov = id2innov[innov_id];
-        } else {
-            innov = new Innovation(innov_id,
-                                   innov_parms,
-                                   curinnov);
-            id2innov[innov_id] = innov;
-            curinnov += 1.0;
-        }
 
         auto create_genes = [this] (const Innovation *innov) {
 

@@ -328,6 +328,13 @@ bool Population::epoch(int generation) {
     assert(total_expected <= (int)size());
 
     //todo: delete debug code
+    extern int *__cur_node_id;
+    extern double *__cur_innov_num;
+
+    __cur_node_id = &cur_node_id;
+    __cur_innov_num = &cur_innov_num;
+
+
     extern void reset_debug();
     reset_debug();
 
