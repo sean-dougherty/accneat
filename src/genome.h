@@ -155,13 +155,13 @@ namespace NEAT {
         Trait &get_trait(const NodeGene &node);
         Trait &get_trait(const LinkGene &gene);
 
-	protected:
+	private:
 		//Inserts a NodeGene into a given ordered list of NodeGenes in order
-		void add_node(std::vector<NodeGene> &nlist, const NodeGene &n);
+		static void add_node(std::vector<NodeGene> &nlist, const NodeGene &n);
 
 		//Adds a new gene that has been created through a mutation in the
 		//*correct order* into the list of links in the genome
-		void add_link(std::vector<LinkGene> &glist, const LinkGene &g);
+		static void add_link(std::vector<LinkGene> &glist, const LinkGene &g);
 
     private:
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);

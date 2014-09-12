@@ -57,9 +57,6 @@ namespace NEAT {
 		//Constructor for the new node case
 		Innovation(int nin,int nout,double num1,double num2,int newid,double oldinnov);
 
-		//Constructor for new link case
-		Innovation(int nin,int nout,double num1,double w,int t);
-
 		//Constructor for a recur link
 		Innovation(int nin,int nout,double num1,double w,int t,bool recur);
 

@@ -493,6 +493,31 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
     splitlink->enable = false;
 
+    auto create_genes = [this, splitlink] (Innovation *innov) {
+
+        NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
+
+        LinkGene newlink1(splitlink->trait_id(),
+                          1.0,
+                          innov->node_in_id,
+                          innov->newnode_id,
+                          splitlink->is_recurrent(),
+                          innov->innovation_num1,
+                          0);
+
+        LinkGene newlink2(splitlink->trait_id(),
+                          splitlink->weight(),
+                          innov->newnode_id,
+                          innov->node_out_id,
+                          false,
+                          innov->innovation_num2,
+                          0);    
+
+        add_link(this->links, newlink1);
+        add_link(this->links, newlink2);
+        add_node(this->nodes, newnode);
+    };
+
 	//Check to see if this innovation has already been done   
 	//in another genome
 	//Innovations are used to make sure the same innovation in
@@ -500,8 +525,8 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 	//the same innovation number.
     Innovation *innov = nullptr;
     for(Innovation *existing: innovs) {
-		if( (existing->innovation_type == NEWNODE)
-			&& (existing->node_in_id == splitlink->in_node_id())
+        if( (existing->innovation_type == NEWNODE)
+            && (existing->node_in_id == splitlink->in_node_id())
             && (existing->node_out_id == splitlink->out_node_id())
             && (existing->old_innov_num == splitlink->innovation_num) ) {
 
@@ -520,27 +545,7 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
         innovs.push_back(innov);
     }
 
-    NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
-
-    LinkGene newlink1(splitlink->trait_id(),
-                      1.0,
-                      innov->node_in_id,
-                      innov->newnode_id,
-                      splitlink->is_recurrent(),
-                      innov->innovation_num1,
-                      0);
-
-    LinkGene newlink2(splitlink->trait_id(),
-                      splitlink->weight(),
-                      innov->newnode_id,
-                      innov->node_out_id,
-                      false,
-                      innov->innovation_num2,
-                      0);    
-
-	add_link(links, newlink1);
-	add_link(links, newlink2);
-	add_node(nodes, newnode);
+    create_genes(innov);
 
 	return true;
 
@@ -603,7 +608,6 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
     // Create the gene.
     {
         Innovation *innov = nullptr;
-        double mnum;
 
         // Try to find existing innovation.
         for(Innovation *existing: innovs) {
@@ -613,7 +617,6 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                 (existing->recur_flag == do_recur)) {
 
                 innov = existing;
-                mnum = 0.0;
                 break;
             }
         }
@@ -633,19 +636,22 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                                    do_recur);
             innovs.push_back(innov);
             curinnov += 1.0;
-
-            mnum = newweight;
         }
 
-        LinkGene newlink(innov->new_trait_id,
-                         innov->new_weight,
-                         innov->node_in_id,
-                         innov->node_out_id,
-                         innov->recur_flag,
-                         innov->innovation_num1,
-                         mnum);
+        auto create_genes = [this] (Innovation *innov) {
 
-        add_link(this->links, newlink);
+            LinkGene newlink(innov->new_trait_id,
+                             innov->new_weight,
+                             innov->node_in_id,
+                             innov->node_out_id,
+                             innov->recur_flag,
+                             innov->innovation_num1,
+                             innov->new_weight);
+
+            add_link(this->links, newlink);
+        };
+
+        create_genes(innov);
     }
 
     return true;
