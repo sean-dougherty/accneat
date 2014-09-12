@@ -618,10 +618,13 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
             }
         }
 
-        if(innov == nullptr) {
-            int trait_id = 1 + rng.index(traits);
-            double newweight = rng.posneg() * rng.prob() * 1.0;
+        //These two values may or may not take effect in the new innovation.
+        //It depends on whether this genome is the first to create the innovation,
+        //but it's impossible to know at this point who is first.
+        int trait_id = 1 + rng.index(traits);
+        double newweight = rng.posneg() * rng.prob() * 1.0;
 
+        if(innov == nullptr) {
             innov = new Innovation(in_node->node_id,
                                    out_node->node_id,
                                    curinnov,
@@ -642,7 +645,7 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
                          innov->innovation_num1,
                          mnum);
 
-        add_link(this->links, newlink);  //Adds the gene in correct order
+        add_link(this->links, newlink);
     }
 
     return true;
