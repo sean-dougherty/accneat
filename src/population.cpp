@@ -337,16 +337,18 @@ bool Population::epoch(int generation) {
         //Perform reproduction within the species. Note that new species may
         //be created as we iterate over the vector.
         for(size_t i = 0, n = species.size(); i < n; i++) {
-            size_t iorg0 = iorg;
+            Species *s = species[i];
 
-            species[i]->reproduce(orgs.curr(),
-                                  iorg,
-                                  generation,
-                                  this,
-                                  sorted_species);
+            for(int j = 0; j < s->expected_offspring; j++) {
 
-            size_t iorg1 = iorg;
-            assert( species[i]->expected_offspring == int(iorg1 - iorg0) );
+                Organism &baby = orgs.curr()[iorg++];
+                baby.init(0.0, generation);
+                baby.genome.reset(iorg+1);
+
+                s->reproduce(j, baby, this, sorted_species);
+
+                baby.create_phenotype();
+            }
         }
 
         timer.stop();

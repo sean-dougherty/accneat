@@ -545,7 +545,12 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 			}
 
 			//Add the innovations (remember what was done)
-			innovs.push_back(new Innovation(in_node->node_id,out_node->node_id,curinnov-2.0,curinnov-1.0,newnode.node_id,thegene->innovation_num));      
+			innovs.push_back(new Innovation(in_node->node_id,
+                                            out_node->node_id,
+                                            curinnov-2.0,
+                                            curinnov-1.0,
+                                            newnode.node_id,
+                                            thegene->innovation_num));      
 
 			done=true;
 		}

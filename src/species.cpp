@@ -295,98 +295,86 @@ static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &
     return result->first();
 }
 
-void Species::reproduce(vector<Organism> &pop_orgs,
-                        size_t &iorg,
-                        int generation,
+void Species::reproduce(int ioffspring,
+                        Organism &baby,
                         Population *pop,
                         vector<Species*> &sorted_species) {
 
     Organism *thechamp = organisms[0];
+    Genome &new_genome = baby.genome;  //For holding baby's genes
 
-    //Create the designated number of offspring for the Species
-    //one at a time
-    for(int count=0; count < expected_offspring; count++) {
-        Organism *baby = &pop_orgs[iorg++];
-        baby->init(0.0, generation);
+    //If we have a super_champ (Population champion), finish off some special clones
+    if( ioffspring < thechamp->super_champ_offspring ) {
+        thechamp->genome.duplicate_into(new_genome, ioffspring);
 
-        Genome &new_genome = baby->genome;  //For holding baby's genes
-        new_genome.reset(iorg+1);
-
-        //If we have a super_champ (Population champion), finish off some special clones
-        if( count < thechamp->super_champ_offspring ) {
-            thechamp->genome.duplicate_into(new_genome, count);
-
-            //Most superchamp offspring will have their connection weights mutated only
-            //The last offspring will be an exact duplicate of this super_champ
-            //Note: Superchamp offspring only occur with stolen babies!
-            //      Settings used for published experiments did not use this
-            if( count < (thechamp->super_champ_offspring - 1) ) {
-                if ( (rng.prob() < 0.8)|| (NEAT::mutate_add_link_prob == 0.0)) {
-                    new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
-                } else {
-                    //Sometimes we add a link to a superchamp
-                    new_genome.mutate_add_link(pop->innovations,
-                                               pop->cur_innov_num,
-                                               NEAT::newlink_tries);
-                }
-            }
-
-        } else if( (count == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
-
-            //Clone the species champion
-            thechamp->genome.duplicate_into(new_genome, count);
-
-        } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
-
-            //Clone a random parent
-            rng.element(organisms)->genome.duplicate_into(new_genome, count);
-
-            mutate(new_genome, pop, rng);
-
-        //Otherwise we should mate 
-        } else {
-            //Choose the random mom
-            Organism *mom = rng.element(organisms);
-
-            //Choose random dad
-            Organism *dad;
-            if ((rng.prob() > NEAT::interspecies_mate_rate)) {
-                //Mate within Species
-                dad = rng.element(organisms);
+        //Most superchamp offspring will have their connection weights mutated only
+        //The last offspring will be an exact duplicate of this super_champ
+        //Note: Superchamp offspring only occur with stolen babies!
+        //      Settings used for published experiments did not use this
+        if( ioffspring < (thechamp->super_champ_offspring - 1) ) {
+            if ( (rng.prob() < 0.8)|| (NEAT::mutate_add_link_prob == 0.0)) {
+                new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
             } else {
-                dad = get_random(rng, this, sorted_species);
-            }
-
-            //Perform mating based on probabilities of differrent mating types
-            if( rng.prob()<NEAT::mate_multipoint_prob ) { 
-                mom->genome.mate_multipoint(&dad->genome,
-                                            &new_genome,
-                                            count,
-                                            mom->orig_fitness,
-                                            dad->orig_fitness);
-            } else if( rng.prob() < (NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob)) ) {
-                mom->genome.mate_multipoint_avg(&dad->genome,
-                                                &new_genome,
-                                                count,
-                                                mom->orig_fitness,
-                                                dad->orig_fitness);
-            } else {
-                // todo: catch non-zero probability at time of parsing. completely elim this
-                // from code.
-                std::cerr << "singlepoint mating no longer supported" << std::endl;
-            }
-
-            //Determine whether to mutate the baby's Genome
-            //This is done randomly or if the mom and dad are the same organism
-            if ((rng.prob()>NEAT::mate_only_prob)||
-                ((dad->genome).genome_id==(mom->genome).genome_id)||
-                (((dad->genome).compatibility(&mom->genome))==0.0)) {
-
-                mutate(new_genome, pop, rng);
+                //Sometimes we add a link to a superchamp
+                new_genome.mutate_add_link(pop->innovations,
+                                           pop->cur_innov_num,
+                                           NEAT::newlink_tries);
             }
         }
 
-        baby->create_phenotype();
+    } else if( (ioffspring == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
+
+        //Clone the species champion
+        thechamp->genome.duplicate_into(new_genome, ioffspring);
+
+    } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
+
+        //Clone a random parent
+        rng.element(organisms)->genome.duplicate_into(new_genome, ioffspring);
+
+        mutate(new_genome, pop, rng);
+
+        //Otherwise we should mate 
+    } else {
+        //Choose the random mom
+        Organism *mom = rng.element(organisms);
+
+        //Choose random dad
+        Organism *dad;
+        if ((rng.prob() > NEAT::interspecies_mate_rate)) {
+            //Mate within Species
+            dad = rng.element(organisms);
+        } else {
+            dad = get_random(rng, this, sorted_species);
+        }
+
+        //Perform mating based on probabilities of differrent mating types
+        if( rng.prob()<NEAT::mate_multipoint_prob ) { 
+            mom->genome.mate_multipoint(&dad->genome,
+                                        &new_genome,
+                                        ioffspring,
+                                        mom->orig_fitness,
+                                        dad->orig_fitness);
+        } else if( rng.prob() < (NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob)) ) {
+            mom->genome.mate_multipoint_avg(&dad->genome,
+                                            &new_genome,
+                                            ioffspring,
+                                            mom->orig_fitness,
+                                            dad->orig_fitness);
+        } else {
+            // todo: catch non-zero probability at time of parsing. completely elim this
+            // from code.
+            std::cerr << "singlepoint mating no longer supported" << std::endl;
+        }
+
+        //Determine whether to mutate the baby's Genome
+        //This is done randomly or if the mom and dad are the same organism
+        if ((rng.prob()>NEAT::mate_only_prob)||
+            ((dad->genome).genome_id==(mom->genome).genome_id)||
+            (((dad->genome).compatibility(&mom->genome))==0.0)) {
+
+            mutate(new_genome, pop, rng);
+        }
     }
 }
 
