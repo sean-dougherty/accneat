@@ -53,9 +53,9 @@ Innovation::Innovation(int nin,int nout,double num1,double w,int t,bool recur) {
 	innovation_num1=num1;
 	new_weight=w;
 	new_trait_id=t;
+	recur_flag=recur;
 
 	//Unused parameters set to zero
 	innovation_num2=0;
 	newnode_id=0;
-	recur_flag=recur;
 }

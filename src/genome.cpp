@@ -659,53 +659,45 @@ bool Genome::mutate_add_link(vector<Innovation*> &innovs,
 
     // Create the gene.
     {
-        LinkGene newlink;
-        bool created_gene = false;
+        Innovation *innov = nullptr;
+        double mnum;
 
         // Try to find existing innovation.
-        for(Innovation *innov: innovs) {
-            if( (innov->innovation_type == NEWLINK) &&
-                (innov->node_in_id == in_node->node_id) &&
-                (innov->node_out_id == out_node->node_id) &&
-                (innov->recur_flag == do_recur)) {
+        for(Innovation *existing: innovs) {
+            if( (existing->innovation_type == NEWLINK) &&
+                (existing->node_in_id == in_node->node_id) &&
+                (existing->node_out_id == out_node->node_id) &&
+                (existing->recur_flag == do_recur)) {
 
-                //Create new gene using existing innovation.
-                created_gene = true;
-                newlink = LinkGene(innov->new_trait_id,
-                                   innov->new_weight,
-                                   in_node->node_id,
-                                   out_node->node_id,
-                                   do_recur,
-                                   innov->innovation_num1,
-                                   0);
+                innov = existing;
+                mnum = 0.0;
+                break;
             }
         }
 
-        //The innovation is totally novel
-        if(!created_gene) {
-            //Choose a random trait
+        if(innov == nullptr) {
             int trait_id = 1 + rng.index(traits);
+            double newweight = rng.posneg() * rng.prob() * 1.0;
 
-            //Choose the new weight
-            double newweight = rng.posneg() * rng.prob() * 1.0; //used to be 10.0
-
-            //Create the new gene
-            newlink = LinkGene(trait_id,
-                               newweight,
-                               in_node->node_id,
-                               out_node->node_id,
-                               do_recur,
-                               curinnov,
-                               newweight);
-
-            //Add the innovation
-            innovs.push_back(new Innovation(in_node->node_id,
-                                            out_node->node_id,
-                                            curinnov,
-                                            newweight,
-                                            trait_id));
+            innov = new Innovation(in_node->node_id,
+                                   out_node->node_id,
+                                   curinnov,
+                                   newweight,
+                                   trait_id,
+                                   do_recur);
+            innovs.push_back(innov);
             curinnov += 1.0;
+
+            mnum = newweight;
         }
+
+        LinkGene newlink(innov->new_trait_id,
+                         innov->new_weight,
+                         innov->node_in_id,
+                         innov->node_out_id,
+                         innov->recur_flag,
+                         innov->innovation_num1,
+                         mnum);
 
         add_link(this->links, newlink);  //Adds the gene in correct order
     }
