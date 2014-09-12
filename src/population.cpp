@@ -334,8 +334,7 @@ bool Population::epoch(int generation) {
         orgs.swap();
         size_t iorg = 0;
 
-        //Perform reproduction within the species. Note that new species may
-        //be created as we iterate over the vector.
+        //Perform reproduction within the species.
         for(size_t i = 0, n = species.size(); i < n; i++) {
             Species *s = species[i];
 
@@ -346,10 +345,12 @@ bool Population::epoch(int generation) {
                 baby.genome.reset(iorg+1);
 
                 s->reproduce(j, baby, this, sorted_species);
-
-                baby.create_phenotype();
             }
         }
+
+        //Create the neural nets for the new organisms.
+        for(Organism &baby: orgs.curr())
+            baby.create_phenotype();
 
         timer.stop();
 
