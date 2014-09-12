@@ -340,11 +340,13 @@ bool Population::epoch(int generation) {
 
             for(int j = 0; j < s->expected_offspring; j++) {
 
-                Organism &baby = orgs.curr()[iorg++];
+                Organism &baby = orgs.curr()[iorg];
                 baby.init(0.0, generation);
                 baby.genome.reset(iorg+1);
 
-                s->reproduce(j, baby, this, sorted_species);
+                s->reproduce(iorg, j, baby, this, sorted_species);
+
+                iorg++;
             }
         }
 

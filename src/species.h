@@ -85,7 +85,8 @@ namespace NEAT {
 		Organism *get_champ();
 
 		//Perform mating and mutation to form next generation
-        void reproduce(int ioffspring,
+        void reproduce(int population_index,
+                       int ioffspring,
                        Organism &baby,
                        Population *pop,
                        std::vector<Species*> &sorted_species);

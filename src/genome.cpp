@@ -473,7 +473,8 @@ void Genome::mutate_gene_reenable() {
     }
 }
 
-bool Genome::mutate_add_node(vector<Innovation*> &innovs,
+bool Genome::mutate_add_node(int population_index,
+                             vector<Innovation*> &innovs,
                              int &curnode_id,
                              double &curinnov) {
     LinkGene *splitlink = nullptr;
@@ -552,7 +553,8 @@ bool Genome::mutate_add_node(vector<Innovation*> &innovs,
 
 }
 
-bool Genome::mutate_add_link(vector<Innovation*> &innovs,
+bool Genome::mutate_add_link(int population_index,
+                             vector<Innovation*> &innovs,
                              double &curinnov,
                              int tries) {
     LinkGene *recur_checker_buf[links.size()];

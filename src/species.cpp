@@ -21,7 +21,7 @@
 using namespace NEAT;
 using std::vector;
 
-static void mutate(Genome &new_genome, Population *pop, rng_t &rng);
+static void mutate(int population_index, Genome &new_genome, Population *pop, rng_t &rng);
 
 Species::Species(int i) {
 	id=i;
@@ -295,7 +295,8 @@ static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &
     return result->first();
 }
 
-void Species::reproduce(int ioffspring,
+void Species::reproduce(int population_index, 
+                        int ioffspring,
                         Organism &baby,
                         Population *pop,
                         vector<Species*> &sorted_species) {
@@ -316,7 +317,8 @@ void Species::reproduce(int ioffspring,
                 new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
             } else {
                 //Sometimes we add a link to a superchamp
-                new_genome.mutate_add_link(pop->innovations,
+                new_genome.mutate_add_link(population_index,
+                                           pop->innovations,
                                            pop->cur_innov_num,
                                            NEAT::newlink_tries);
             }
@@ -332,7 +334,7 @@ void Species::reproduce(int ioffspring,
         //Clone a random parent
         rng.element(organisms)->genome.duplicate_into(new_genome, ioffspring);
 
-        mutate(new_genome, pop, rng);
+        mutate(population_index, new_genome, pop, rng);
 
         //Otherwise we should mate 
     } else {
@@ -373,22 +375,25 @@ void Species::reproduce(int ioffspring,
             ((dad->genome).genome_id==(mom->genome).genome_id)||
             (((dad->genome).compatibility(&mom->genome))==0.0)) {
 
-            mutate(new_genome, pop, rng);
+            mutate(population_index, new_genome, pop, rng);
         }
     }
 }
 
-static void mutate(Genome &new_genome,
+static void mutate(int population_index,
+                   Genome &new_genome,
                    Population *pop,
                    rng_t &rng) {
     //Do the mutation depending on probabilities of 
     //various mutations
     if (rng.prob()<NEAT::mutate_add_node_prob) {
-        new_genome.mutate_add_node(pop->innovations,
+        new_genome.mutate_add_node(population_index,
+                                   pop->innovations,
                                    pop->cur_node_id,
                                    pop->cur_innov_num);
     } else if (rng.prob()<NEAT::mutate_add_link_prob) {
-        new_genome.mutate_add_link(pop->innovations,
+        new_genome.mutate_add_link(population_index,
+                                   pop->innovations,
                                    pop->cur_innov_num,
                                    NEAT::newlink_tries);
     } else {
