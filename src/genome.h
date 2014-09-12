@@ -29,28 +29,14 @@ namespace NEAT {
 		COLDGAUSSIAN = 1
 	};
 
-	//----------------------------------------------------------------------- 
-	//A Genome is the primary source of genotype information used to create   
-	//a phenotype.  It contains 3 major constituents:                         
-	//  1) A list of Traits                                                 
-	//  2) A list of NodeGenes pointing to a Trait from (1)                      
-	//  3) A list of LinkGenes with Links that point to Traits from (1)           
-	//(1) Reserved parameter space for future use
-	//(2) NodeGene specifications                                                
-	//(3) Is the primary source of innovation in the evolutionary Genome.     
-	//    Each LinkGene in (3) has a marker telling when it arose historically.   
-	//    Thus, these LinkGenes can be used to speciate the population, and the   
-	//    list of LinkGenes provide an evolutionary history of innovation and     
-	//    link-building.
-
 	class Genome {
         rng_t rng;
 	public:
 		int genome_id;
 
-		std::vector<Trait> traits; //parameter conglomerations
-		std::vector<NodeGene> nodes; //List of NodeGenes for the Network
-		std::vector<LinkGene> genes; //List of innovation-tracking genes
+		std::vector<Trait> traits;
+		std::vector<NodeGene> nodes;
+		std::vector<LinkGene> links;
 
         void reset(int new_id);
 
@@ -105,7 +91,7 @@ namespace NEAT {
 		// Add Gaussian noise to linkweights either GAUSSIAN or COLDGAUSSIAN (from zero)
 		void mutate_link_weights(double power,double rate,mutator mut_type);
 
-		// toggle genes on or off 
+		// toggle links on or off 
 		void mutate_toggle_enable(int times);
 
 		// Find first disabled gene and enable it 
@@ -171,11 +157,11 @@ namespace NEAT {
 
 	protected:
 		//Inserts a NodeGene into a given ordered list of NodeGenes in order
-		void node_insert(std::vector<NodeGene> &nlist, const NodeGene &n);
+		void add_node(std::vector<NodeGene> &nlist, const NodeGene &n);
 
 		//Adds a new gene that has been created through a mutation in the
-		//*correct order* into the list of genes in the genome
-		void add_gene(std::vector<LinkGene> &glist, const LinkGene &g);
+		//*correct order* into the list of links in the genome
+		void add_link(std::vector<LinkGene> &glist, const LinkGene &g);
 
     private:
         bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);

@@ -85,7 +85,7 @@ void Organism::create_phenotype() {
     } node_lookup(netnodes);
 
 	//Create the links by iterating through the genes
-    for(LinkGene &gene: genome.genes) {
+    for(LinkGene &gene: genome.links) {
 		//Only create the link if the gene is enabled
 		if(gene.enable) {
             node_index_t inode = node_lookup.find(gene.in_node_id());

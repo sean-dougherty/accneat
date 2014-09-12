@@ -464,8 +464,8 @@ bool Population::epoch(int generation) {
 
         for(Organism &org: orgs.curr()) {
             nnodes += org.genome.nodes.size();
-            nlinks += org.genome.genes.size();
-            for(LinkGene &g: org.genome.genes)
+            nlinks += org.genome.links.size();
+            for(LinkGene &g: org.genome.links)
                 if(!g.enable)
                     ndisabled++;
         }
