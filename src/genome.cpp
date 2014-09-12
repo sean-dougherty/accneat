@@ -476,126 +476,69 @@ void Genome::mutate_gene_reenable() {
 bool Genome::mutate_add_node(vector<Innovation*> &innovs,
                              int &curnode_id,
                              double &curinnov) {
-	NodeGene *in_node; //Here are the nodes connected by the gene
-	NodeGene *out_node; 
-
-	vector<Innovation*>::iterator theinnov; //For finding a historical match
-	bool done=false;
-
-	LinkGene newlink1;  //The new LinkGenes
-	LinkGene newlink2;
-	NodeGene newnode;   //The new NodeGene
-	//double splitweight;  //If used, Set to sqrt(oldweight of oldlink)
-	double oldweight;  //The weight of the original link
-
-    LinkGene *thelink = nullptr;
+    LinkGene *splitlink = nullptr;
     {
-        for(int i = 0; !thelink && i < 20; i++) {
+        for(int i = 0; !splitlink && i < 20; i++) {
             LinkGene &g = rng.element(links);
-            //If either the gene is disabled, or it has a bias input, try again
+            //If either the link is disabled, or it has a bias input, try again
             if( g.enable && get_node(g.in_node_id())->place != BIAS ) {
-                thelink = &g;
+                splitlink = &g;
             }
         }
-        //If we couldn't find anything so say goodbye
-        if (!thelink) {
+        //We couldn't find anything, so say goodbye!
+        if (!splitlink) {
             return false;
         }
     }
 
-    thelink->enable = false;
-
-	//Extract the link
-	oldweight=thelink->weight();
-
-	//Extract the nodes
-	in_node = get_node(thelink->in_node_id());
-	out_node = get_node(thelink->out_node_id());
+    splitlink->enable = false;
 
 	//Check to see if this innovation has already been done   
 	//in another genome
 	//Innovations are used to make sure the same innovation in
 	//two separate genomes in the same generation receives
 	//the same innovation number.
-	theinnov=innovs.begin();
+    Innovation *innov = nullptr;
+    for(Innovation *existing: innovs) {
+		if( (existing->innovation_type == NEWNODE)
+			&& (existing->node_in_id == splitlink->in_node_id())
+            && (existing->node_out_id == splitlink->out_node_id())
+            && (existing->old_innov_num == splitlink->innovation_num) ) {
 
-	while(!done) {
+            innov = existing;
+            break;
+        }
+    }
 
-		if (theinnov==innovs.end()) {
-			//The innovation is totally novel
+    if(innov == nullptr) {
+        innov = new Innovation(splitlink->in_node_id(),
+                               splitlink->out_node_id(),
+                               curinnov++,
+                               curinnov++,
+                               curnode_id++,
+                               splitlink->innovation_num);
+        innovs.push_back(innov);
+    }
 
-			//Get the old link's trait
-            int trait_id = thelink->trait_id();
+    NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
 
-			//Create the new NodeGene
-			//By convention, it will point to the first trait
-			newnode = NodeGene(NEURON,curnode_id++,HIDDEN);
-			newnode.set_trait_id(traits[0].trait_id);
+    LinkGene newlink1(splitlink->trait_id(),
+                      1.0,
+                      innov->node_in_id,
+                      innov->newnode_id,
+                      splitlink->is_recurrent(),
+                      innov->innovation_num1,
+                      0);
 
-			//Create the new LinkGenes
-			if (thelink->is_recurrent()) {
-				newlink1 = LinkGene(trait_id,1.0,in_node->node_id,newnode.node_id,true,curinnov,0);
-				newlink2 = LinkGene(trait_id,oldweight,newnode.node_id,out_node->node_id,false,curinnov+1,0);
-				curinnov+=2.0;
-			}
-			else {
-				newlink1 = LinkGene(trait_id,1.0,in_node->node_id,newnode.node_id,false,curinnov,0);
-				newlink2 = LinkGene(trait_id,oldweight,newnode.node_id,out_node->node_id,false,curinnov+1,0);
-				curinnov+=2.0;
-			}
+    LinkGene newlink2(splitlink->trait_id(),
+                      splitlink->weight(),
+                      innov->newnode_id,
+                      innov->node_out_id,
+                      false,
+                      innov->innovation_num2,
+                      0);    
 
-			//Add the innovations (remember what was done)
-			innovs.push_back(new Innovation(in_node->node_id,
-                                            out_node->node_id,
-                                            curinnov-2.0,
-                                            curinnov-1.0,
-                                            newnode.node_id,
-                                            thelink->innovation_num));      
-
-			done=true;
-		}
-
-		// We check to see if an innovation already occured that was:
-		//   -A new node
-		//   -Stuck between the same nodes as were chosen for this mutation
-		//   -Splitting the same gene as chosen for this mutation 
-		//   If so, we know this mutation is not a novel innovation
-		//   in this generation
-		//   so we make it match the original, identical mutation which occured
-		//   elsewhere in the population by coincidence 
-		else if (((*theinnov)->innovation_type==NEWNODE)&&
-			((*theinnov)->node_in_id==(in_node->node_id))&&
-			((*theinnov)->node_out_id==(out_node->node_id))&&
-			((*theinnov)->old_innov_num==thelink->innovation_num)) 
-		{
-			//Here, the innovation has been done before
-
-			//Get the old link's trait
-            int trait_id = thelink->trait_id();
-
-			//Create the new NodeGene
-			newnode = NodeGene(NEURON,(*theinnov)->newnode_id,HIDDEN);      
-			//By convention, it will point to the first trait
-			//Note: In future may want to change this
-			newnode.set_trait_id(traits[0].trait_id);
-
-			//Create the new LinkGenes
-			if (thelink->is_recurrent()) {
-				newlink1 = LinkGene(trait_id,1.0,in_node->node_id,newnode.node_id,true,(*theinnov)->innovation_num1,0);
-				newlink2 = LinkGene(trait_id,oldweight,newnode.node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
-			}
-			else {
-				newlink1 = LinkGene(trait_id,1.0,in_node->node_id,newnode.node_id,false,(*theinnov)->innovation_num1,0);
-				newlink2 = LinkGene(trait_id,oldweight,newnode.node_id,out_node->node_id,false,(*theinnov)->innovation_num2,0);
-			}
-
-			done=true;
-		}
-		else ++theinnov;
-	}
-
-	//Now add the new NodeGene and new LinkGenes to the Genome
-	add_link(links, newlink1);  //Add links in correct order
+	add_link(links, newlink1);
 	add_link(links, newlink2);
 	add_node(nodes, newnode);
 
