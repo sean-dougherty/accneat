@@ -327,6 +327,10 @@ bool Population::epoch(int generation) {
 
     assert(total_expected <= (int)size());
 
+    //todo: delete debug code
+    extern void reset_debug();
+    reset_debug();
+
     {
         static Timer timer("reproduce");
         timer.start();

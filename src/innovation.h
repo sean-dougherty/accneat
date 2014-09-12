@@ -40,7 +40,8 @@ namespace NEAT {
         : innovation_type(NEWNODE)
             , node_in_id(nin)
             , node_out_id(nout)
-            , old_innov_num(oldinnov) {
+            , old_innov_num(oldinnov)
+            , recur_flag(false) { // unused
         }
 
     InnovationId(int nin,
@@ -49,6 +50,7 @@ namespace NEAT {
         : innovation_type(NEWLINK)
             , node_in_id(nin)
             , node_out_id(nout)
+            , old_innov_num(-1) // unused
             , recur_flag(recur) {
         }
 
@@ -84,51 +86,16 @@ namespace NEAT {
         }
     };
 
-	// ------------------------------------------------------------
-	// This Innovation class serves as a way to record innovations
-	//   specifically, so that an innovation in one genome can be 
-	//   compared with other innovations in the same epoch, and if they
-	//   are the same innovation, they can both be assigned the same
-	//   innovation number.
-    //
-	//  This class can encode innovations that represent a new link
-	//  forming, or a new node being added.  In each case, two 
-	//  nodes fully specify the innovation and where it must have
-	//  occured.  (Between them)                                     
-	// ------------------------------------------------------------ 
-	class Innovation {
-	public:
-        InnovationId id;
-
-		double innovation_num1;  //The number assigned to the innovation
-		double innovation_num2;  // If this is a new node innovation, then there are 2 innovations (links) added for the new node 
-
-		int newnode_id;  // If a new node was created, this is its node_id 
-
-		double new_weight;   //  If a link is added, this is its weight 
-		int new_trait_id; // If a link is added, this is its connected trait 
-
-		Innovation(int nin,int nout,double num1,double num2,int newid,double oldinnov)
-            : id(nin, nout, oldinnov)
-            , innovation_num1(num1)
-            , innovation_num2(num2)
-            , newnode_id(newid) {
-        }
-
-		Innovation(int nin,int nout,double num1,double w,int t,bool recur)
-            : id(nin, nout, recur)
-            , innovation_num1(num1)
-            , new_weight(w)
-            , new_trait_id(t) {
-        }
-	};
+    class Innovation;
 
     class InnovationParms {
     public:
 		double new_weight;
 		int new_trait_id;
 
-        InnovationParms() {}
+        InnovationParms() 
+            : new_weight(-1)
+            , new_trait_id(-1) {}
         InnovationParms(double w,
                         int t)
             : new_weight(w)
@@ -138,7 +105,7 @@ namespace NEAT {
 
     class IndividualInnovation {
     public:
-        typedef std::function<void (Innovation *innov)> ApplyFunc;
+        typedef std::function<void (const Innovation *innov)> ApplyFunc;
 
         int population_index;
         InnovationId id;
@@ -149,14 +116,46 @@ namespace NEAT {
     IndividualInnovation(int population_index_,
                          InnovationId id_,
                          InnovationParms parms_,
-                         ApplyFunc apply_)
+                         ApplyFunc apply_) 
         : population_index(population_index_)
             , id(id_)
-            , parms(parms_)
-            , apply(apply_) {
+            , parms(parms_) {
+
+            apply = apply_;
         }
     };
 
+	class Innovation {
+	public:
+        InnovationId id;
+        InnovationParms parms;
+
+		double innovation_num1;  //The number assigned to the innovation
+		double innovation_num2;  // If this is a new node innovation, then there are 2 innovations (links) added for the new node 
+		int newnode_id;  // If a new node was created, this is its node_id 
+
+        // Link
+        Innovation(InnovationId id_,
+                   InnovationParms parms_,
+                   double innovation_num1_)
+            : id(id_)
+            , parms(parms_)
+            , innovation_num1(innovation_num1_) {
+        }
+
+        // Node
+        Innovation(InnovationId id_,
+                   InnovationParms parms_,
+                   double innovation_num1_,
+                   double innovation_num2_,
+                   int newnode_id_)
+            : id(id_)
+            , parms(parms_)
+            , innovation_num1(innovation_num1_)
+            , innovation_num2(innovation_num2_)
+            , newnode_id(newnode_id_) {
+        }
+	};
 } // namespace NEAT
 
 #endif

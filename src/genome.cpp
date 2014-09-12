@@ -19,10 +19,11 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <map> //todo: remove after innovations working
 #include <sstream>
 
 using namespace NEAT;
-using std::vector;
+using namespace std;
 
 class RecurrencyChecker {
 private:
@@ -473,6 +474,14 @@ void Genome::mutate_gene_reenable() {
     }
 }
 
+//todo: delete debug code
+namespace NEAT {
+static map<InnovationId, Innovation*> id2innov;
+void reset_debug() {
+    id2innov.clear();
+}
+}
+
 bool Genome::mutate_add_node(int population_index,
                              vector<Innovation*> &innovs,
                              int &curnode_id,
@@ -522,7 +531,7 @@ bool Genome::mutate_add_node(int population_index,
     InnovationId innov_id(splitlink->in_node_id(),
                           splitlink->out_node_id(),
                           splitlink->innovation_num);
-    InnovationParms innov_parms();
+    InnovationParms innov_parms;
 
 	//Check to see if this innovation has already been done   
 	//in another genome
@@ -530,21 +539,16 @@ bool Genome::mutate_add_node(int population_index,
 	//two separate genomes in the same generation receives
 	//the same innovation number.
     Innovation *innov = nullptr;
-    for(Innovation *existing: innovs) {
-        if( existing->id == innov_id ) {
-            innov = existing;
-            break;
-        }
-    }
-
-    if(innov == nullptr) {
-        innov = new Innovation(splitlink->in_node_id(),
-                               splitlink->out_node_id(),
+    auto it_innov = id2innov.find(innov_id);
+    if(it_innov != id2innov.end()) {
+        innov = id2innov[innov_id];
+    } else {
+        innov = new Innovation(innov_id,
+                               innov_parms,
                                curinnov++,
                                curinnov++,
-                               curnode_id++,
-                               splitlink->innovation_num);
-        innovs.push_back(innov);
+                               curnode_id++);
+        id2innov[innov_id] = innov;
     }
 
     create_genes(innov);
@@ -614,16 +618,6 @@ bool Genome::mutate_add_link(int population_index,
                               out_node->node_id,
                               do_recur);
 
-        Innovation *innov = nullptr;
-
-        // Try to find existing innovation.
-        for(Innovation *existing: innovs) {
-            if( existing->id == innov_id ) {
-                innov = existing;
-                break;
-            }
-        }
-
         //These two values may or may not take effect in the new innovation.
         //It depends on whether this genome is the first to create the innovation,
         //but it's impossible to know at this point who is first.
@@ -632,26 +626,27 @@ bool Genome::mutate_add_link(int population_index,
 
         InnovationParms innov_parms(newweight, trait_id);
 
-        if(innov == nullptr) {
-            innov = new Innovation(in_node->node_id,
-                                   out_node->node_id,
-                                   curinnov,
-                                   newweight,
-                                   trait_id,
-                                   do_recur);
-            innovs.push_back(innov);
+        Innovation *innov = nullptr;
+        auto it_innov = id2innov.find(innov_id);
+        if(it_innov != id2innov.end()) {
+            innov = id2innov[innov_id];
+        } else {
+            innov = new Innovation(innov_id,
+                                   innov_parms,
+                                   curinnov);
+            id2innov[innov_id] = innov;
             curinnov += 1.0;
         }
 
         auto create_genes = [this] (Innovation *innov) {
 
-            LinkGene newlink(innov->new_trait_id,
-                             innov->new_weight,
+            LinkGene newlink(innov->parms.new_trait_id,
+                             innov->parms.new_weight,
                              innov->id.node_in_id,
                              innov->id.node_out_id,
                              innov->id.recur_flag,
                              innov->innovation_num1,
-                             innov->new_weight);
+                             innov->parms.new_weight);
 
             add_link(this->links, newlink);
         };
