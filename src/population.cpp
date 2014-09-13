@@ -16,13 +16,15 @@
 #include "population.h"
 #include "organism.h"
 #include "timer.h"
-#include <assert.h>
 #include <iostream>
 #include <sstream>
 #include <fstream>
 
+#include <assert.h>
+#include <omp.h>
+
 using namespace NEAT;
-using std::vector;
+using namespace std;
 
 Population::OrganismsBuffer::OrganismsBuffer(rng_t &rng, size_t n)
     : _n(n) {
@@ -378,8 +380,8 @@ bool Population::epoch(int generation) {
             assert(iorg == size());
         }
 
-        for(int iorg = (int)size() - 1; iorg >= 0; iorg--) {
-            //for(int iorg = 0; iorg < (int)size(); iorg++) {
+#pragma omp parallel for
+        for(size_t iorg = 0; iorg < size(); iorg++) {
             Organism &baby = orgs.curr()[iorg];
             baby.init(0.0, generation);
             baby.genome.reset(iorg+1);

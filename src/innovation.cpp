@@ -19,6 +19,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <omp.h>
+
 using namespace NEAT;
 using namespace std;
 
@@ -123,16 +125,21 @@ static bool cmp_ind(const IndividualInnovation &x, const IndividualInnovation &y
 void PopulationInnovations::init(int node_id, int innov_num) {
     cur_node_id = node_id;
     cur_innov_num = innov_num;
+
+    innovations.resize( omp_get_max_threads() );
 }
 
 void PopulationInnovations::add(const IndividualInnovation &innov) {
-    innovations.push_back(innov);
+    innovations[omp_get_thread_num()].push_back(innov);
 }
 
 void PopulationInnovations::apply() {
     id2inds.clear();
-    for(auto &ind: innovations) {
-        id2inds[ind.id].push_back(ind);
+    for(vector<IndividualInnovation> &inds: innovations) {
+        for(auto &ind: inds) {
+            id2inds[ind.id].push_back(ind);
+        }
+        inds.clear();
     }
 
     vector<IndividualInnovation> masters;
@@ -175,6 +182,4 @@ void PopulationInnovations::apply() {
             ind.apply(innov);
         }
     }
-
-    innovations.clear();
 }

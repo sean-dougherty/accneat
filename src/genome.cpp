@@ -626,6 +626,7 @@ void Genome::add_node(vector<NodeGene> &nlist, const NodeGene &n) {
     nlist.insert(it, n);
 }
 
+// todo: use NodeLookup for newnodes instead of linear search!
 void Genome::mate_multipoint(Genome *genome1,
                              Genome *genome2,
                              Genome *offspring,
@@ -859,6 +860,7 @@ void Genome::mate_multipoint(Genome *genome1,
     }
 }
 
+// todo: use NodeLookup for newnodes instead of linear search!
 void Genome::mate_multipoint_avg(Genome *genome1,
                                  Genome *genome2,
                                  Genome *offspring,

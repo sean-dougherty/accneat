@@ -92,7 +92,7 @@ namespace NEAT {
 	};
 
     class PopulationInnovations {
-        std::vector<IndividualInnovation> innovations;  // For holding the genetic innovations of the newest generation
+        std::vector<std::vector<IndividualInnovation>> innovations;  // For holding the genetic innovations of the newest generation
         std::map<InnovationId, std::vector<IndividualInnovation>> id2inds;
 		int cur_node_id;
 		int cur_innov_num;
