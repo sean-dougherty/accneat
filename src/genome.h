@@ -113,27 +113,28 @@ namespace NEAT {
 
 		// ****** MATING METHODS ***** 
 
-		// This method mates this Genome with another Genome g.  
 		//   For every point in each Genome, where each Genome shares
 		//   the innovation number, the LinkGene is chosen randomly from 
 		//   either parent.  If one parent has an innovation absent in 
 		//   the other, the baby will inherit the innovation 
 		//   Interspecies mating leads to all genes being inherited.
 		//   Otherwise, excess genes come from most fit parent.
-		void mate_multipoint(Genome *g,
-                             Genome *offspring,
-                             int genomeid,
-                             double fitness1,
-                             double fitness2);
+		static void mate_multipoint(Genome *genome1,
+                                    Genome *genome2,
+                                    Genome *offspring,
+                                    int genomeid,
+                                    double fitness1,
+                                    double fitness2);
 
 		//This method mates like multipoint but instead of selecting one
 		//   or the other when the innovation numbers match, it averages their
 		//   weights 
-		void mate_multipoint_avg(Genome *g,
-                                 Genome *offspring,
-                                 int genomeid,
-                                 double fitness1,
-                                 double fitness2);
+		static void mate_multipoint_avg(Genome *genome1,
+                                        Genome *genome2,
+                                        Genome *offspring,
+                                        int genomeid,
+                                        double fitness1,
+                                        double fitness2);
 
 		// ******** COMPATIBILITY CHECKING METHODS ********
 

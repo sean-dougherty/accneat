@@ -17,6 +17,7 @@
 #include "innovation.h"
 
 #include <algorithm>
+#include <iostream>
 
 using namespace NEAT;
 using namespace std;

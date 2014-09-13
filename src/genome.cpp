@@ -626,14 +626,15 @@ void Genome::add_node(vector<NodeGene> &nlist, const NodeGene &n) {
     nlist.insert(it, n);
 }
 
-void Genome::mate_multipoint(Genome *g,
+void Genome::mate_multipoint(Genome *genome1,
+                             Genome *genome2,
                              Genome *offspring,
                              int genomeid,
                              double fitness1,
                              double fitness2) {
-
-    vector<LinkGene> &links1 = this->links;
-    vector<LinkGene> &links2 = g->links;
+    rng_t &rng = offspring->rng;
+    vector<LinkGene> &links1 = genome1->links;
+    vector<LinkGene> &links2 = genome2->links;
 
 	//The baby Genome will contain these new Traits, NodeGenes, and LinkGenes
     offspring->reset(genomeid);
@@ -666,9 +667,9 @@ void Genome::mate_multipoint(Genome *g,
 	//First, average the Traits from the 2 parents to form the baby's Traits
 	//It is assumed that trait lists are the same length
 	//In the future, may decide on a different method for trait mating
-    assert(traits.size() == g->traits.size());
-    for(size_t i = 0, n = traits.size(); i < n; i++) {
-        newtraits.emplace_back(traits[i], g->traits[i]);
+    assert(genome1->traits.size() == genome2->traits.size());
+    for(size_t i = 0, n = genome1->traits.size(); i < n; i++) {
+        newtraits.emplace_back(genome1->traits[i], genome2->traits[i]);
     }
 
 	//Figure out which genome is better
@@ -685,7 +686,7 @@ void Genome::mate_multipoint(Genome *g,
 		p1better=false;
 
 	//Make sure all sensors and outputs are included
-    for(NodeGene &node: g->nodes) {
+    for(NodeGene &node: genome1->nodes) {
 		if( (node.place == INPUT)
             || (node.place == BIAS)
             || (node.place == OUTPUT)) {
@@ -696,10 +697,8 @@ void Genome::mate_multipoint(Genome *g,
     }
 
 	//Now move through the LinkGenes of each parent until both genomes end
-    Genome *genome1 = this;
-    Genome *genome2 = g;
-	p1gene=links1.begin();
-	p2gene=(links2).begin();
+	p1gene = links1.begin();
+	p2gene = links2.begin();
 	while( !((p1gene==links1.end()) && (p2gene==(links2).end())) ) {
         ProtoLinkGene protogene;
 
@@ -860,13 +859,15 @@ void Genome::mate_multipoint(Genome *g,
     }
 }
 
-void Genome::mate_multipoint_avg(Genome *g,
+void Genome::mate_multipoint_avg(Genome *genome1,
+                                 Genome *genome2,
                                  Genome *offspring,
                                  int genomeid,
                                  double fitness1,
                                  double fitness2) {
-    vector<LinkGene> &links1 = this->links;
-    vector<LinkGene> &links2 = g->links;
+    rng_t &rng = offspring->rng;
+    vector<LinkGene> &links1 = genome1->links;
+    vector<LinkGene> &links2 = genome2->links;
 
 	//The baby Genome will contain these new Traits, NodeGenes, and LinkGenes
     offspring->reset(genomeid);
@@ -894,12 +895,12 @@ void Genome::mate_multipoint_avg(Genome *g,
 	//First, average the Traits from the 2 parents to form the baby's Traits
 	//It is assumed that trait lists are the same length
 	//In future, could be done differently
-    for(size_t i = 0, n = traits.size(); i < n; i++) {
-        newtraits.emplace_back(traits[i], g->traits[i]);
+    for(size_t i = 0, n = genome1->traits.size(); i < n; i++) {
+        newtraits.emplace_back(genome1->traits[i], genome2->traits[i]);
 	}
 
 	//NEW 3/17/03 Make sure all sensors and outputs are included
-    for(NodeGene &node: g->nodes) {
+    for(NodeGene &node: genome1->nodes) {
 		if (((node.place)==INPUT)||
 			((node.place)==OUTPUT)||
 			((node.place)==BIAS)) {
@@ -923,10 +924,8 @@ void Genome::mate_multipoint_avg(Genome *g,
 
 
 	//Now move through the LinkGenes of each parent until both genomes end
-    Genome *genome1 = this;
-    Genome *genome2 = g;
 	p1gene=links1.begin();
-	p2gene=(links2).begin();
+	p2gene=links2.begin();
 	while(!((p1gene==links1.end()) && (p2gene==(links2).end()))) {
         ProtoLinkGene protogene;
 

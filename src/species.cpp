@@ -352,17 +352,19 @@ void Species::reproduce(int population_index,
 
         //Perform mating based on probabilities of differrent mating types
         if( rng.prob()<NEAT::mate_multipoint_prob ) { 
-            mom->genome.mate_multipoint(&dad->genome,
+            Genome::mate_multipoint(&mom->genome,
+                                    &dad->genome,
+                                    &new_genome,
+                                    ioffspring,
+                                    mom->orig_fitness,
+                                    dad->orig_fitness);
+        } else if( rng.prob() < (NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob)) ) {
+            Genome::mate_multipoint_avg(&mom->genome,
+                                        &dad->genome,
                                         &new_genome,
                                         ioffspring,
                                         mom->orig_fitness,
                                         dad->orig_fitness);
-        } else if( rng.prob() < (NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob)) ) {
-            mom->genome.mate_multipoint_avg(&dad->genome,
-                                            &new_genome,
-                                            ioffspring,
-                                            mom->orig_fitness,
-                                            dad->orig_fitness);
         } else {
             // todo: catch non-zero probability at time of parsing. completely elim this
             // from code.

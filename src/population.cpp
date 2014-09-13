@@ -352,27 +352,45 @@ bool Population::epoch(int generation) {
 
     assert(total_expected <= (int)size());
 
+    //Create the next generation.
     {
         static Timer timer("reproduce");
         timer.start();
 
         orgs.swap();
-        size_t iorg = 0;
 
-        //Perform reproduction within the species.
-        for(size_t i = 0, n = species.size(); i < n; i++) {
-            Species *s = species[i];
+        //Initialize the parms for each reproduce invocation
+        struct reproduce_parms_t {
+            Species *species;
+            int ioffspring;
+        } reproduce_parms[size()];
+        {
+            size_t iorg = 0;
+            for(size_t i = 0, n = species.size(); i < n; i++) {
+                Species *s = species[i];
 
-            for(int j = 0; j < s->expected_offspring; j++) {
-
-                Organism &baby = orgs.curr()[iorg];
-                baby.init(0.0, generation);
-                baby.genome.reset(iorg+1);
-
-                s->reproduce(iorg, j, baby, this, sorted_species);
-
-                iorg++;
+                for(int j = 0; j < s->expected_offspring; j++) {
+                    reproduce_parms[iorg].species = s;
+                    reproduce_parms[iorg].ioffspring = j;
+                    iorg++;
+                }
             }
+            assert(iorg == size());
+        }
+
+        for(int iorg = (int)size() - 1; iorg >= 0; iorg--) {
+            //for(int iorg = 0; iorg < (int)size(); iorg++) {
+            Organism &baby = orgs.curr()[iorg];
+            baby.init(0.0, generation);
+            baby.genome.reset(iorg+1);
+            
+            reproduce_parms_t &parms = reproduce_parms[iorg];
+
+            parms.species->reproduce(iorg,
+                                     parms.ioffspring,
+                                     baby,
+                                     this,
+                                     sorted_species);
         }
 
         innovations.apply();
@@ -382,8 +400,6 @@ bool Population::epoch(int generation) {
             baby.create_phenotype();
 
         timer.stop();
-
-        assert(iorg == size());
     }
 
     {
