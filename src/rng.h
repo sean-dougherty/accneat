@@ -1,74 +1,46 @@
 #pragma once
 
-#include "neat.h"
-#include <cstdlib>
+#include <random>
 #include <vector>
 
-class rng_t {
-	inline int randposneg() {
-        if (rand()%2) 
-            return 1; 
-        else 
-            return -1;
-    }
-    
-	inline int randint(int x,int y) {
-        return rand()%(y-x+1)+x;
-    }
+namespace NEAT {
+    class rng_t {
+        std::default_random_engine engine;
 
-    inline double randfloat() {
-        return rand() / (double) RAND_MAX;        
-    }
-
-    double gaussrand() {
-        static int iset=0;
-        static double gset;
-        double fac,rsq,v1,v2;
-
-        if (iset==0) {
-            do {
-                v1=2.0*(randfloat())-1.0;
-                v2=2.0*(randfloat())-1.0;
-                rsq=v1*v1+v2*v2;
-            } while (rsq>=1.0 || rsq==0.0);
-            fac=sqrt(-2.0*log(rsq)/rsq);
-            gset=v1*fac;
-            iset=1;
-            return v2*fac;
+    public:
+        void seed(int sval) {
+            engine.seed(sval);
         }
-        else {
-            iset=0;
-            return gset;
+
+        template<typename T>
+            size_t index(std::vector<T> &v, size_t begin = 0) {
+            std::uniform_int_distribution<int> dist(begin, v.size() - 1);
+            return dist(engine);
         }
-    }
 
-public:
-    template<typename T>
-        size_t index(std::vector<T> &v, size_t begin = 0) {
+        template<typename T>
+            T& element(std::vector<T> &v, size_t begin = 0) {
+            return v[index(v, begin)];
+        }
 
-        return randint(begin, v.size() - 1);
-    }
+        // value in [0,1] from uniform distribution
+        double prob() {
+            std::uniform_real_distribution<double> dist(0, 1);
+            return dist(engine);
+        }
 
-    template<typename T>
-        T& element(std::vector<T> &v, size_t begin = 0) {
+        // -1 or 1
+        int posneg() {
+            std::uniform_int_distribution<int> dist(0, 1);
+            return dist(engine) * 2 - 1;
+        }
 
-        return v[index(v, begin)];
-    }
+        // value from z distribution
+        double gauss() {
+            std::normal_distribution<double> dist;
+            return dist(engine);
+        }
 
-    // value in [0,1] from uniform distribution
-    double prob() {
-        return randfloat();
-    }
-
-    // -1 or 1
-    int posneg() {
-        return randposneg();
-    }
-
-    // value from z distribution
-    double gauss() {
-        return gaussrand();
-    }
-
-    static void test();
-};
+        static void test();
+    };
+}

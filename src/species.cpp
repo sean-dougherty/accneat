@@ -303,6 +303,7 @@ void Species::reproduce(int population_index,
 
     Organism *thechamp = organisms[0];
     Genome &new_genome = baby.genome;  //For holding baby's genes
+    rng_t &rng = baby.genome.rng;
 
     //If we have a super_champ (Population champion), finish off some special clones
     if( ioffspring < thechamp->super_champ_offspring ) {

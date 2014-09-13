@@ -13,8 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#ifndef _ORGANISM_H_
-#define _ORGANISM_H_
+#pragma once
 
 #include "genome.h"
 #include "species.h"
@@ -73,4 +72,3 @@ namespace NEAT {
 
 } // namespace NEAT
 
-#endif

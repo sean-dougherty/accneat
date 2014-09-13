@@ -30,8 +30,8 @@ namespace NEAT {
 	};
 
 	class Genome {
-        rng_t rng;
 	public:
+        rng_t rng;
 		int genome_id;
 
 		std::vector<Trait> traits;

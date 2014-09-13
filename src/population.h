@@ -27,8 +27,8 @@
 
 namespace NEAT {
 
+    class Organism;
 	class Species;
-	class Organism;
 
 	// ---------------------------------------------  
 	// POPULATION CLASS:
@@ -36,27 +36,20 @@ namespace NEAT {
 	//   including their species                        
 	// ---------------------------------------------  
 	class Population {
-        struct OrganismsBuffer {
-        private:
+        class OrganismsBuffer {
             size_t _n;
             std::vector<Organism> _a;
             std::vector<Organism> _b;
             std::vector<Organism> *_curr;
         public:
-            OrganismsBuffer(size_t n)
-            : _n(n) {
-                _a.resize(n);
-                _b.resize(n);
-                _curr = &_a;
-            }
-            inline size_t size() {return _n;}
-            inline std::vector<Organism> &curr() {return *_curr;}
-            inline void swap() {
-                if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
-                assert( _curr->size() == _n );
-            }
+            OrganismsBuffer(rng_t &rng, size_t n);
+
+            size_t size();
+            std::vector<Organism> &curr();
+            void swap();
         } orgs;
 
+        Population(rng_t &rng, int size);
 	public:
         std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
 
@@ -107,10 +100,10 @@ namespace NEAT {
 		bool rank_within_species();
 
 		// Construct off of a single spawning Genome 
-		Population(Genome *g,int size);
+		Population(rng_t &rng, Genome *g, int size);
 
 		// Construct off of a single spawning Genome without mutation
-		Population(Genome *g,int size, float power);
+		Population(rng_t &rng, Genome *g, int size, float power);
 		
 		// It can delete a Population in two ways:
 		//    -delete by killing off the species

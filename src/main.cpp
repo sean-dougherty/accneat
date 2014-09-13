@@ -30,14 +30,10 @@ using namespace std;
 
 
 int main(int argc, char *argv[]) {
-    rng_t::test();
-    exit(0);
-
     NEAT::Population *p = nullptr;
 
-    /* Seed the random-number generator with current time so that
-       the numbers will be different every time we run.    */
-    srand( RAND_SEED );
+    NEAT::rng_t rng;
+    rng.seed(RAND_SEED);
 
     if (argc != 4) {
         cerr << "usage: maxgens neat ne_path startgenes_path" << endl;
@@ -49,7 +45,7 @@ int main(int argc, char *argv[]) {
     //Load in the params
     NEAT::load_neat_params(argv[2],true);
 
-    p = seq_experiment(maxgens, argv[3]);
+    p = seq_experiment(rng, maxgens, argv[3]);
 
     if (p)
         delete p;

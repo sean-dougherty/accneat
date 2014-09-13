@@ -2,4 +2,6 @@
 
 #include "population.h"
 
-NEAT::Population *seq_experiment(int gens, char const *startgenes_path);
+NEAT::Population *seq_experiment(NEAT::rng_t &rng,
+                                 int gens,
+                                 char const *startgenes_path);

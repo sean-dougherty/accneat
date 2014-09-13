@@ -33,8 +33,6 @@ namespace NEAT {
 	//   can mate.                                      
 	// ---------------------------------------------  
 	class Species {
-        rng_t rng;
-
 	public:
 		int id;
 		int age; //The age of the Species 

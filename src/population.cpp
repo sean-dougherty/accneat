@@ -24,19 +24,47 @@
 using namespace NEAT;
 using std::vector;
 
-Population::Population(Genome *g,int size)
-    : orgs(size) {
-	winnergen=0;
-	highest_fitness=0.0;
-	highest_last_changed=0;
+Population::OrganismsBuffer::OrganismsBuffer(rng_t &rng, size_t n)
+    : _n(n) {
+    _a.resize(n);
+    _b.resize(n);
+    _curr = &_a;
+
+    int seed = 0;
+    for(auto &org: _a)
+        org.genome.rng.seed(seed++);
+    for(auto &org: _b)
+        org.genome.rng.seed(seed++);
+}
+
+size_t Population::OrganismsBuffer::size(){
+    return _n;
+}
+
+vector<Organism> &Population::OrganismsBuffer::curr() {
+    return *_curr;
+}
+
+void Population::OrganismsBuffer::swap() {
+    if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
+    assert( _curr->size() == _n );
+}
+
+Population::Population(rng_t &rng, int size)
+    : orgs(rng, size)
+    , winnergen(0)
+    , highest_fitness(0.0)
+    , highest_last_changed(0) {
+}
+
+Population::Population(rng_t &rng, Genome *g,int size)
+    : Population(rng, size) {
+
 	spawn(g);
 }
 
-Population::Population(Genome *g,int size, float power)
-    : orgs(size) {
-	winnergen=0;
-	highest_fitness=0.0;
-	highest_last_changed=0;
+Population::Population(rng_t &rng, Genome *g,int size, float power)
+    : Population(rng, size) {
 	clone(g, power);
 }
 

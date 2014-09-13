@@ -157,7 +157,9 @@ static int epoch(NEAT::Population *pop,
                  int &winnernodes);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
-Population *seq_experiment(int gens, char const *startgenes_path) {
+Population *seq_experiment(rng_t &rng,
+                           int gens,
+                           char const *startgenes_path) {
     Population *pop=0;
     Genome *start_genome;
     char curword[20];
@@ -200,7 +202,7 @@ Population *seq_experiment(int gens, char const *startgenes_path) {
         //Spawn the Population
         cout<<"Spawning Population off Genome2"<<endl;
 
-        pop=new Population(start_genome,NEAT::pop_size);
+        pop=new Population(rng, start_genome,NEAT::pop_size);
       
         cout<<"Verifying Spawned Pop"<<endl;
         pop->verify();
