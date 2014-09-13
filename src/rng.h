@@ -55,15 +55,20 @@ public:
         return v[index(v, begin)];
     }
 
+    // value in [0,1] from uniform distribution
     double prob() {
         return randfloat();
     }
 
+    // -1 or 1
     int posneg() {
         return randposneg();
     }
 
+    // value from z distribution
     double gauss() {
         return gaussrand();
     }
+
+    static void test();
 };

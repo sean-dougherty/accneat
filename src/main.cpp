@@ -30,6 +30,9 @@ using namespace std;
 
 
 int main(int argc, char *argv[]) {
+    rng_t::test();
+    exit(0);
+
     NEAT::Population *p = nullptr;
 
     /* Seed the random-number generator with current time so that
