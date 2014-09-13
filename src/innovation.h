@@ -36,56 +36,13 @@ namespace NEAT {
 		double old_innov_num;
 		bool recur_flag;
 
-    InnovationId(int nin,
-                 int nout,
-                 double oldinnov)
-        : innovation_type(NEWNODE)
-            , node_in_id(nin)
-            , node_out_id(nout)
-            , old_innov_num(oldinnov)
-            , recur_flag(false) { // unused
-        }
+        // Node
+        InnovationId(int nin, int nout, double oldinnov);
+        // Link
+        InnovationId(int nin, int nout, bool recur);
 
-    InnovationId(int nin,
-                 int nout,
-                 bool recur)
-        : innovation_type(NEWLINK)
-            , node_in_id(nin)
-            , node_out_id(nout)
-            , old_innov_num(-1) // unused
-            , recur_flag(recur) {
-        }
-
-        static int cmp(const InnovationId &x, const InnovationId &y) {
-#define __cmp(val)                              \
-            if(x.val < y.val) {return -1;}      \
-            else if(x.val > y.val) {return 1;}
-
-            __cmp(innovation_type);
-            __cmp(node_in_id);
-            __cmp(node_out_id);
-
-            switch(x.innovation_type) {
-            case NEWNODE:
-                __cmp(old_innov_num);
-                return 0;
-            case NEWLINK:
-                __cmp(recur_flag);
-                return 0;
-            default:
-                trap("invalid innovation_type");
-            }
-
-#undef __cmp
-        }
-
-        bool operator<(const InnovationId &other) const {
-            return cmp(*this, other) < 0;
-        }
-
-        bool operator==(const InnovationId &other) const {
-            return cmp(*this, other) == 0;
-        }
+        bool operator<(const InnovationId &other) const;
+        bool operator==(const InnovationId &other) const;
     };
 
     class Innovation;
@@ -95,14 +52,8 @@ namespace NEAT {
 		double new_weight;
 		int new_trait_id;
 
-        InnovationParms() 
-            : new_weight(-1)
-            , new_trait_id(-1) {}
-        InnovationParms(double w,
-                        int t)
-            : new_weight(w)
-            , new_trait_id(t) {
-        }
+        InnovationParms();
+        InnovationParms(double w, int t);
     };
 
     class IndividualInnovation {
@@ -115,15 +66,10 @@ namespace NEAT {
         ApplyFunc apply;
 
 		//Constructor for the new node case
-    IndividualInnovation(int population_index_,
-                         InnovationId id_,
-                         InnovationParms parms_,
-                         ApplyFunc apply_) 
-        : population_index(population_index_)
-            , id(id_)
-            , parms(parms_) {
-            apply = apply_;
-        }
+        IndividualInnovation(int population_index_,
+                             InnovationId id_,
+                             InnovationParms parms_,
+                             ApplyFunc apply_);
     };
 
 	class Innovation {
@@ -138,24 +84,14 @@ namespace NEAT {
         // Link
         Innovation(InnovationId id_,
                    InnovationParms parms_,
-                   double innovation_num1_)
-            : id(id_)
-            , parms(parms_)
-            , innovation_num1(innovation_num1_) {
-        }
+                   double innovation_num1_);
 
         // Node
         Innovation(InnovationId id_,
                    InnovationParms parms_,
                    double innovation_num1_,
                    double innovation_num2_,
-                   int newnode_id_)
-            : id(id_)
-            , parms(parms_)
-            , innovation_num1(innovation_num1_)
-            , innovation_num2(innovation_num2_)
-            , newnode_id(newnode_id_) {
-        }
+                   int newnode_id_);
 	};
 
     class PopulationInnovations {
