@@ -46,7 +46,7 @@ namespace NEAT {
         inline void set_recurrent(bool r) { _is_recurrent = r; }
 
 
-		double innovation_num;
+		int innovation_num;
 		double mutation_num;  //Used to see how much mutation has changed the link
 		bool enable;  //When this is off the LinkGene is disabled
 		bool frozen;  //When frozen, the linkweight cannot be mutated
@@ -56,26 +56,26 @@ namespace NEAT {
 
 		//Construct a gene with no trait
 		LinkGene(double w,
-             int inode_id,
-             int onode_id,
-             bool recur,
-             double innov,
-             double mnum);
+                 int inode_id,
+                 int onode_id,
+                 bool recur,
+                 int innov,
+                 double mnum);
 
 		//Construct a gene with a trait
 		LinkGene(int trait_id,
-             double w,
-             int inode_id,
-             int onode_id,
-             bool recur,
-             double innov,
-             double mnum);
+                 double w,
+                 int inode_id,
+                 int onode_id,
+                 bool recur,
+                 int innov,
+                 double mnum);
 
 		//Construct a gene off of another gene as a duplicate
 		LinkGene(LinkGene *g,
-             int trait_id,
-             int inode_id,
-             int onode_id);
+                 int trait_id,
+                 int inode_id,
+                 int onode_id);
 
 		//Construct a gene from a file spec given traits and nodes
 		LinkGene(const char *argline);

@@ -33,19 +33,17 @@ namespace NEAT {
 		innovtype innovation_type;
 		int node_in_id;
 		int node_out_id;
-		double old_innov_num;
+		int old_innov_num;
 		bool recur_flag;
 
         // Node
-        InnovationId(int nin, int nout, double oldinnov);
+        InnovationId(int nin, int nout, int oldinnov);
         // Link
         InnovationId(int nin, int nout, bool recur);
 
         bool operator<(const InnovationId &other) const;
         bool operator==(const InnovationId &other) const;
     };
-
-    class Innovation;
 
     class InnovationParms {
     public:
@@ -58,14 +56,13 @@ namespace NEAT {
 
     class IndividualInnovation {
     public:
-        typedef std::function<void (const Innovation *innov)> ApplyFunc;
+        typedef std::function<void (const class Innovation *innov)> ApplyFunc;
 
         int population_index;
         InnovationId id;
         InnovationParms parms;
         ApplyFunc apply;
 
-		//Constructor for the new node case
         IndividualInnovation(int population_index_,
                              InnovationId id_,
                              InnovationParms parms_,
@@ -77,20 +74,20 @@ namespace NEAT {
         InnovationId id;
         InnovationParms parms;
 
-		double innovation_num1;  //The number assigned to the innovation
-		double innovation_num2;  // If this is a new node innovation, then there are 2 innovations (links) added for the new node 
+		int innovation_num1;  //The number assigned to the innovation
+		int innovation_num2;  // If this is a new node innovation, then there are 2 innovations (links) added for the new node 
 		int newnode_id;  // If a new node was created, this is its node_id 
 
         // Link
         Innovation(InnovationId id_,
                    InnovationParms parms_,
-                   double innovation_num1_);
+                   int innovation_num1_);
 
         // Node
         Innovation(InnovationId id_,
                    InnovationParms parms_,
-                   double innovation_num1_,
-                   double innovation_num2_,
+                   int innovation_num1_,
+                   int innovation_num2_,
                    int newnode_id_);
 	};
 
@@ -98,10 +95,10 @@ namespace NEAT {
         std::vector<IndividualInnovation> innovations;  // For holding the genetic innovations of the newest generation
         std::map<InnovationId, std::vector<IndividualInnovation>> id2inds;
 		int cur_node_id;
-		double cur_innov_num;
+		int cur_innov_num;
 
     public:
-        void init(int node_id, double innov_num);
+        void init(int node_id, int innov_num);
         void add(const IndividualInnovation &innov);
         void apply();
     };

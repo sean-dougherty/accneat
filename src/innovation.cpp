@@ -46,7 +46,7 @@ static int cmp(const InnovationId &x, const InnovationId &y) {
 
 InnovationId::InnovationId(int nin,
                            int nout,
-                           double oldinnov)
+                           int oldinnov)
     : innovation_type(NEWNODE)
     , node_in_id(nin)
     , node_out_id(nout)
@@ -96,7 +96,7 @@ IndividualInnovation::IndividualInnovation(int population_index_,
 // Link
 Innovation::Innovation(InnovationId id_,
                        InnovationParms parms_,
-                       double innovation_num1_)
+                       int innovation_num1_)
     : id(id_)
     , parms(parms_)
     , innovation_num1(innovation_num1_) {
@@ -105,8 +105,8 @@ Innovation::Innovation(InnovationId id_,
 // Node
 Innovation::Innovation(InnovationId id_,
                        InnovationParms parms_,
-                       double innovation_num1_,
-                       double innovation_num2_,
+                       int innovation_num1_,
+                       int innovation_num2_,
                        int newnode_id_)
     : id(id_)
     , parms(parms_)
@@ -119,7 +119,7 @@ static bool cmp_ind(const IndividualInnovation &x, const IndividualInnovation &y
     return x.population_index < y.population_index;
 };
 
-void PopulationInnovations::init(int node_id, double innov_num) {
+void PopulationInnovations::init(int node_id, int innov_num) {
     cur_node_id = node_id;
     cur_innov_num = innov_num;
 }
@@ -164,7 +164,7 @@ void PopulationInnovations::apply() {
             innov = new Innovation(master.id,
                                    master.parms,
                                    cur_innov_num);
-            cur_innov_num += 1.0;
+            cur_innov_num += 1;
         } break;
         default:
             trap("here");
