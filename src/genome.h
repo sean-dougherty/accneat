@@ -104,11 +104,11 @@ namespace NEAT {
 
 		// Mutate genome by adding a node respresentation 
 		bool mutate_add_node(int population_index,
-                             std::vector<IndividualInnovation> &innovs);
+                             PopulationInnovations &innovations);
 
 		// Mutate the genome by adding a new link between 2 random NodeGenes 
 		bool mutate_add_link(int population_index,
-                             std::vector<IndividualInnovation> &innovs,
+                             PopulationInnovations &innovations,
                              int tries); 
 
 		// ****** MATING METHODS ***** 

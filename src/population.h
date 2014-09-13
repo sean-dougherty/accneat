@@ -61,9 +61,7 @@ namespace NEAT {
         std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
 
 		// ******* Member variables used during reproduction *******
-        std::vector<IndividualInnovation> innovations;  // For holding the genetic innovations of the newest generation
-		int cur_node_id;
-		double cur_innov_num;
+        PopulationInnovations innovations;
 
 		int last_species;  //The highest species number
 

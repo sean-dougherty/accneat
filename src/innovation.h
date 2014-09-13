@@ -18,6 +18,7 @@
 
 #include "neat.h"
 #include <functional>
+#include <map>
 #include <vector>
 
 namespace NEAT {
@@ -157,9 +158,17 @@ namespace NEAT {
         }
 	};
 
-    void apply_innovations(std::vector<IndividualInnovation> &ind_innovs,
-                           int *cur_node_id,
-                           double *cur_innov_num);
+    class PopulationInnovations {
+        std::vector<IndividualInnovation> innovations;  // For holding the genetic innovations of the newest generation
+        std::map<InnovationId, std::vector<IndividualInnovation>> id2inds;
+		int cur_node_id;
+		double cur_innov_num;
+
+    public:
+        void init(int node_id, double innov_num);
+        void add(const IndividualInnovation &innov);
+        void apply();
+    };
 } // namespace NEAT
 
 #endif

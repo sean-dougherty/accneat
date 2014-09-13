@@ -474,7 +474,7 @@ void Genome::mutate_gene_reenable() {
 }
 
 bool Genome::mutate_add_node(int population_index,
-                             vector<IndividualInnovation> &innovs) {
+                             PopulationInnovations &innovations) {
     LinkGene *splitlink = nullptr;
     {
         for(int i = 0; !splitlink && i < 20; i++) {
@@ -522,14 +522,14 @@ bool Genome::mutate_add_node(int population_index,
         add_node(this->nodes, newnode);
     };
 
-    innovs.emplace_back(population_index, innov_id, innov_parms, innov_apply);
+    IndividualInnovation innov(population_index, innov_id, innov_parms, innov_apply);
+    innovations.add(innov);
 
 	return true;
-
 }
 
 bool Genome::mutate_add_link(int population_index,
-                             vector<IndividualInnovation> &innovs,
+                             PopulationInnovations &innovations,
                              int tries) {
     LinkGene *recur_checker_buf[links.size()];
     RecurrencyChecker recur_checker(nodes.size(), links, recur_checker_buf);
@@ -609,7 +609,8 @@ bool Genome::mutate_add_link(int population_index,
             add_link(this->links, newlink);
         };
 
-        innovs.emplace_back(population_index, innov_id, innov_parms, innov_apply);
+        IndividualInnovation innov(population_index, innov_id, innov_parms, innov_apply);
+        innovations.add(innov);
     }
 
     return true;

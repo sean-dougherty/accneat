@@ -78,8 +78,8 @@ bool Population::clone(Genome *g, float power) {
 	}
 
 	//Keep a record of the innovation and node number we are on
-	cur_node_id = orgs.curr().back().genome.get_last_node_id();
-	cur_innov_num = orgs.curr().back().genome.get_last_gene_innovnum();
+    innovations.init(orgs.curr().back().genome.get_last_node_id(),
+                     orgs.curr().back().genome.get_last_gene_innovnum());
 
 	//Separate the new Population into species
 	speciate();
@@ -97,8 +97,8 @@ bool Population::spawn(Genome *g) {
 	}
 
 	//Keep a record of the innovation and node number we are on
-	cur_node_id = orgs.curr().back().genome.get_last_node_id();
-	cur_innov_num = orgs.curr().back().genome.get_last_gene_innovnum();
+    innovations.init(orgs.curr().back().genome.get_last_node_id(),
+                     orgs.curr().back().genome.get_last_gene_innovnum());
 
 	//Separate the new Population into species
 	speciate();
@@ -347,8 +347,7 @@ bool Population::epoch(int generation) {
             }
         }
 
-        apply_innovations(innovations, &cur_node_id, &cur_innov_num);
-        innovations.clear();
+        innovations.apply();
 
         //Create the neural nets for the new organisms.
         for(Organism &baby: orgs.curr())
