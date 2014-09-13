@@ -49,9 +49,6 @@ Population::~Population() {
 			delete (*curspec);
 		}
 	}
-
-	for (std::vector<Innovation*>::iterator iter = innovations.begin(); iter != innovations.end(); ++iter)
-		delete *iter;
 }
 
 void Population::verify() {
@@ -327,17 +324,6 @@ bool Population::epoch(int generation) {
 
     assert(total_expected <= (int)size());
 
-    //todo: delete debug code
-    extern int *__cur_node_id;
-    extern double *__cur_innov_num;
-
-    __cur_node_id = &cur_node_id;
-    __cur_innov_num = &cur_innov_num;
-
-
-    extern void reset_debug();
-    reset_debug();
-
     {
         static Timer timer("reproduce");
         timer.start();
@@ -361,9 +347,8 @@ bool Population::epoch(int generation) {
             }
         }
 
-        //todo: delete debug code
-        extern void apply_debug();
-        apply_debug();
+        apply_innovations(innovations, &cur_node_id, &cur_innov_num);
+        innovations.clear();
 
         //Create the neural nets for the new organisms.
         for(Organism &baby: orgs.curr())
@@ -468,12 +453,6 @@ bool Population::epoch(int generation) {
         assert(org.generation == generation);
     }
 #endif
-
-	//Remove the innovations of the current generation
-    for(Innovation *innov: innovations) {
-        delete innov;
-    }
-    innovations.clear();
 
     {
         size_t nnodes = 0;

@@ -36,14 +36,14 @@ namespace NEAT {
 	//   including their species                        
 	// ---------------------------------------------  
 	class Population {
-        struct Organisms {
+        struct OrganismsBuffer {
         private:
             size_t _n;
             std::vector<Organism> _a;
             std::vector<Organism> _b;
             std::vector<Organism> *_curr;
         public:
-            Organisms(size_t n)
+            OrganismsBuffer(size_t n)
             : _n(n) {
                 _a.resize(n);
                 _b.resize(n);
@@ -53,7 +53,7 @@ namespace NEAT {
             inline std::vector<Organism> &curr() {return *_curr;}
             inline void swap() {
                 if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
-                //assert( _curr->size() == _n );
+                assert( _curr->size() == _n );
             }
         } orgs;
 
@@ -61,8 +61,8 @@ namespace NEAT {
         std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
 
 		// ******* Member variables used during reproduction *******
-        std::vector<Innovation*> innovations;  // For holding the genetic innovations of the newest generation
-		int cur_node_id;  //Current label number available
+        std::vector<IndividualInnovation> innovations;  // For holding the genetic innovations of the newest generation
+		int cur_node_id;
 		double cur_innov_num;
 
 		int last_species;  //The highest species number

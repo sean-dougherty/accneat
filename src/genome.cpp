@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
-#include <map> //todo: remove after innovations working
 #include <sstream>
 
 using namespace NEAT;
@@ -474,31 +473,8 @@ void Genome::mutate_gene_reenable() {
     }
 }
 
-//todo: delete debug code
-namespace NEAT {
-    int *__cur_node_id;
-    double *__cur_innov_num;
-
-    int __innov_dbgid = 0;
-
-    static vector<IndividualInnovation> allinds;
-    static map<InnovationId, vector<IndividualInnovation>> id2inds;
-
-    void reset_debug() {
-        allinds.clear();
-        id2inds.clear();
-    }
-
-    void apply_debug() {
-        apply_innovations(allinds, __cur_node_id, __cur_innov_num);
-    }
-}
-
-
 bool Genome::mutate_add_node(int population_index,
-                             vector<Innovation*> &innovs,
-                             int &curnode_id,
-                             double &curinnov) {
+                             vector<IndividualInnovation> &innovs) {
     LinkGene *splitlink = nullptr;
     {
         for(int i = 0; !splitlink && i < 20; i++) {
@@ -546,15 +522,14 @@ bool Genome::mutate_add_node(int population_index,
         add_node(this->nodes, newnode);
     };
 
-    allinds.emplace_back(population_index, innov_id, innov_parms, innov_apply);
+    innovs.emplace_back(population_index, innov_id, innov_parms, innov_apply);
 
 	return true;
 
 }
 
 bool Genome::mutate_add_link(int population_index,
-                             vector<Innovation*> &innovs,
-                             double &curinnov,
+                             vector<IndividualInnovation> &innovs,
                              int tries) {
     LinkGene *recur_checker_buf[links.size()];
     RecurrencyChecker recur_checker(nodes.size(), links, recur_checker_buf);
@@ -634,7 +609,7 @@ bool Genome::mutate_add_link(int population_index,
             add_link(this->links, newlink);
         };
 
-        allinds.emplace_back(population_index, innov_id, innov_parms, innov_apply);
+        innovs.emplace_back(population_index, innov_id, innov_parms, innov_apply);
     }
 
     return true;

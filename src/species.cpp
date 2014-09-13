@@ -319,7 +319,6 @@ void Species::reproduce(int population_index,
                 //Sometimes we add a link to a superchamp
                 new_genome.mutate_add_link(population_index,
                                            pop->innovations,
-                                           pop->cur_innov_num,
                                            NEAT::newlink_tries);
             }
         }
@@ -388,13 +387,10 @@ static void mutate(int population_index,
     //various mutations
     if (rng.prob()<NEAT::mutate_add_node_prob) {
         new_genome.mutate_add_node(population_index,
-                                   pop->innovations,
-                                   pop->cur_node_id,
-                                   pop->cur_innov_num);
+                                   pop->innovations);
     } else if (rng.prob()<NEAT::mutate_add_link_prob) {
         new_genome.mutate_add_link(population_index,
                                    pop->innovations,
-                                   pop->cur_innov_num,
                                    NEAT::newlink_tries);
     } else {
         //Only do other mutations when not doing sturctural mutations
