@@ -103,8 +103,11 @@ namespace NEAT {
         }
     };
 
+    extern int __innov_dbgid;
+
     class IndividualInnovation {
     public:
+        int dbgid;
         typedef std::function<void (const Innovation *innov)> ApplyFunc;
 
         int population_index;
@@ -120,6 +123,7 @@ namespace NEAT {
         : population_index(population_index_)
             , id(id_)
             , parms(parms_) {
+            dbgid = ++__innov_dbgid;
 
             apply = apply_;
         }

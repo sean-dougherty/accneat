@@ -479,16 +479,35 @@ namespace NEAT {
     int *__cur_node_id;
     double *__cur_innov_num;
 
+    int __innov_dbgid = 0;
+
+    static vector<IndividualInnovation> allinds;
     static map<InnovationId, vector<IndividualInnovation>> id2inds;
 
     void reset_debug() {
+        allinds.clear();
         id2inds.clear();
     }
 
     void apply_debug() {
+
+        std::random_device rd;
+        std::mt19937 g(rd());
+        std::shuffle(allinds.begin(), allinds.end(), g);
+
+        for(auto &ind: allinds) {
+            id2inds[ind.id].push_back(ind);
+        }
+
         vector<IndividualInnovation> masters;
         for(auto &kv: id2inds) {
             auto &inds = kv.second;
+  
+            std::sort(inds.begin(), inds.end(),
+                      [] (const IndividualInnovation &x, const IndividualInnovation &y) {
+                          return x.population_index < y.population_index;
+                      });
+  
             auto &master = inds.front();
             masters.push_back(master);
         }        
@@ -552,6 +571,11 @@ bool Genome::mutate_add_node(int population_index,
 
     splitlink->enable = false;
 
+    InnovationId innov_id(splitlink->in_node_id(),
+                          splitlink->out_node_id(),
+                          splitlink->innovation_num);
+    InnovationParms innov_parms;
+
     auto create_genes = [this, splitlink] (const Innovation *innov) {
 
         NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
@@ -577,12 +601,7 @@ bool Genome::mutate_add_node(int population_index,
         add_node(this->nodes, newnode);
     };
 
-    InnovationId innov_id(splitlink->in_node_id(),
-                          splitlink->out_node_id(),
-                          splitlink->innovation_num);
-    InnovationParms innov_parms;
-
-    id2inds[innov_id].emplace_back(population_index, innov_id, innov_parms, create_genes);
+    allinds.emplace_back(population_index, innov_id, innov_parms, create_genes);
 
 	return true;
 
@@ -670,40 +689,20 @@ bool Genome::mutate_add_link(int population_index,
             add_link(this->links, newlink);
         };
 
-        id2inds[innov_id].emplace_back(population_index, innov_id, innov_parms, create_genes);
+        allinds.emplace_back(population_index, innov_id, innov_parms, create_genes);
     }
 
     return true;
 }
 
-//Adds a new gene that has been created through a mutation in the
-//*correct order* into the list of links in the genome
-void Genome::add_link(vector<LinkGene> &glist, const LinkGene &g) {
-  vector<LinkGene>::iterator curgene;
-  double inum=g.innovation_num;
-
-  curgene=glist.begin();
-  while ((curgene!=glist.end())&&
-	 ((curgene->innovation_num)<inum)) {
-    ++curgene;
-  }
-
-  glist.insert(curgene, g);
+void Genome::add_link(vector<LinkGene> &llist, const LinkGene &l) {
+    auto it = std::upper_bound(llist.begin(), llist.end(), l, linklist_cmp);
+    llist.insert(it, l);
 }
 
-//todo: use binary search.
 void Genome::add_node(vector<NodeGene> &nlist, const NodeGene &n) {
-	vector<NodeGene>::iterator curnode;
-
-	int id=n.node_id;
-
-	curnode=nlist.begin();
-	while ((curnode!=nlist.end())&&
-		((curnode->node_id)<id)) 
-		++curnode;
-
-	nlist.insert(curnode, n);
-
+    auto it = std::upper_bound(nlist.begin(), nlist.end(), n, nodelist_cmp);
+    nlist.insert(it, n);
 }
 
 void Genome::mate_multipoint(Genome *g,

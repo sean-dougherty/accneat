@@ -162,6 +162,17 @@ namespace NEAT {
         Trait &get_trait(const LinkGene &gene);
 
 	private:
+        static bool nodelist_cmp(const NodeGene &a, const NodeGene &b) {
+            return a.node_id < b.node_id;
+        }
+        static bool nodelist_cmp_key(const NodeGene &node, int node_id) {
+            return node.node_id < node_id;
+        }
+        static bool linklist_cmp(const LinkGene &a, const LinkGene &b) {
+            return a.innovation_num < b.innovation_num;
+        }
+
+
 		//Inserts a NodeGene into a given ordered list of NodeGenes in order
 		static void add_node(std::vector<NodeGene> &nlist, const NodeGene &n);
 
@@ -176,10 +187,6 @@ namespace NEAT {
     private:
         class NodeLookup {
             std::vector<NodeGene> &nodes;
-
-            static bool cmp(const NodeGene &node, int node_id) {
-                return node.node_id < node_id;
-            }
         public:
             // Must be sorted by node_id in ascending order
         NodeLookup(std::vector<NodeGene> &nodes_)
@@ -187,7 +194,7 @@ namespace NEAT {
             }
 
             NodeGene *find(int node_id) {
-                auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
+                auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, nodelist_cmp_key);
                 if(it == nodes.end())
                     return nullptr;
 
