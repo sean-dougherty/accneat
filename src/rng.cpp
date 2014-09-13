@@ -34,25 +34,26 @@ static bool equals(double x, double y) {
 void rng_t::test() {
     // seed
     {
-        rng_t rng;
+        rng_t rng1;
+        rng_t rng2;
 
         {
             vector<double> x, y;
 
-            rng.seed(1);
-            x = {rng.prob(), rng.prob(), rng.prob()};
-            rng.seed(1);
-            y = {rng.prob(), rng.prob(), rng.prob()};
+            rng1.seed(1);
+            x = {rng1.prob(), rng1.prob(), rng1.prob()};
+            rng2.seed(1);
+            y = {rng2.prob(), rng2.prob(), rng2.prob()};
             assert_equals_vec(x, y);
         }
 
         {
             vector<double> x, y;
 
-            rng.seed(2);
-            x = {rng.prob(), rng.prob(), rng.prob()};
-            rng.seed(3);
-            y = {rng.prob(), rng.prob(), rng.prob()};
+            rng1.seed(2);
+            x = {rng1.prob(), rng1.prob(), rng1.prob()};
+            rng2.seed(3);
+            y = {rng2.prob(), rng2.prob(), rng2.prob()};
             assert_nequals_vec(x, y);
         }
 
