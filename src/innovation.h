@@ -18,6 +18,7 @@
 
 #include "neat.h"
 #include <functional>
+#include <vector>
 
 namespace NEAT {
 
@@ -160,6 +161,10 @@ namespace NEAT {
             , newnode_id(newnode_id_) {
         }
 	};
+
+    void apply_innovations(std::vector<IndividualInnovation> &ind_innovs,
+                           int *cur_node_id,
+                           double *cur_innov_num);
 } // namespace NEAT
 
 #endif

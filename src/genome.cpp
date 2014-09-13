@@ -490,62 +490,7 @@ namespace NEAT {
     }
 
     void apply_debug() {
-
-        std::random_device rd;
-        std::mt19937 g(rd());
-        std::shuffle(allinds.begin(), allinds.end(), g);
-
-        for(auto &ind: allinds) {
-            id2inds[ind.id].push_back(ind);
-        }
-
-        vector<IndividualInnovation> masters;
-        for(auto &kv: id2inds) {
-            auto &inds = kv.second;
-  
-            std::sort(inds.begin(), inds.end(),
-                      [] (const IndividualInnovation &x, const IndividualInnovation &y) {
-                          return x.population_index < y.population_index;
-                      });
-  
-            auto &master = inds.front();
-            masters.push_back(master);
-        }        
-
-        std::sort(masters.begin(), masters.end(),
-                  [] (const IndividualInnovation &x, const IndividualInnovation &y) {
-                      return x.population_index < y.population_index;
-                  });
-        
-
-        for(auto &master: masters) {
-            auto &inds = id2inds[master.id];
-
-            Innovation *innov;
-            switch(master.id.innovation_type) {
-            case NEWNODE: {
-                innov = new Innovation(master.id,
-                                       master.parms,
-                                       *__cur_innov_num,
-                                       *__cur_innov_num + 1,
-                                       *__cur_node_id);
-                *__cur_innov_num += 2;
-                *__cur_node_id += 1;
-            } break;
-            case NEWLINK: {
-                innov = new Innovation(master.id,
-                                           master.parms,
-                                           *__cur_innov_num);
-                    *__cur_innov_num += 1.0;
-            } break;
-            default:
-                trap("here");
-            }
-
-            for(IndividualInnovation &ind: inds) {
-                ind.apply(innov);
-            }
-        }
+        apply_innovations(allinds, __cur_node_id, __cur_innov_num);
     }
 }
 
@@ -576,7 +521,7 @@ bool Genome::mutate_add_node(int population_index,
                           splitlink->innovation_num);
     InnovationParms innov_parms;
 
-    auto create_genes = [this, splitlink] (const Innovation *innov) {
+    auto innov_apply = [this, splitlink] (const Innovation *innov) {
 
         NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
 
@@ -601,7 +546,7 @@ bool Genome::mutate_add_node(int population_index,
         add_node(this->nodes, newnode);
     };
 
-    allinds.emplace_back(population_index, innov_id, innov_parms, create_genes);
+    allinds.emplace_back(population_index, innov_id, innov_parms, innov_apply);
 
 	return true;
 
@@ -676,7 +621,7 @@ bool Genome::mutate_add_link(int population_index,
 
         InnovationParms innov_parms(newweight, trait_id);
 
-        auto create_genes = [this] (const Innovation *innov) {
+        auto innov_apply = [this] (const Innovation *innov) {
 
             LinkGene newlink(innov->parms.new_trait_id,
                              innov->parms.new_weight,
@@ -689,7 +634,7 @@ bool Genome::mutate_add_link(int population_index,
             add_link(this->links, newlink);
         };
 
-        allinds.emplace_back(population_index, innov_id, innov_parms, create_genes);
+        allinds.emplace_back(population_index, innov_id, innov_parms, innov_apply);
     }
 
     return true;
