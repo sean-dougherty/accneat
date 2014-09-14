@@ -7,8 +7,8 @@
 using namespace NEAT;
 using namespace std;
 
-static bool equals(double x, double y) {
-    return abs((x) - (y)) / double(y) < 0.01;
+static bool equals(real_t x, real_t y) {
+    return abs((x) - (y)) / real_t(y) < 0.01;
 }
 
 #define assert_equals(x, y)                                             \
@@ -38,7 +38,7 @@ void rng_t::test() {
         rng_t rng2;
 
         {
-            vector<double> x, y;
+            vector<real_t> x, y;
 
             rng1.seed(1);
             x = {rng1.prob(), rng1.prob(), rng1.prob()};
@@ -48,7 +48,7 @@ void rng_t::test() {
         }
 
         {
-            vector<double> x, y;
+            vector<real_t> x, y;
 
             rng1.seed(2);
             x = {rng1.prob(), rng1.prob(), rng1.prob()};
@@ -70,7 +70,7 @@ void rng_t::test() {
         }
 
         for(size_t x: vec) {
-            assert_equals( double(x) / N, 1.0 / vec.size() );
+            assert_equals( real_t(x) / N, 1.0 / vec.size() );
         }
     }
 
@@ -83,17 +83,17 @@ void rng_t::test() {
         size_t count[NBINS] = {0};
         
         for(size_t i = 0; i < N; i++) {
-            double x = rng.prob();
+            real_t x = rng.prob();
             
             assert(x >= 0.0 && x <= 1.0);
 
-            size_t bin = min(x * NBINS, double(NBINS - 1));
+            size_t bin = min(x * NBINS, real_t(NBINS - 1));
 
             count[bin]++;
         }
 
         for(auto n: count) {
-            assert_equals( n/double(N), 1.0/double(NBINS));
+            assert_equals( n/real_t(N), 1.0/real_t(NBINS));
         }
     }
 
@@ -112,7 +112,7 @@ void rng_t::test() {
             count[(x + 1) / 2]++;
         }
 
-        assert_equals( double(count[0]) / N, 0.5);
+        assert_equals( real_t(count[0]) / N, 0.5);
     }
 
     // gauss
@@ -125,19 +125,19 @@ void rng_t::test() {
         size_t count_pos[NBINS] = {0};
 
         for(size_t i = 0; i < N; i++) {
-            double x = rng.gauss();
+            real_t x = rng.gauss();
             size_t *count = x < 0 ? count_neg : count_pos;
 
             size_t bin = min(size_t(abs(x)), NBINS - 1);
             count[bin]++;
         }
 
-        assert_equals( double(count_neg[0]) / N, 0.3413 );
-        assert_equals( double(count_neg[1]) / N, 0.4772 - 0.3413 );
-        assert_equals( double(count_neg[2]) / N, 0.5 - 0.4772 );
-        assert_equals( double(count_pos[0]) / N, 0.3413 );
-        assert_equals( double(count_pos[1]) / N, 0.4772 - 0.3413 );
-        assert_equals( double(count_pos[2]) / N, 0.5 - 0.4772 );
+        assert_equals( real_t(count_neg[0]) / N, 0.3413 );
+        assert_equals( real_t(count_neg[1]) / N, 0.4772 - 0.3413 );
+        assert_equals( real_t(count_neg[2]) / N, 0.5 - 0.4772 );
+        assert_equals( real_t(count_pos[0]) / N, 0.3413 );
+        assert_equals( real_t(count_pos[1]) / N, 0.4772 - 0.3413 );
+        assert_equals( real_t(count_pos[2]) / N, 0.5 - 0.4772 );
     }
 
     cout << "rng test passed" << endl;

@@ -33,7 +33,7 @@ void Network::reset() {
     noutput_nodes = 0;
 }
 
-void Network::init(double maxweight_) {
+void Network::init(real_t maxweight_) {
     maxweight = maxweight_;
 
     size_t i = 0;
@@ -76,7 +76,7 @@ void Network::activate() {
     for(size_t i = ninput_nodes; i < nodes.size(); i++) {
         NNode &node = nodes[i];
 
-        double activation = 0.0;
+        real_t activation = 0.0;
         // For each incoming connection, add the activity from the connection to the activesum 
         for(Link &link: node.incoming) {
             NNode &inode = nodes[link.in_node_index];
@@ -96,19 +96,19 @@ void Network::activate() {
 }
 
 // Takes an array of sensor values and loads it into SENSOR inputs ONLY
-void Network::load_sensors(const double *sensvals) {
+void Network::load_sensors(const real_t *sensvals) {
     for(size_t i = 0; i < ninput_nodes; i++) {
         nodes[i].sensor_load(sensvals[i]);
     }
 }
 
-void Network::load_sensors(const std::vector<double> &sensvals) {
+void Network::load_sensors(const std::vector<real_t> &sensvals) {
     assert(sensvals.size() == ninput_nodes);
 
     load_sensors(sensvals.data());
 }
 
-double Network::get_output(size_t index) {
+real_t Network::get_output(size_t index) {
     assert(index < noutput_nodes);
 
     return nodes[ninput_nodes + index].activation;

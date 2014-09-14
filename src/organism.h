@@ -34,14 +34,14 @@ namespace NEAT {
 	class Organism {
 
 	public:
-		double fitness;  //A measure of fitness for the Organism
-		double orig_fitness;  //A fitness measure that won't change during adjustments
-		double error;  //Used just for reporting purposes
+		real_t fitness;  //A measure of fitness for the Organism
+		real_t orig_fitness;  //A fitness measure that won't change during adjustments
+		real_t error;  //Used just for reporting purposes
 		bool winner;  //Win marker (if needed for a particular task)
 		Network net;  //The Organism's phenotype
 		Genome genome; //The Organism's genotype 
 		Species *species;  //The Organism's Species 
-		double expected_offspring; //Number of children this Organism may have
+		real_t expected_offspring; //Number of children this Organism may have
 		int generation;  //Tells which generation this Organism is from
 		bool eliminate;  //Marker for destruction of inferior Organisms
 		bool champion; //Marks the species champ
@@ -60,7 +60,7 @@ namespace NEAT {
 		Organism(const Organism& org) {trap("shouldn't ever have to copy");}
 		~Organism();
 
-        void init(double fit, int gen, const char *metadata = nullptr);
+        void init(real_t fit, int gen, const char *metadata = nullptr);
 
         void create_phenotype();
 	};

@@ -186,13 +186,13 @@ bool Population::epoch(int generation) {
     }
 #endif
 
-	double total=0.0; //Used to compute average fitness over all Organisms
-	double overall_average;  //The average modified fitness among ALL organisms
+	real_t total=0.0; //Used to compute average fitness over all Organisms
+	real_t overall_average;  //The average modified fitness among ALL organisms
 
 	//The fractional parts of expected offspring that can be 
 	//Used only when they accumulate above 1 for the purposes of counting
 	//Offspring
-	double skim; 
+	real_t skim; 
 	int total_expected;  //precision checking
 	int total_organisms = size(); // todo: get rid of this variable
     assert(total_organisms == NEAT::pop_size);
@@ -304,7 +304,7 @@ bool Population::epoch(int generation) {
     {
         Organism *pop_champ = sorted_species[0]->first();
         if(pop_champ->orig_fitness > highest_fitness) {
-            double old_highest = highest_fitness;
+            real_t old_highest = highest_fitness;
             highest_fitness = pop_champ->orig_fitness;
             highest_last_changed=0;
 
@@ -417,7 +417,7 @@ bool Population::epoch(int generation) {
 
                 for(Species *s: species) {
                     if(s->size()) {
-                        double comp = org.genome.compatibility(&s->first()->genome);
+                        real_t comp = org.genome.compatibility(&s->first()->genome);
                         if(comp < NEAT::compat_threshold) {
                             org.species = s;
                             break;
@@ -438,7 +438,7 @@ bool Population::epoch(int generation) {
                     i++) {
 
                     Species *s = species[i];
-                    double comp = org.genome.compatibility(&s->first()->genome);
+                    real_t comp = org.genome.compatibility(&s->first()->genome);
                     if(comp < NEAT::compat_threshold) {
                         org.species = s;
                         break;
@@ -512,8 +512,8 @@ bool Population::epoch(int generation) {
                     ndisabled++;
         }
 
-        double n = double(size());
-        std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/double(nlinks)) << std::endl;
+        real_t n = real_t(size());
+        std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/real_t(nlinks)) << std::endl;
     }
 
 	return true;

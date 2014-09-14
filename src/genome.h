@@ -41,7 +41,7 @@ namespace NEAT {
         void reset(int new_id);
 
 		int get_last_node_id(); //Return id of final NodeGene in Genome
-		double get_last_gene_innovnum(); //Return last innovation number in Genome
+		real_t get_last_gene_innovnum(); //Return last innovation number in Genome
 
 		void print_genome(); //Displays Genome on screen
 
@@ -89,7 +89,7 @@ namespace NEAT {
 		void mutate_node_trait(int times);
 
 		// Add Gaussian noise to linkweights either GAUSSIAN or COLDGAUSSIAN (from zero)
-		void mutate_link_weights(double power,double rate,mutator mut_type);
+		void mutate_link_weights(real_t power,real_t rate,mutator mut_type);
 
 		// toggle links on or off 
 		void mutate_toggle_enable(int times);
@@ -123,8 +123,8 @@ namespace NEAT {
                                     Genome *genome2,
                                     Genome *offspring,
                                     int genomeid,
-                                    double fitness1,
-                                    double fitness2);
+                                    real_t fitness1,
+                                    real_t fitness2);
 
 		//This method mates like multipoint but instead of selecting one
 		//   or the other when the innovation numbers match, it averages their
@@ -133,8 +133,8 @@ namespace NEAT {
                                         Genome *genome2,
                                         Genome *offspring,
                                         int genomeid,
-                                        double fitness1,
-                                        double fitness2);
+                                        real_t fitness1,
+                                        real_t fitness2);
 
 		// ******** COMPATIBILITY CHECKING METHODS ********
 
@@ -146,9 +146,9 @@ namespace NEAT {
 		//   MATCHING GENES.  So the formula for compatibility 
 		//   is:  disjoint_coeff*pdg+excess_coeff*peg+mutdiff_coeff*mdmg.
 		//   The 3 coefficients are global system parameters 
-		double compatibility(Genome *g);
+		real_t compatibility(Genome *g);
 
-		double trait_compare(Trait *t1,Trait *t2);
+		real_t trait_compare(Trait *t1,Trait *t2);
 
 		// Return number of non-disabled genes 
 		int extrons();

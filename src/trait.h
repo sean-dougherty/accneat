@@ -37,11 +37,11 @@ namespace NEAT {
 
 	public:
 		int trait_id; // Used in file saving and loading
-		double params[NEAT::num_trait_params]; // Keep traits in an array
+		real_t params[NEAT::num_trait_params]; // Keep traits in an array
 
 		Trait ();
 
-		Trait(int id,double p1,double p2,double p3,double p4,double p5,double p6,double p7,double p8,double p9);
+		Trait(int id,real_t p1,real_t p2,real_t p3,real_t p4,real_t p5,real_t p6,real_t p7,real_t p8,real_t p9);
 
 		// Copy Constructor
 		Trait(const Trait& t);

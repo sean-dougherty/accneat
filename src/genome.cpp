@@ -323,7 +323,7 @@ int Genome::get_last_node_id() {
     return nodes.back().node_id + 1;
 }
 
-double Genome::get_last_gene_innovnum() {
+real_t Genome::get_last_gene_innovnum() {
     return links.back().innovation_num + 1;
 }
 
@@ -364,13 +364,13 @@ void Genome::mutate_node_trait(int times) {
     //mutation number
 }
 
-void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
+void Genome::mutate_link_weights(real_t power,real_t rate,mutator mut_type) {
 	//Go through all the LinkGenes and perturb their link's weights
 
-	double num = 0.0; //counts gene placement
-	double gene_total = (double)links.size();
-	double endpart = gene_total*0.8; //Signifies the last part of the genome
-	double powermod = 1.0; //Modified power by gene number
+	real_t num = 0.0; //counts gene placement
+	real_t gene_total = (real_t)links.size();
+	real_t endpart = gene_total*0.8; //Signifies the last part of the genome
+	real_t powermod = 1.0; //Modified power by gene number
 	//The power of mutation will rise farther into the genome
 	//on the theory that the older genes are more fit since
 	//they have stood the test of time
@@ -389,8 +389,8 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 
 		//Don't mutate weights of frozen links
 		if (!(gene.frozen)) {
-            double gausspoint;
-            double coldgausspoint;
+            real_t gausspoint;
+            real_t coldgausspoint;
 
 			if (severe) {
 				gausspoint=0.3;
@@ -413,9 +413,9 @@ void Genome::mutate_link_weights(double power,double rate,mutator mut_type) {
 			}
 
 			//Possible methods of setting the perturbation:
-			double randnum = rng.posneg()*rng.prob()*power*powermod;
+			real_t randnum = rng.posneg()*rng.prob()*power*powermod;
 			if (mut_type==GAUSSIAN) {
-				double randchoice = rng.prob();
+				real_t randchoice = rng.prob();
 				if (randchoice > gausspoint)
 					gene.weight()+=randnum;
 				else if (randchoice > coldgausspoint)
@@ -592,7 +592,7 @@ bool Genome::mutate_add_link(int population_index,
         //It depends on whether this genome is the first to create the innovation,
         //but it's impossible to know at this point who is first.
         int trait_id = 1 + rng.index(traits);
-        double newweight = rng.posneg() * rng.prob() * 1.0;
+        real_t newweight = rng.posneg() * rng.prob() * 1.0;
 
         InnovationParms innov_parms(newweight, trait_id);
 
@@ -631,8 +631,8 @@ void Genome::mate_multipoint(Genome *genome1,
                              Genome *genome2,
                              Genome *offspring,
                              int genomeid,
-                             double fitness1,
-                             double fitness2) {
+                             real_t fitness1,
+                             real_t fitness2) {
     rng_t &rng = offspring->rng;
     vector<LinkGene> &links1 = genome1->links;
     vector<LinkGene> &links2 = genome2->links;
@@ -652,8 +652,8 @@ void Genome::mate_multipoint(Genome *genome1,
 	//iterators for moving through the two parents' links
 	vector<LinkGene>::iterator p1gene;
 	vector<LinkGene>::iterator p2gene;
-	double p1innov;  //Innovation numbers for links inside parents' Genomes
-	double p2innov;
+	real_t p1innov;  //Innovation numbers for links inside parents' Genomes
+	real_t p2innov;
 	vector<NodeGene>::iterator curnode;  //For checking if NodeGenes exist already 
 
 	bool disable;  //Set to true if we want to disabled a chosen gene
@@ -865,8 +865,8 @@ void Genome::mate_multipoint_avg(Genome *genome1,
                                  Genome *genome2,
                                  Genome *offspring,
                                  int genomeid,
-                                 double fitness1,
-                                 double fitness2) {
+                                 real_t fitness1,
+                                 real_t fitness2) {
     rng_t &rng = offspring->rng;
     vector<LinkGene> &links1 = genome1->links;
     vector<LinkGene> &links2 = genome2->links;
@@ -882,8 +882,8 @@ void Genome::mate_multipoint_avg(Genome *genome1,
 	//iterators for moving through the two parents' links
 	vector<LinkGene>::iterator p1gene;
 	vector<LinkGene>::iterator p2gene;
-	double p1innov;  //Innovation numbers for links inside parents' Genomes
-	double p2innov;
+	real_t p1innov;  //Innovation numbers for links inside parents' Genomes
+	real_t p2innov;
 	vector<NodeGene>::iterator curnode;  //For checking if NodeGenes exist already 
 
 	//This LinkGene is used to hold the average of the two links to be averaged
@@ -1115,23 +1115,23 @@ void Genome::mate_multipoint_avg(Genome *genome1,
     }
 }
 
-double Genome::compatibility(Genome *g) {
+real_t Genome::compatibility(Genome *g) {
     vector<LinkGene> &links1 = this->links;
     vector<LinkGene> &links2 = g->links;
 
 
 	//Innovation numbers
-	double p1innov;
-	double p2innov;
+	real_t p1innov;
+	real_t p2innov;
 
 	//Intermediate value
-	double mut_diff;
+	real_t mut_diff;
 
 	//Set up the counters
-	double num_disjoint=0.0;
-	double num_excess=0.0;
-	double mut_diff_total=0.0;
-	double num_matching=0.0;  //Used to normalize mutation_num differences
+	real_t num_disjoint=0.0;
+	real_t num_excess=0.0;
+	real_t mut_diff_total=0.0;
+	real_t num_matching=0.0;  //Used to normalize mutation_num differences
 
 	//Now move through the LinkGenes of each potential parent 
 	//until both Genomes end
@@ -1192,12 +1192,12 @@ double Genome::compatibility(Genome *g) {
 			NEAT::mutdiff_coeff*(mut_diff_total/num_matching));
 }
 
-double Genome::trait_compare(Trait *t1,Trait *t2) {
+real_t Genome::trait_compare(Trait *t1,Trait *t2) {
 
 	int id1=t1->trait_id;
 	int id2=t2->trait_id;
 	int count;
-	double params_diff=0.0; //Measures parameter difference
+	real_t params_diff=0.0; //Measures parameter difference
 
 	//See if traits represent different fundamental types of connections
 	if ((id1==1)&&(id2>=2)) {

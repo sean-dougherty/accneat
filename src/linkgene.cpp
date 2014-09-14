@@ -19,12 +19,12 @@
 #include <sstream>
 using namespace NEAT;
 
-LinkGene::LinkGene(double w,
+LinkGene::LinkGene(real_t w,
                    int inode_id,
                    int onode_id,
                    bool recur,
                    int innov,
-                   double mnum) {
+                   real_t mnum) {
     _weight = w;
     _in_node_id = inode_id;
     _out_node_id = onode_id;
@@ -40,12 +40,12 @@ LinkGene::LinkGene(double w,
 
 //Construct a gene with a trait
 LinkGene::LinkGene(int trait_id,
-                   double w,
+                   real_t w,
                    int inode_id,
                    int onode_id,
                    bool recur,
                    int innov,
-                   double mnum) {
+                   real_t mnum) {
     _weight = w;
     _in_node_id = inode_id;
     _out_node_id = onode_id;
@@ -81,7 +81,7 @@ LinkGene::LinkGene(const char *argline) {
 	int trait_id;
 	int inodenum;
 	int onodenum;
-	double weight;
+	real_t weight;
 	int recur;
 
 	//Get the gene parameters

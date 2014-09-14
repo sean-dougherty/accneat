@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
     if (p)
         delete p;
 
-    Timer::report();
+    NEAT::Timer::report();
 
     return(0);
  

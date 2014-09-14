@@ -47,11 +47,11 @@ namespace NEAT {
 
     class InnovationParms {
     public:
-		double new_weight;
+		real_t new_weight;
 		int new_trait_id;
 
         InnovationParms();
-        InnovationParms(double w, int t);
+        InnovationParms(real_t w, int t);
     };
 
     class IndividualInnovation {

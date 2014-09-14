@@ -18,7 +18,7 @@
 using namespace NEAT;
 
 
-Link::Link(double w,
+Link::Link(real_t w,
            node_index_t inode_index)
     : weight(w)
     , in_node_index(inode_index) {

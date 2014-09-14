@@ -24,7 +24,7 @@
 namespace NEAT {
 
 	class LinkGene {
-		double _weight; // Weight of connection
+		real_t _weight; // Weight of connection
 		int _in_node_id; // NNode inputting into the link
 		int _out_node_id; // NNode that the link affects
 		bool _is_recurrent;
@@ -37,7 +37,7 @@ namespace NEAT {
         inline int in_node_id() const { return _in_node_id; }
         inline void set_in_node_id(int id) { _in_node_id = id; }
 
-        inline double &weight() { return _weight; }
+        inline real_t &weight() { return _weight; }
 
         inline int trait_id() const { return _trait_id; }
         inline void set_trait_id(int tid) { _trait_id = tid; }
@@ -47,7 +47,7 @@ namespace NEAT {
 
 
 		int innovation_num;
-		double mutation_num;  //Used to see how much mutation has changed the link
+		real_t mutation_num;  //Used to see how much mutation has changed the link
 		bool enable;  //When this is off the LinkGene is disabled
 		bool frozen;  //When frozen, the linkweight cannot be mutated
 
@@ -55,21 +55,21 @@ namespace NEAT {
         LinkGene() {}
 
 		//Construct a gene with no trait
-		LinkGene(double w,
+		LinkGene(real_t w,
                  int inode_id,
                  int onode_id,
                  bool recur,
                  int innov,
-                 double mnum);
+                 real_t mnum);
 
 		//Construct a gene with a trait
 		LinkGene(int trait_id,
-                 double w,
+                 real_t w,
                  int inode_id,
                  int onode_id,
                  bool recur,
                  int innov,
-                 double mnum);
+                 real_t mnum);
 
 		//Construct a gene off of another gene as a duplicate
 		LinkGene(LinkGene *g,

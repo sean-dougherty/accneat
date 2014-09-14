@@ -22,6 +22,7 @@
 #include <iostream>
 
 namespace NEAT {
+    typedef float real_t;
 
 	enum nodetype {
 		NEURON = 0,
@@ -41,12 +42,12 @@ namespace NEAT {
 
 	const int num_trait_params = 8;
 
-	extern double trait_param_mut_prob;
-	extern double trait_mutation_power; // Power of mutation on a signle trait param 
-	extern double linktrait_mut_sig;  // Amount that mutation_num changes for a trait change inside a link
-	extern double nodetrait_mut_sig; // Amount a mutation_num changes on a link connecting a node that changed its trait 
-	extern double weight_mut_power;  // The power of a linkweight mutation 
-	extern double recur_prob;        // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
+	extern real_t trait_param_mut_prob;
+	extern real_t trait_mutation_power; // Power of mutation on a signle trait param 
+	extern real_t linktrait_mut_sig;  // Amount that mutation_num changes for a trait change inside a link
+	extern real_t nodetrait_mut_sig; // Amount a mutation_num changes on a link connecting a node that changed its trait 
+	extern real_t weight_mut_power;  // The power of a linkweight mutation 
+	extern real_t recur_prob;        // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
 
 	// These 3 global coefficients are used to determine the formula for
 	// computating the compatibility between 2 genomes.  The formula is:
@@ -55,31 +56,31 @@ namespace NEAT {
 	// They can be thought of as the importance of disjoint Genes,
 	// excess Genes, and parametric difference between Genes of the
 	// same function, respectively. 
-	extern double disjoint_coeff;
-	extern double excess_coeff;
-	extern double mutdiff_coeff;
+	extern real_t disjoint_coeff;
+	extern real_t excess_coeff;
+	extern real_t mutdiff_coeff;
 
 	// This global tells compatibility threshold under which two Genomes are considered the same species 
-	extern double compat_threshold;
+	extern real_t compat_threshold;
 
 	// Globals involved in the epoch cycle - mating, reproduction, etc.. 
-	extern double age_significance;          // How much does age matter? 
-	extern double survival_thresh;           // Percent of ave fitness for survival 
-	extern double mutate_only_prob;          // Prob. of a non-mating reproduction 
-	extern double mutate_random_trait_prob;
-	extern double mutate_link_trait_prob;
-	extern double mutate_node_trait_prob;
-	extern double mutate_link_weights_prob;
-	extern double mutate_toggle_enable_prob;
-	extern double mutate_gene_reenable_prob;
-	extern double mutate_add_node_prob;
-	extern double mutate_add_link_prob;
-	extern double interspecies_mate_rate;    // Prob. of a mate being outside species 
-	extern double mate_multipoint_prob;     
-	extern double mate_multipoint_avg_prob;
-	extern double mate_singlepoint_prob;
-	extern double mate_only_prob;            // Prob. of mating without mutation 
-	extern double recur_only_prob;  // Probability of forcing selection of ONLY links that are naturally recurrent 
+	extern real_t age_significance;          // How much does age matter? 
+	extern real_t survival_thresh;           // Percent of ave fitness for survival 
+	extern real_t mutate_only_prob;          // Prob. of a non-mating reproduction 
+	extern real_t mutate_random_trait_prob;
+	extern real_t mutate_link_trait_prob;
+	extern real_t mutate_node_trait_prob;
+	extern real_t mutate_link_weights_prob;
+	extern real_t mutate_toggle_enable_prob;
+	extern real_t mutate_gene_reenable_prob;
+	extern real_t mutate_add_node_prob;
+	extern real_t mutate_add_link_prob;
+	extern real_t interspecies_mate_rate;    // Prob. of a mate being outside species 
+	extern real_t mate_multipoint_prob;     
+	extern real_t mate_multipoint_avg_prob;
+	extern real_t mate_singlepoint_prob;
+	extern real_t mate_only_prob;            // Prob. of mating without mutation 
+	extern real_t recur_only_prob;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 	extern int pop_size;  // Size of population 
 	extern int dropoff_age;  // Age where Species starts to be penalized 
 	extern int newlink_tries;  // Number of tries mutate_add_link will attempt to find an open link 
@@ -109,7 +110,7 @@ namespace NEAT {
 	// the old output and some other node. 
 	// When not right-shifted, the steepened slope is closest to a linear
 	// ascent as possible between -0.5 and 0.5
-    inline double fsigmoid(double activesum,double slope,double constant) {
+    inline real_t fsigmoid(real_t activesum,real_t slope,real_t constant) {
         //NON-SHIFTED STEEPENED
         return (1/(1+(exp(-(slope*activesum))))); //Compressed
     }
@@ -123,7 +124,7 @@ namespace NEAT {
 	// Returns the new modified weight
 	// NOTE: For an inhibatory connection, it makes sense to
 	//      emphasize decorrelation on hebbian learning!
-	extern double oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
+	extern real_t oldhebbian(real_t weight, real_t maxweight, real_t active_in, real_t active_out, real_t hebb_rate, real_t pre_rate, real_t post_rate);
 
 	// Hebbian Adaptation Function
 	// Based on equations in Floreano & Urzelai 2000
@@ -134,7 +135,7 @@ namespace NEAT {
 	// Returns the new modified weight
 	// NOTE: For an inhibatory connection, it makes sense to
 	//      emphasize decorrelation on hebbian learning!	
-	extern double hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate);
+	extern real_t hebbian(real_t weight, real_t maxweight, real_t active_in, real_t active_out, real_t hebb_rate, real_t pre_rate, real_t post_rate);
 
 	bool load_neat_params(const char *filename, bool output = false);
 

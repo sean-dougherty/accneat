@@ -67,7 +67,7 @@ bool Species::add_Organism(Organism *o){
 }
 
 Organism *Species::get_champ() {
-	double champ_fitness=-1.0;
+	real_t champ_fitness=-1.0;
 	Organism *thechamp = nullptr;
 
     for(Organism *org: organisms) {
@@ -201,7 +201,7 @@ void Species::adjust_fitness() {
 
 	//Decide how many get to reproduce based on survival_thresh*pop_size
 	//Adding 1.0 ensures that at least one will survive
-	num_parents=(int) floor((NEAT::survival_thresh*((double) organisms.size()))+1.0);
+	num_parents=(int) floor((NEAT::survival_thresh*((real_t) organisms.size()))+1.0);
 	
 	//Mark for death those who are ranked too low to be parents
 	curorg=organisms.begin();
@@ -218,10 +218,10 @@ void Species::adjust_fitness() {
 
 }
 
-double Species::compute_average_fitness() {
+real_t Species::compute_average_fitness() {
 	std::vector<Organism*>::iterator curorg;
 
-	double total=0.0;
+	real_t total=0.0;
 
 	//int pause; //DEBUG: Remove
 
@@ -240,8 +240,8 @@ double Species::compute_average_fitness() {
 
 }
 
-double Species::compute_max_fitness() {
-	double max=0.0;
+real_t Species::compute_max_fitness() {
+	real_t max=0.0;
 	std::vector<Organism*>::iterator curorg;
 
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
@@ -254,11 +254,11 @@ double Species::compute_max_fitness() {
 	return max;
 }
 
-double Species::count_offspring(double skim) {
+real_t Species::count_offspring(real_t skim) {
 	std::vector<Organism*>::iterator curorg;
 	int e_o_intpart;  //The floor of an organism's expected offspring
-	double e_o_fracpart; //Expected offspring fractional part
-	double skim_intpart;  //The whole offspring in the skim
+	real_t e_o_fracpart; //Expected offspring fractional part
+	real_t skim_intpart;  //The whole offspring in the skim
 
 	expected_offspring=0;
 
@@ -287,7 +287,7 @@ double Species::count_offspring(double skim) {
 static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &sorted_species) {
     Species *result = thiz;
     for(int i = 0; (result == thiz) && (i < 5); i++) {
-        double randmult = std::min(1.0, rng.gauss() / 4);
+        real_t randmult = std::min(real_t(1.0), rng.gauss() / 4);
         int randspeciesnum = std::max(0, (int)floor((randmult*(sorted_species.size()-1.0))+0.5));
         result = sorted_species[randspeciesnum];
     }

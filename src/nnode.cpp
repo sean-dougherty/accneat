@@ -38,7 +38,7 @@ void NNode::flush() {
 }
 
 // Sets activation level of sensor
-void NNode::sensor_load(double value) {
+void NNode::sensor_load(real_t value) {
     assert(type==SENSOR);
 
     last_activation = activation = value;

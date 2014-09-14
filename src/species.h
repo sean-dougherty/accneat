@@ -36,9 +36,9 @@ namespace NEAT {
 	public:
 		int id;
 		int age; //The age of the Species 
-		double ave_fitness; //The average fitness of the Species
-		double max_fitness; //Max fitness of the Species
-		double max_fitness_ever; //The max it ever had
+		real_t ave_fitness; //The average fitness of the Species
+		real_t max_fitness; //Max fitness of the Species
+		real_t max_fitness_ever; //The max it ever had
 		int expected_offspring;
 		bool novel;
 		bool checked;
@@ -46,7 +46,7 @@ namespace NEAT {
 		std::vector<Organism*> organisms; //The organisms in the Species
 		//std::vector<Organism*> reproduction_pool;  //The organisms for reproduction- NOT NEEDED 
 		int age_of_last_improvement;  //If this is too long ago, the Species will goes extinct
-		double average_est; //When playing real-time allows estimating average fitness
+		real_t average_est; //When playing real-time allows estimating average fitness
 
 		bool add_Organism(Organism *o);
 
@@ -58,13 +58,13 @@ namespace NEAT {
 		//and then divide it by the size of the species so that the organisms in the species "share" the fitness
 		void adjust_fitness();
 
-		double compute_average_fitness(); 
+		real_t compute_average_fitness(); 
 
-		double compute_max_fitness();
+		real_t compute_max_fitness();
 
 		//Counts the number of offspring expected from all its members skim is for keeping track of remaining 
 		// fractional parts of offspring and distributing them among species
-		double count_offspring(double skim);
+		real_t count_offspring(real_t skim);
 
 		//Compute generations since last improvement
 		int last_improved() {
@@ -76,7 +76,7 @@ namespace NEAT {
         void remove_eliminated();
         void remove_generation(int gen);
 
-		double size() {
+		real_t size() {
 			return organisms.size();
 		}
 

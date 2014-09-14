@@ -22,7 +22,7 @@ Organism::Organism() {
     init(0.0, 0, nullptr);
 }
 
-void Organism::init(double fit, int gen, const char* md) {
+void Organism::init(real_t fit, int gen, const char* md) {
 	fitness=fit;
 	orig_fitness=fitness;
 	species=0;  //Start it in no Species
@@ -50,8 +50,8 @@ Organism::~Organism() {
 }
 
 void Organism::create_phenotype() {
-	double maxweight=0.0; //Compute the maximum weight for adaptation purposes
-	double weight_mag; //Measures absolute value of weights
+	real_t maxweight=0.0; //Compute the maximum weight for adaptation purposes
+	real_t weight_mag; //Measures absolute value of weights
 
     net.reset();
     vector<NNode> &netnodes = net.nodes;

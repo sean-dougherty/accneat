@@ -19,33 +19,35 @@
 #include <cmath>
 #include <cstring>
 
-double NEAT::trait_param_mut_prob = 0;
-double NEAT::trait_mutation_power = 0; // Power of mutation on a signle trait param 
-double NEAT::linktrait_mut_sig = 0; // Amount that mutation_num changes for a trait change inside a link
-double NEAT::nodetrait_mut_sig = 0; // Amount a mutation_num changes on a link connecting a node that changed its trait 
-double NEAT::weight_mut_power = 0; // The power of a linkweight mutation 
-double NEAT::recur_prob = 0; // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
-double NEAT::disjoint_coeff = 0;
-double NEAT::excess_coeff = 0;
-double NEAT::mutdiff_coeff = 0;
-double NEAT::compat_threshold = 0;
-double NEAT::age_significance = 0; // How much does age matter? 
-double NEAT::survival_thresh = 0; // Percent of ave fitness for survival 
-double NEAT::mutate_only_prob = 0; // Prob. of a non-mating reproduction 
-double NEAT::mutate_random_trait_prob = 0;
-double NEAT::mutate_link_trait_prob = 0;
-double NEAT::mutate_node_trait_prob = 0;
-double NEAT::mutate_link_weights_prob = 0;
-double NEAT::mutate_toggle_enable_prob = 0;
-double NEAT::mutate_gene_reenable_prob = 0;
-double NEAT::mutate_add_node_prob = 0;
-double NEAT::mutate_add_link_prob = 0;
-double NEAT::interspecies_mate_rate = 0; // Prob. of a mate being outside species 
-double NEAT::mate_multipoint_prob = 0;     
-double NEAT::mate_multipoint_avg_prob = 0;
-double NEAT::mate_singlepoint_prob = 0;
-double NEAT::mate_only_prob = 0; // Prob. of mating without mutation 
-double NEAT::recur_only_prob = 0;  // Probability of forcing selection of ONLY links that are naturally recurrent 
+using NEAT::real_t;
+
+real_t NEAT::trait_param_mut_prob = 0;
+real_t NEAT::trait_mutation_power = 0; // Power of mutation on a signle trait param 
+real_t NEAT::linktrait_mut_sig = 0; // Amount that mutation_num changes for a trait change inside a link
+real_t NEAT::nodetrait_mut_sig = 0; // Amount a mutation_num changes on a link connecting a node that changed its trait 
+real_t NEAT::weight_mut_power = 0; // The power of a linkweight mutation 
+real_t NEAT::recur_prob = 0; // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
+real_t NEAT::disjoint_coeff = 0;
+real_t NEAT::excess_coeff = 0;
+real_t NEAT::mutdiff_coeff = 0;
+real_t NEAT::compat_threshold = 0;
+real_t NEAT::age_significance = 0; // How much does age matter? 
+real_t NEAT::survival_thresh = 0; // Percent of ave fitness for survival 
+real_t NEAT::mutate_only_prob = 0; // Prob. of a non-mating reproduction 
+real_t NEAT::mutate_random_trait_prob = 0;
+real_t NEAT::mutate_link_trait_prob = 0;
+real_t NEAT::mutate_node_trait_prob = 0;
+real_t NEAT::mutate_link_weights_prob = 0;
+real_t NEAT::mutate_toggle_enable_prob = 0;
+real_t NEAT::mutate_gene_reenable_prob = 0;
+real_t NEAT::mutate_add_node_prob = 0;
+real_t NEAT::mutate_add_link_prob = 0;
+real_t NEAT::interspecies_mate_rate = 0; // Prob. of a mate being outside species 
+real_t NEAT::mate_multipoint_prob = 0;     
+real_t NEAT::mate_multipoint_avg_prob = 0;
+real_t NEAT::mate_singlepoint_prob = 0;
+real_t NEAT::mate_only_prob = 0; // Prob. of mating without mutation 
+real_t NEAT::recur_only_prob = 0;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 int NEAT::pop_size = 0;  // Size of population 
 int NEAT::dropoff_age = 0;  // Age where Species starts to be penalized 
 int NEAT::newlink_tries = 0;  // Number of tries mutate_add_link will attempt to find an open link 
@@ -417,12 +419,12 @@ bool NEAT::load_neat_params(const char *filename, bool output) {
 	return true;
 }
 
-double NEAT::oldhebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+real_t NEAT::oldhebbian(real_t weight, real_t maxweight, real_t active_in, real_t active_out, real_t hebb_rate, real_t pre_rate, real_t post_rate) {
 
 	bool neg=false;
-	double delta;
+	real_t delta;
 
-	//double weight_mag;
+	//real_t weight_mag;
 
 	if (maxweight<5.0) maxweight=5.0;
 
@@ -471,14 +473,14 @@ double NEAT::oldhebbian(double weight, double maxweight, double active_in, doubl
 
 }
 
-double NEAT::hebbian(double weight, double maxweight, double active_in, double active_out, double hebb_rate, double pre_rate, double post_rate) {
+real_t NEAT::hebbian(real_t weight, real_t maxweight, real_t active_in, real_t active_out, real_t hebb_rate, real_t pre_rate, real_t post_rate) {
 
 	bool neg=false;
-	double delta;
+	real_t delta;
 
-	//double weight_mag;
+	//real_t weight_mag;
 
-	double topweight;
+	real_t topweight;
 
 	if (maxweight<5.0) maxweight=5.0;
 

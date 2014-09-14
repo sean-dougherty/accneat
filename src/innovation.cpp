@@ -80,7 +80,7 @@ InnovationParms::InnovationParms()
     , new_trait_id(-1) {
 }
 
-InnovationParms::InnovationParms(double w,
+InnovationParms::InnovationParms(real_t w,
                                  int t)
     : new_weight(w)
     , new_trait_id(t) {

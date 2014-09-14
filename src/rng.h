@@ -1,5 +1,6 @@
 #pragma once
 
+#include "neat.h"
 #include <random>
 #include <vector>
 
@@ -24,8 +25,8 @@ namespace NEAT {
         }
 
         // value in [0,1] from uniform distribution
-        double prob() {
-            std::uniform_real_distribution<double> dist(0, 1);
+        real_t prob() {
+            std::uniform_real_distribution<real_t> dist(0, 1);
             return dist(engine);
         }
 
@@ -36,8 +37,8 @@ namespace NEAT {
         }
 
         // value from z distribution
-        double gauss() {
-            std::normal_distribution<double> dist;
+        real_t gauss() {
+            std::normal_distribution<real_t> dist;
             return dist(engine);
         }
 

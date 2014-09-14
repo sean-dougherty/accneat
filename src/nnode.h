@@ -30,8 +30,8 @@ namespace NEAT {
 
 	class NNode {
     public:
-		double activation;
-		double last_activation;
+		real_t activation;
+		real_t last_activation;
 		nodetype type; // type is either NEURON or SENSOR 
 		std::vector<Link> incoming;
 		int node_id;
@@ -44,7 +44,7 @@ namespace NEAT {
         void flush();
 
 		// If the node is a SENSOR, returns true and loads the value
-		void sensor_load(double);
+		void sensor_load(real_t);
 	};
 
 

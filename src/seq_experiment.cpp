@@ -15,17 +15,17 @@ using namespace std;
 #define NACTIVATES_PER_INPUT 10
 
 struct Step {
-    vector<double> input;
-    vector<double> output;
+    vector<real_t> input;
+    vector<real_t> output;
 
-    double err(Network *net,
+    real_t err(Network *net,
                float **details_act,
                float **details_err) {
-        double result = 0.0;
+        real_t result = 0.0;
 
         for(size_t i = 0; i < output.size(); i++) {
-            double diff = net->get_output(i) - output[i];
-            double err = diff * diff;
+            real_t diff = net->get_output(i) - output[i];
+            real_t err = diff * diff;
 
             if(err < (0.05 * 0.05)) {
                 err = 0.0;
@@ -268,10 +268,10 @@ Population *seq_experiment(rng_t &rng,
     }
 
     cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
-    cout<<"Average Generations: "<<double(totalgens)/expcount<<endl;
-    cout<<"Average Nodes: "<<(samples>0 ? (double)totalnodes/samples : 0)<<endl;
-    cout<<"Average Genes: "<<(samples>0 ? (double)totalgenes/samples : 0)<<endl;
-    cout<<"Average Evals: "<<(samples>0 ? (double)totalevals/samples : 0)<<endl;
+    cout<<"Average Generations: "<<real_t(totalgens)/expcount<<endl;
+    cout<<"Average Nodes: "<<(samples>0 ? (real_t)totalnodes/samples : 0)<<endl;
+    cout<<"Average Genes: "<<(samples>0 ? (real_t)totalgenes/samples : 0)<<endl;
+    cout<<"Average Evals: "<<(samples>0 ? (real_t)totalevals/samples : 0)<<endl;
 
     return pop;
 
@@ -282,7 +282,7 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
 
     net=&org->net;
 
-    auto activate = [net] (vector<double> &input) {
+    auto activate = [net] (vector<real_t> &input) {
         net->load_sensors(input);
 
         for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {

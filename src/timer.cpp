@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <iostream>
 
+using namespace NEAT;
 using namespace std;
 
 vector<Timer *> Timer::timers;
@@ -14,7 +15,7 @@ static double seconds() {
     struct timeval tv;
     gettimeofday( &tv, NULL );
 
-    return (double)tv.tv_sec + (double)tv.tv_usec/1000000.0;
+    return double(tv.tv_sec + tv.tv_usec/1000000.0);
 }
 
 Timer::Timer(const char *name) : _name(name) {
