@@ -32,11 +32,10 @@ Population::OrganismsBuffer::OrganismsBuffer(rng_t &rng, size_t n)
     _b.resize(n);
     _curr = &_a;
 
-    int seed = 0;
     for(auto &org: _a)
-        org.genome.rng.seed(seed++);
+        org.genome.rng.seed(rng.integer());
     for(auto &org: _b)
-        org.genome.rng.seed(seed++);
+        org.genome.rng.seed(rng.integer());
 }
 
 size_t Population::OrganismsBuffer::size(){

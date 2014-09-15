@@ -203,3 +203,11 @@ single-precision floats
 
 s0: fitness=0.994273 @ gen_3872; halted at gen_4500 (6.5 hours)
     gen_1000 @ 0.25 hours, gen_2000 @ 1 hour, gen_3000 @ 2.5 hours, gen_4000 @ 5 hours
+
+********************************************************************************
+scaled fitness (place more weight on final reporting of sequence)
+
+[scaledfit/100scale]
+
+s0: fitness=1.0 @ gen_1187 (26 minutes)
+s1: 

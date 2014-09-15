@@ -24,7 +24,7 @@ using namespace std;
 #if false
 #define RAND_SEED (unsigned)time( NULL )
 #else
-#define RAND_SEED 0
+#define RAND_SEED 1
 #endif
 
 

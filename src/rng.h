@@ -1,6 +1,7 @@
 #pragma once
 
 #include "neat.h"
+#include <climits>
 #include <random>
 #include <vector>
 
@@ -22,6 +23,11 @@ namespace NEAT {
         template<typename T>
             T& element(std::vector<T> &v, size_t begin = 0) {
             return v[index(v, begin)];
+        }
+
+        int integer(int low = INT_MIN, int hi = INT_MAX) {
+            std::uniform_int_distribution<int> dist(low, hi);
+            return dist(engine);
         }
 
         // value in [0,1] from uniform distribution
