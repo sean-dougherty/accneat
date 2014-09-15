@@ -308,8 +308,8 @@ bool Population::epoch(int generation) {
             highest_fitness = pop_champ->orig_fitness;
             highest_last_changed=0;
 
-            printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg\n",
-                   highest_fitness, highest_fitness - old_highest);
+            printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg @ gen=%d\n",
+                   highest_fitness, highest_fitness - old_highest, generation);
         } else {
             ++highest_last_changed;
 
