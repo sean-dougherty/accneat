@@ -52,6 +52,10 @@ module load gcc/4.9.1
 
 make || exit 1
 
+git log -n 5 > $run_dir/gitlog
+git status > $run_dir/gitstat
+hostname > $run_dir/hostname
+
 cd $run_dir
 cp -r $neat_dir/src src
 cp $ne ne
