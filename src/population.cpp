@@ -352,7 +352,10 @@ bool Population::epoch(int generation) {
         s->remove_eliminated();
     }
 
-    assert(total_expected <= (int)size());
+    
+    if(total_expected > (int)size()) {
+        warn("total_expected (" << total_expected << ") > size (" << size() << ")"); 
+    }
 
     //Create the next generation.
     {
@@ -371,7 +374,7 @@ bool Population::epoch(int generation) {
             for(size_t i = 0, n = species.size(); i < n; i++) {
                 Species *s = species[i];
 
-                for(int j = 0; j < s->expected_offspring; j++) {
+                for(int j = 0; (j < s->expected_offspring) && (iorg < size()); j++) {
                     reproduce_parms[iorg].species = s;
                     reproduce_parms[iorg].ioffspring = j;
                     iorg++;
