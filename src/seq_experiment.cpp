@@ -163,13 +163,9 @@ static int epoch(NEAT::Population *pop,
                  int &winnernodes);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
-Population *seq_experiment(rng_t &rng,
-                           int gens,
-                           char const *startgenes_path) {
+Population *seq_experiment(rng_t &rng, int gens) {
     Population *pop=0;
     Genome *start_genome;
-    char curword[20];
-    int id;
 
     ostringstream *fnamebuf;
     int gen;
@@ -192,17 +188,13 @@ Population *seq_experiment(rng_t &rng,
     memset (genes, 0, NEAT::num_runs * sizeof(int));
     memset (nodes, 0, NEAT::num_runs * sizeof(int));
 
-    ifstream iFile(startgenes_path);
-
     cout<<"START SEQ_EXPERIMENT TEST"<<endl;
 
-    cout<<"Reading in the start genome"<<endl;
-    //Read in the start Genome
-    iFile>>curword;
-    iFile>>id;
-    cout<<"Reading in Genome id "<<id<<endl;
-    start_genome=new Genome(id,iFile);
-    iFile.close();
+    start_genome = Genome::create_seed_genome(rng,
+                                              1,
+                                              tests[0].steps[0].input.size() - 1,
+                                              tests[0].steps[0].output.size(),
+                                              3);
 
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
         //Spawn the Population
@@ -248,6 +240,9 @@ Population *seq_experiment(rng_t &rng,
         if (expcount<NEAT::num_runs-1) delete pop;
       
     }
+
+    delete start_genome;
+
 
     //Average and print stats
     cout<<"Nodes: "<<endl;

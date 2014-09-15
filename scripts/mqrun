@@ -20,7 +20,6 @@ runs_dir=$(readlink -f $neat_dir/../runs)
 run_dir=$runs_dir/$runid
 
 ne=$neat_dir/ne/seq_experiment.ne
-sg=$neat_dir/startgenes/seq_experiment
 
 if [[ -e $run_dir ]]; then
     err "Already exists: $run_dir"
@@ -59,8 +58,7 @@ hostname > $run_dir/hostname
 cd $run_dir
 cp -r $neat_dir/src src
 cp $ne ne
-cp $sg sg
-time $neat_dir/neat $maxgens $ne $sg > neat_out
+time $neat_dir/neat $maxgens $ne > neat_out
 EOF
 
 qsub $submit_script

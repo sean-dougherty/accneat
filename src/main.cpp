@@ -35,8 +35,8 @@ int main(int argc, char *argv[]) {
     NEAT::rng_t rng;
     rng.seed(RAND_SEED);
 
-    if (argc != 4) {
-        cerr << "usage: maxgens neat ne_path startgenes_path" << endl;
+    if (argc != 3) {
+        cerr << "usage: maxgens neat ne_path" << endl;
         return -1;
     }
 
@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
     //Load in the params
     NEAT::load_neat_params(argv[2],true);
 
-    p = seq_experiment(rng, maxgens, argv[3]);
+    p = seq_experiment(rng, maxgens);
 
     if (p)
         delete p;

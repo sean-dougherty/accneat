@@ -59,6 +59,12 @@ namespace NEAT {
 		//This constructor assumes that some routine has already read in GENOMESTART
         Genome(int id, std::ifstream &iFile);
 
+        static Genome *create_seed_genome(rng_t &rng,
+                                          size_t ntraits,
+                                          size_t ninputs,
+                                          size_t noutputs,
+                                          size_t nhidden);
+
 		// Loads a new Genome from a file (doesn't require knowledge of Genome's id)
 		static Genome *new_Genome_load(char *filename);
 

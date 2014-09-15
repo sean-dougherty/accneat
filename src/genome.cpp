@@ -131,7 +131,10 @@ Genome::Genome()
     : node_lookup(nodes) {
 }
 
-Genome::Genome(int id, const vector<Trait> &t, const vector<NodeGene> &n, const vector<LinkGene> &g)
+Genome::Genome(int id,
+               const vector<Trait> &t,
+               const vector<NodeGene> &n,
+               const vector<LinkGene> &g)
     : node_lookup(nodes) {
 	genome_id=id;
 	traits=t;
@@ -143,6 +146,99 @@ Genome::Genome(int id, std::ifstream &iFile)
     : node_lookup(nodes) {
 
     load_from_file(id, iFile);
+}
+
+Genome *Genome::create_seed_genome(rng_t &rng,
+                                   size_t ntraits,
+                                   size_t ninputs,
+                                   size_t noutputs,
+                                   size_t nhidden) {
+    vector<Trait> traits;
+    vector<NodeGene> nodes;
+    vector<LinkGene> links;
+
+    for(size_t i = 0; i < ntraits; i++) {
+        traits.emplace_back(i + 1,
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob(),
+                            rng.prob());
+    }
+
+    {
+        int node_id = 1;
+
+        //Bias node
+        add_node(nodes, NodeGene(SENSOR, node_id++, BIAS));
+
+        //Sensor nodes
+        for(size_t i = 0; i < ninputs; i++) {
+            add_node(nodes, NodeGene(SENSOR, node_id++, INPUT));
+        }
+
+        //Output nodes
+        for(size_t i = 0; i < noutputs; i++) {
+            add_node(nodes, NodeGene(NEURON, node_id++, OUTPUT));
+        }
+
+        //Hidden nodes
+        for(size_t i = 0; i < nhidden; i++) {
+            add_node(nodes, NodeGene(NEURON, node_id++, HIDDEN));
+        }
+    }
+
+    const int node_id_bias = 1;
+    const int node_id_input = node_id_bias + 1;
+    const int node_id_output = node_id_input + ninputs;
+    const int node_id_hidden = node_id_output + noutputs;
+
+    assert(nhidden > 0);
+
+    int innov = 1;
+
+    //Create links from Bias to all hidden
+    for(size_t i = 0; i < nhidden; i++) {
+        add_link( links, LinkGene(rng.element(traits).trait_id,
+                                  rng.prob(),
+                                  node_id_bias,
+                                  i + node_id_hidden,
+                                  false,
+                                  innov++,
+                                  0.0) );
+    }
+
+    //Create links from all inputs to all hidden
+    for(size_t i = 0; i < ninputs; i++) {
+        for(size_t j = 0; j < nhidden; j++) {
+            add_link( links, LinkGene(rng.element(traits).trait_id,
+                                      rng.prob(),
+                                      i + node_id_input,
+                                      j + node_id_hidden,
+                                      false,
+                                      innov++,
+                                      0.0));
+        }
+    }
+
+    //Create links from all hidden to all output
+    for(size_t i = 0; i < nhidden; i++) {
+        for(size_t j = 0; j < noutputs; j++) {
+            add_link( links, LinkGene(rng.element(traits).trait_id,
+                                      rng.prob(),
+                                      i + node_id_hidden,
+                                      j + node_id_output,
+                                      false,
+                                      innov++,
+                                      0.0));
+        }
+    }
+
+    return new Genome(-1, traits, nodes, links);
 }
 
 Genome* Genome::new_Genome_load(char *filename) {
