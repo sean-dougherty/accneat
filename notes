@@ -210,4 +210,9 @@ scaled fitness (place more weight on final reporting of sequence)
 [scaledfit/100scale]
 
 s0: fitness=1.0 @ gen_1187 (26 minutes)
-s1: 
+s1: fitness=0.987214 @ gen_1433; halted at gen_3433
+
+********************************************************************************
+initialize with code, not config files
+
+[codeinit/sg]
