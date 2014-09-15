@@ -18,7 +18,6 @@
 #include "neat.h"
 #include "population.h"
 #include "seq_experiment.h"
-#include "timer.h"
 using namespace std;
 
 #if false
@@ -30,29 +29,19 @@ using namespace std;
 
 
 int main(int argc, char *argv[]) {
-    NEAT::Population *p = nullptr;
-
     NEAT::rng_t rng;
     rng.seed(RAND_SEED);
 
     if (argc != 3) {
-        cerr << "usage: maxgens neat ne_path" << endl;
+        cerr << "usage: neat maxpop maxgens" << endl;
         return -1;
     }
 
-    int maxgens = atoi(argv[1]);
+    NEAT::pop_size = atoi(argv[1]);
+    int maxgens = atoi(argv[2]);
 
-    //Load in the params
-    NEAT::load_neat_params(argv[2],true);
-
-    p = seq_experiment(rng, maxgens);
-
-    if (p)
-        delete p;
-
-    NEAT::Timer::report();
+    seq_experiment(rng, maxgens);
 
     return(0);
- 
 }
 

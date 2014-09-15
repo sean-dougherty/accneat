@@ -1,5 +1,5 @@
 #pragma once
 
-#include "population.h"
+#include "rng.h"
 
-NEAT::Population *seq_experiment(NEAT::rng_t &rng, int gens);
+void seq_experiment(NEAT::rng_t &rng, int gens);

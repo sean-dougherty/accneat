@@ -155,21 +155,22 @@ static real_t score(real_t errorsum) {
     return 1.0 - errorsum/max_err;
 };
 
+static void print(Population *pop, int gen) {
+    char filename[1024];
+    sprintf(filename, "gen_%d", gen);
+    pop->print_to_file_by_species(filename);
+}
+
 static int epoch(NEAT::Population *pop,
                  int generation,
-                 char *filename,
                  int &winnernum,
                  int &winnergenes,
                  int &winnernodes);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
-Population *seq_experiment(rng_t &rng, int gens) {
-    Population *pop=0;
+void seq_experiment(rng_t &rng, int gens) {
     Genome *start_genome;
 
-    ostringstream *fnamebuf;
-    int gen;
- 
     int evals[NEAT::num_runs];
     int genes[NEAT::num_runs];
     int nodes[NEAT::num_runs];
@@ -198,47 +199,36 @@ Population *seq_experiment(rng_t &rng, int gens) {
 
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
         //Spawn the Population
-        cout<<"Spawning Population off Genome2"<<endl;
-
-        pop=new Population(rng, start_genome,NEAT::pop_size);
+        Population *pop = new Population(rng, start_genome,NEAT::pop_size);
       
-        cout<<"Verifying Spawned Pop"<<endl;
-        pop->verify();
-      
-        for (gen=1;gen<=gens;gen++) {
+        bool success = false;
+        int gen;
+        for (gen=1; gen <= gens; gen++) {
             cout<<"Epoch "<<gen<<endl;	
-
-            //This is how to make a custom filename
-            fnamebuf=new ostringstream();
-            (*fnamebuf)<<"gen_"<<gen<<ends;  //needs end marker
-
-            char temp[50];
-            sprintf (temp, "gen_%d", gen);
 
             static Timer timer("epoch");
             timer.start();
             //Check for success
-            if (epoch(pop,gen,temp,winnernum,winnergenes,winnernodes)) {
-                //	if (seq_experiment_epoch(pop,gen,fnamebuf->str(),winnernum,winnergenes,winnernodes)) {
+            if (epoch(pop,gen,winnernum,winnergenes,winnernodes)) {
+                success = true;
                 //Collect Stats on end of experiment
                 evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
                 genes[expcount]=winnergenes;
                 nodes[expcount]=winnernodes;
                 totalgens += gen;
-                gen=gens;
             }
             timer.stop();
-
             Timer::report();
-	
-            //Clear output filename
-            fnamebuf->clear();
-            delete fnamebuf;
-	
+
+            if(success) break;
+
+            if(gen % NEAT::print_every == 0)
+                print(pop, gen);
         }
 
-        if (expcount<NEAT::num_runs-1) delete pop;
-      
+        print(pop, gen);
+
+        delete pop;
     }
 
     delete start_genome;
@@ -273,9 +263,6 @@ Population *seq_experiment(rng_t &rng, int gens) {
     cout<<"Average Nodes: "<<(samples>0 ? (real_t)totalnodes/samples : 0)<<endl;
     cout<<"Average Genes: "<<(samples>0 ? (real_t)totalgenes/samples : 0)<<endl;
     cout<<"Average Evals: "<<(samples>0 ? (real_t)totalevals/samples : 0)<<endl;
-
-    return pop;
-
 }
 
 bool evaluate(Organism *org, float *details_act, float *details_err) {
@@ -318,7 +305,6 @@ bool evaluate(Organism *org, float *details_act, float *details_err) {
 
 int epoch(Population *pop,
           int generation,
-          char *filename,
           int &winnernum,
           int &winnergenes,
           int &winnernodes) {
@@ -404,25 +390,6 @@ int epoch(Population *pop,
     //visualized later on
     //if ((generation%1)==0)
     //  pop->snapshot();
-
-    //Only print to file every print_every generations
-    if  (win||
-         ((generation%(NEAT::print_every))==0))
-        pop->print_to_file_by_species(filename);
-
-
-    if (win) {
-        for(size_t i = 0, n = pop->size(); i < n; i++) {
-            Organism *org = pop->get(i);
-            if(org->winner) {
-                cout << "WINNER IS #" << org->genome.genome_id << endl;
-                //Prints the winner to file
-                //IMPORTANT: This causes generational file output!
-                print_Genome_tofile(&org->genome,"seq_experiment_winner");
-            }
-        }
-    
-    }
 
     pop->epoch(generation);
 
