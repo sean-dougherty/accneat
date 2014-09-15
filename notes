@@ -168,4 +168,38 @@ s1: 385
 --------------------------------------------------------------------------------
 3 elements
 
-[simple/silence-1sigsens-3el]
+[simple/silence-1sigsens-3el] ppn=6
+
+this is what was shown to dickson and was the basis of acceleration efforts.
+
+s0: fitness=0.995833 @ gen_2505; halted at gen_3872 (37.5 hours)
+    gen_1000 @ 2 hours, gen_2000 @ 8.5 hours, gen_3000 @ 21 hours
+
+s1: fitness=0.991364 @ gen_2371; halted at gen_3065 (24 hours)
+
+********************************************************************************
+pursued better performance.
+
+--------------------------------------------------------------------------------
+simplified neural nets & decoupled phenotype/genotype
+
+[simplenet/nodegene] ppn=10
+
+s0: fitness=0.993913 @ gen_3053; halted at gen_4500 (15 hours)
+    gen_1000 @ 0.5 hours, gen_2000 @ 2 hours, gen_3000 @ 5.5 hours, gen_4000 @ 11.5 hours
+
+--------------------------------------------------------------------------------
+parallelized reproduce
+
+[parallel-reproduce/init] ppn=10
+
+s0: fitness=0.992946 @ gen_1783; halted at gen_4500 (7 hours)
+    gen_1000 @ 0.25 hours, gen_2000 @ 1.25 hours, gen_3000 @ 3 hours, gen_4000 @ 5.5 hours
+
+--------------------------------------------------------------------------------
+single-precision floats
+
+[parallel-reproduce/float] ppn=10
+
+s0: fitness=0.994273 @ gen_3872; halted at gen_4500 (6.5 hours)
+    gen_1000 @ 0.25 hours, gen_2000 @ 1 hour, gen_3000 @ 2.5 hours, gen_4000 @ 5 hours
