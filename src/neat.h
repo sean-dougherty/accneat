@@ -73,6 +73,7 @@ namespace NEAT {
 	extern real_t mutate_link_weights_prob;
 	extern real_t mutate_toggle_enable_prob;
 	extern real_t mutate_gene_reenable_prob;
+    extern real_t mutate_delete_link_prob;
 	extern real_t mutate_add_node_prob;
 	extern real_t mutate_delete_node_prob;
 	extern real_t mutate_add_link_prob;

@@ -137,7 +137,7 @@ bool Species::print_to_file(std::ostream &outFile) {
         //If it is a winner, mark it in a comment
         if (org->winner) outFile<<"/* ##------$ WINNER "<<(org->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
 
-        (org->genome).print_to_file(outFile);
+        (org->genome).print(outFile);
     }
 
     return true;
@@ -385,34 +385,36 @@ static void mutate(int population_index,
                    rng_t &rng) {
     //Do the mutation depending on probabilities of 
     //various mutations
-    if (rng.prob() < NEAT::mutate_add_node_prob) {
+    if( rng.under(NEAT::mutate_add_node_prob) ) {
         new_genome.mutate_add_node(population_index,
                                    pop->innovations);
-    } else if (rng.prob() < NEAT::mutate_add_link_prob) {
+    } else if( rng.under(NEAT::mutate_add_link_prob) ) {
         new_genome.mutate_add_link(population_index,
                                    pop->innovations,
                                    NEAT::newlink_tries);
-    } else if (rng.prob() < NEAT::mutate_delete_node_prob) {
+    } else if( rng.under(NEAT::mutate_delete_link_prob) ) {
+        new_genome.mutate_delete_link();
+    } else if( rng.under(NEAT::mutate_delete_node_prob) ) {
         new_genome.mutate_delete_node();
     } else {
         //Only do other mutations when not doing sturctural mutations
 
-        if (rng.prob()<NEAT::mutate_random_trait_prob) {
+        if( rng.under(NEAT::mutate_random_trait_prob) ) {
             new_genome.mutate_random_trait();
         }
-        if (rng.prob()<NEAT::mutate_link_trait_prob) {
+        if( rng.under(NEAT::mutate_link_trait_prob) ) {
             new_genome.mutate_link_trait(1);
         }
-        if (rng.prob()<NEAT::mutate_node_trait_prob) {
+        if( rng.under(NEAT::mutate_node_trait_prob) ) {
             new_genome.mutate_node_trait(1);
         }
-        if (rng.prob()<NEAT::mutate_link_weights_prob) {
+        if( rng.under(NEAT::mutate_link_weights_prob) ) {
             new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
         }
-        if (rng.prob()<NEAT::mutate_toggle_enable_prob) {
+        if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
             new_genome.mutate_toggle_enable(1);
         }
-        if (rng.prob()<NEAT::mutate_gene_reenable_prob) {
+        if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
             new_genome.mutate_gene_reenable(); 
         }
     }

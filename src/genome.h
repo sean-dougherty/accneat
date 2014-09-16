@@ -70,7 +70,7 @@ namespace NEAT {
 		~Genome();
 
 		// Dump this genome to specified file
-		void print_to_file(std::ostream &outFile);
+		void print(std::ostream &out);
         void load_from_file(int id, std::istream &iFile);
 
         void duplicate_into(Genome &offspring, int new_id);
@@ -110,8 +110,9 @@ namespace NEAT {
 		bool mutate_add_node(int population_index,
                              PopulationInnovations &innovations);
 
-		// Mutate genome by adding a node respresentation 
 		void mutate_delete_node();
+
+		void mutate_delete_link();
 
 		// Mutate the genome by adding a new link between 2 random NodeGenes 
 		bool mutate_add_link(int population_index,
@@ -188,7 +189,8 @@ namespace NEAT {
     private:
         LinkGene *find_link(int in_node_id, int out_node_id, bool is_recurrent);
         NodeGene *get_node(int id);
-        
+        void delete_if_orphaned_hidden_node(int node_id);
+
     private:
         class NodeLookup {
             std::vector<NodeGene> &nodes;
@@ -249,8 +251,6 @@ namespace NEAT {
         NodeLookup node_lookup;
         Genome(const Genome &other);
     };
-
-	void print_Genome_tofile(Genome *g,const char *filename);
 } // namespace NEAT
 
 #endif

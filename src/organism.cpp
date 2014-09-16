@@ -125,7 +125,7 @@ bool Organism::write_to_file(std::ostream &outFile) {
 		sprintf(tempbuf2, "/* %s */\n", metadata);
 	}
 	outFile << tempbuf2;
-	genome.print_to_file(outFile);
+	genome.print(outFile);
 	return 1;
 }
 bool NEAT::order_orgs(Organism *x, Organism *y) {

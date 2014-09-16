@@ -14,6 +14,24 @@ using namespace std;
 
 #define NACTIVATES_PER_INPUT 10
 
+static void init_env() {
+    const bool DELETE_NODES = true;
+    const bool DELETE_LINKS = true;
+
+    NEAT::compat_threshold = 10.0;
+
+    if(DELETE_NODES) {
+        NEAT::mutate_delete_node_prob = 0.001;
+    }
+
+    if(DELETE_LINKS) {
+        NEAT::mutate_delete_link_prob = 0.01;
+
+        NEAT::mutate_toggle_enable_prob = 0.0;
+        NEAT::mutate_gene_reenable_prob = 0.0;
+    }
+}
+
 struct Step {
     vector<real_t> input;
     vector<real_t> output;
@@ -173,6 +191,8 @@ static int epoch(NEAT::Population *pop,
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
 void seq_experiment(rng_t &rng, int gens) {
+    init_env();
+
     Genome *start_genome;
 
     int evals[NEAT::num_runs];
@@ -207,7 +227,7 @@ void seq_experiment(rng_t &rng, int gens) {
       
         bool success = false;
         int gen;
-        for (gen=1; gen <= gens; gen++) {
+        for (gen=1; !success && (gen <= gens); gen++) {
             cout<<"Epoch "<<gen<<endl;	
 
             static Timer timer("epoch");
@@ -224,13 +244,12 @@ void seq_experiment(rng_t &rng, int gens) {
             timer.stop();
             Timer::report();
 
-            if(success) break;
-
-            if(gen % NEAT::print_every == 0)
+            //Don't print on success because we'll exit the loop and print then.
+            if(!success && (gen % NEAT::print_every == 0))
                 print(pop, gen);
         }
 
-        print(pop, gen);
+        print(pop, gen - 1);
 
         delete pop;
     }

@@ -299,22 +299,22 @@ void Genome::verify() {
 #endif
 }
 
-void Genome::print_to_file(std::ostream &outFile) {
-    outFile<<"genomestart "<<genome_id<<std::endl;
+void Genome::print(std::ostream &out) {
+    out<<"genomestart "<<genome_id<<std::endl;
 
 	//Output the traits
     for(auto &t: traits)
-        t.print_to_file(outFile);
+        t.print_to_file(out);
 
     //Output the nodes
     for(auto &n: nodes)
-        n.print_to_file(outFile);
+        n.print_to_file(out);
 
     //Output the genes
     for(auto &g: links)
-        g.print_to_file(outFile);
+        g.print_to_file(out);
 
-    outFile << "genomeend " << genome_id << std::endl;
+    out << "genomeend " << genome_id << std::endl;
 }
 
 void Genome::load_from_file(int id, std::istream &iFile) {
@@ -651,6 +651,38 @@ void Genome::mutate_delete_node() {
                                  });
 
     links.resize(it_end - links.begin());
+}
+
+void Genome::delete_if_orphaned_hidden_node(int node_id) {
+    NodeGene *node = get_node(node_id);
+    if(node->place != HIDDEN)
+        return;
+
+    bool found_link;
+    for(LinkGene &link: links) {
+        if(link.in_node_id() == node_id || link.out_node_id() == node_id) {
+            found_link = true;
+            break;
+        }
+    }
+
+    if(!found_link) {
+        auto iterator = nodes.begin() + (node - nodes.data());
+        assert(iterator->node_id == node_id);
+        nodes.erase(iterator);
+    }
+}
+
+void Genome::mutate_delete_link() {
+    if(links.size() <= 1)
+        return;
+
+    size_t link_index = rng.index(links);
+    LinkGene link = links[link_index];
+    links.erase(links.begin() + link_index);
+
+    delete_if_orphaned_hidden_node(link.in_node_id());
+    delete_if_orphaned_hidden_node(link.out_node_id());
 }
 
 bool Genome::mutate_add_link(int population_index,
@@ -1402,13 +1434,3 @@ LinkGene *Genome::find_link(int in_node_id, int out_node_id, bool is_recurrent) 
 NodeGene *Genome::get_node(int id) {
     return node_lookup.find(id);
 }
-
-void NEAT::print_Genome_tofile(Genome *g,const char *filename) {
-
-    std::string file = "nero/data/neat/";
-    file += filename;
-	std::ofstream oFile(file.c_str());
-	g->print_to_file(oFile);
-	oFile.close();
-}
-

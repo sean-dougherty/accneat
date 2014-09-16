@@ -36,6 +36,10 @@ namespace NEAT {
             return dist(engine);
         }
 
+        real_t under(real_t prob) {
+            return prob == 0.0 ? false : this->prob() < prob;
+        }
+
         // -1 or 1
         int posneg() {
             std::uniform_int_distribution<int> dist(0, 1);
