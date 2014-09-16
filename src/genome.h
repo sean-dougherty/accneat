@@ -185,7 +185,7 @@ namespace NEAT {
 		static void add_link(std::vector<LinkGene> &glist, const LinkGene &g);
 
     private:
-        bool link_exists(int in_node_id, int out_node_id, bool is_recurrent);
+        LinkGene *find_link(int in_node_id, int out_node_id, bool is_recurrent);
         NodeGene *get_node(int id);
         
     private:

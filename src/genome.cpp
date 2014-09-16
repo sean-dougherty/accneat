@@ -666,8 +666,16 @@ bool Genome::mutate_add_link(int population_index,
                 out_node = &rng.element(nodes, first_nonsensor);
             }
 
-            found_nodes = !link_exists(in_node->node_id, out_node->node_id, do_recur)
-                                 && (do_recur == recur_checker.is_recur(in_node->node_id, out_node->node_id));
+            LinkGene *existing_link = find_link(in_node->node_id, out_node->node_id, do_recur);
+            if(existing_link != nullptr) {
+                if( NEAT::mutate_add_link_reenables ) {
+                    existing_link->enable = true;
+                    return true;
+                }
+            } else if(do_recur == recur_checker.is_recur(in_node->node_id,
+                                                         out_node->node_id)) {
+                found_nodes = true;
+            }
         }
 
         assert( out_node->type != SENSOR );
@@ -1349,17 +1357,17 @@ Trait &Genome::get_trait(const LinkGene &gene) {
     return ::get_trait(traits, gene.trait_id());
 }
 
-bool Genome::link_exists(int in_node_id, int out_node_id, bool is_recurrent) {
+LinkGene *Genome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {
     for(LinkGene &g: links) {
         if( (g.in_node_id() == in_node_id)
             && (g.out_node_id() == out_node_id)
             && (g.is_recurrent() == is_recurrent) ) {
 
-            return true;
+            return &g;
         }
     }
 
-    return false;
+    return nullptr;
 }
 
 NodeGene *Genome::get_node(int id) {

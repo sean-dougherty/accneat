@@ -40,8 +40,9 @@ real_t NEAT::mutate_node_trait_prob = 0.1;
 real_t NEAT::mutate_link_weights_prob = 0.8;
 real_t NEAT::mutate_toggle_enable_prob = 0.1;
 real_t NEAT::mutate_gene_reenable_prob = 0.05;
-real_t NEAT::mutate_add_node_prob = 0.01;
-real_t NEAT::mutate_add_link_prob = 0.3;
+real_t NEAT::mutate_add_node_prob = 0.001; //legacy = 0.01
+real_t NEAT::mutate_add_link_prob = 0.05; //legacy = 0.3
+bool NEAT::mutate_add_link_reenables = true; //[new] legacy = false
 real_t NEAT::interspecies_mate_rate = 0.001; // Prob. of a mate being outside species 
 real_t NEAT::mate_multipoint_prob = 0.6;     
 real_t NEAT::mate_multipoint_avg_prob = 0.4;

@@ -210,9 +210,50 @@ scaled fitness (place more weight on final reporting of sequence)
 [scaledfit/100scale]
 
 s0: fitness=1.0 @ gen_1187 (26 minutes)
+        nnodes=41.528, nlinks=458.424, disabled=0.24883
+
 s1: fitness=0.987214 @ gen_1433; halted at gen_3433
+        nnodes=116.519, nlinks=1418.67, disabled=0.00783098
 
 ********************************************************************************
 initialize with code, not config files
 
+--------------------------------------------------------------------------------
+startgenes
+
 [codeinit/sg]
+
+s0: fitness=0.938956 @ gen_582; halted at gen_1409
+    nnodes=57.0224, nlinks=619.074, disabled=0.027037
+
+--------------------------------------------------------------------------------
+ne
+
+[codeinit/ne]
+
+s0: fitness=0.938956 @ gen_582; halted at gen_1521
+
+********************************************************************************
+study effect of some parms
+
+--------------------------------------------------------------------------------
+reduce add link probability from 0.3 to 0.05 in order to combat massive brain growth
+
+[mutate/add_link_prob=0.05]
+
+s0: fitness=0.820333 @ gen 802; halted at gen_1200
+
+Seemed like node growth was to fast relative to link growth.
+
+--------------------------------------------------------------------------------
+reduce add node prob from 0.01 to 0.001
+
+so: fitness=0.747919 @ gen 1589; halted at gen 2070
+
+--------------------------------------------------------------------------------
+introduce reenable on add_link
+
+[mutate/add_link_reenable]
+
+s0: 0.913566 @ gen 4108; halted at gen 5000
+        nnodes=76.2541, nlinks=647.643, disabled=0.0659483
