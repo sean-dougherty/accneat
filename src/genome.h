@@ -83,6 +83,9 @@ namespace NEAT {
 
 		// ******* MUTATORS *******
 
+        //todo: make specific mutators private?
+        void mutate(CreateInnovationFunc create_innov);
+
 		// Perturb params in one trait
 		void mutate_random_trait();
 
@@ -107,19 +110,24 @@ namespace NEAT {
 		//   Generally, if they fail, they can be called again if desired. 
 
 		// Mutate genome by adding a node respresentation 
-		bool mutate_add_node(int population_index,
-                             PopulationInnovations &innovations);
+		bool mutate_add_node(CreateInnovationFunc create_innov);
 
 		void mutate_delete_node();
 
 		void mutate_delete_link();
 
 		// Mutate the genome by adding a new link between 2 random NodeGenes 
-		bool mutate_add_link(int population_index,
-                             PopulationInnovations &innovations,
+		bool mutate_add_link(CreateInnovationFunc create_innov,
                              int tries); 
 
 		// ****** MATING METHODS ***** 
+		static void mate(CreateInnovationFunc create_innov,
+                         Genome *genome1,
+                         Genome *genome2,
+                         Genome *offspring,
+                         int genomeid,
+                         real_t fitness1,
+                         real_t fitness2);
 
 		//   For every point in each Genome, where each Genome shares
 		//   the innovation number, the LinkGene is chosen randomly from 

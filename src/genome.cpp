@@ -430,6 +430,42 @@ void Genome::duplicate_into(Genome &offspring, int new_id) {
     offspring.nodes = nodes;
 }
 
+void Genome::mutate(CreateInnovationFunc create_innov) {
+    //Do the mutation depending on probabilities of 
+    //various mutations
+    if( rng.under(NEAT::mutate_add_node_prob) ) {
+        mutate_add_node(create_innov);
+    } else if( rng.under(NEAT::mutate_add_link_prob) ) {
+        mutate_add_link(create_innov,
+                        NEAT::newlink_tries);
+    } else if( rng.under(NEAT::mutate_delete_link_prob) ) {
+        mutate_delete_link();
+    } else if( rng.under(NEAT::mutate_delete_node_prob) ) {
+        mutate_delete_node();
+    } else {
+        //Only do other mutations when not doing sturctural mutations
+
+        if( rng.under(NEAT::mutate_random_trait_prob) ) {
+            mutate_random_trait();
+        }
+        if( rng.under(NEAT::mutate_link_trait_prob) ) {
+            mutate_link_trait(1);
+        }
+        if( rng.under(NEAT::mutate_node_trait_prob) ) {
+            mutate_node_trait(1);
+        }
+        if( rng.under(NEAT::mutate_link_weights_prob) ) {
+            mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
+        }
+        if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
+            mutate_toggle_enable(1);
+        }
+        if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
+            mutate_gene_reenable(); 
+        }
+    }
+}
+
 void Genome::mutate_random_trait() {
     rng.element(traits).mutate(rng);
 }
@@ -569,8 +605,7 @@ void Genome::mutate_gene_reenable() {
     }
 }
 
-bool Genome::mutate_add_node(int population_index,
-                             PopulationInnovations &innovations) {
+bool Genome::mutate_add_node(CreateInnovationFunc create_innov) {
     LinkGene *splitlink = nullptr;
     {
         for(int i = 0; !splitlink && i < 20; i++) {
@@ -623,8 +658,7 @@ bool Genome::mutate_add_node(int population_index,
         }
     };
 
-    IndividualInnovation innov(population_index, innov_id, innov_parms, innov_apply);
-    innovations.add(innov);
+    create_innov(innov_id, innov_parms, innov_apply);
 
 	return true;
 }
@@ -670,8 +704,7 @@ void Genome::mutate_delete_link() {
     delete_if_orphaned_hidden_node(link.out_node_id());
 }
 
-bool Genome::mutate_add_link(int population_index,
-                             PopulationInnovations &innovations,
+bool Genome::mutate_add_link(CreateInnovationFunc create_innov,
                              int tries) {
     LinkGene *recur_checker_buf[links.size()];
     RecurrencyChecker recur_checker(nodes.size(), links, recur_checker_buf);
@@ -759,8 +792,7 @@ bool Genome::mutate_add_link(int population_index,
             add_link(this->links, newlink);
         };
 
-        IndividualInnovation innov(population_index, innov_id, innov_parms, innov_apply);
-        innovations.add(innov);
+        create_innov(innov_id, innov_parms, innov_apply);
     }
 
     return true;
@@ -774,6 +806,41 @@ void Genome::add_link(vector<LinkGene> &llist, const LinkGene &l) {
 void Genome::add_node(vector<NodeGene> &nlist, const NodeGene &n) {
     auto it = std::upper_bound(nlist.begin(), nlist.end(), n, nodelist_cmp);
     nlist.insert(it, n);
+}
+
+void Genome::mate(CreateInnovationFunc create_innov,
+                  Genome *genome1,
+                  Genome *genome2,
+                  Genome *offspring,
+                  int genomeid,
+                  real_t fitness1,
+                  real_t fitness2) {
+
+    //Perform mating based on probabilities of differrent mating types
+    if( offspring->rng.prob() < NEAT::mate_multipoint_prob ) { 
+        Genome::mate_multipoint(genome1,
+                                genome2,
+                                offspring,
+                                genomeid,
+                                fitness1,
+                                fitness2);
+    } else {
+        Genome::mate_multipoint_avg(genome1,
+                                    genome2,
+                                    offspring,
+                                    genomeid,
+                                    fitness1,
+                                    fitness2);
+    }
+
+    //Determine whether to mutate the baby's Genome
+    //This is done randomly or if the genome1 and genome2 are the same organism
+    if( !offspring->rng.under(NEAT::mate_only_prob) ||
+        (genome2->genome_id == genome1->genome_id) ||
+        (genome2->compatibility(genome1) == 0.0) ) {
+
+        offspring->mutate(create_innov);
+    }
 }
 
 // todo: use NodeLookup for newnodes instead of linear search!

@@ -386,10 +386,15 @@ bool Population::epoch(int generation) {
             
             reproduce_parms_t &parms = reproduce_parms[iorg];
 
-            parms.species->reproduce(iorg,
-                                     parms.ioffspring,
+            auto create_innov = [iorg,this] (InnovationId id,
+                                             InnovationParms parms,
+                                             IndividualInnovation::ApplyFunc apply) {
+                innovations.add(IndividualInnovation(iorg, id, parms, apply));
+            };
+
+            parms.species->reproduce(parms.ioffspring,
                                      baby,
-                                     this,
+                                     create_innov,
                                      sorted_species);
         }
 

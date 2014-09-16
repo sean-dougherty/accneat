@@ -69,6 +69,10 @@ namespace NEAT {
                              ApplyFunc apply_);
     };
 
+    typedef std::function<void (InnovationId id,
+                                InnovationParms parms,
+                                IndividualInnovation::ApplyFunc func )> CreateInnovationFunc;
+
 	class Innovation {
 	public:
         InnovationId id;

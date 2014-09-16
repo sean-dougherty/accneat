@@ -21,8 +21,6 @@
 using namespace NEAT;
 using std::vector;
 
-static void mutate(int population_index, Genome &new_genome, Population *pop, rng_t &rng);
-
 Species::Species(int i) {
 	id=i;
 	age=1;
@@ -296,10 +294,9 @@ static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &
 }
 
 //todo: this method better belongs in the population class.
-void Species::reproduce(int population_index, 
-                        int ioffspring,
+void Species::reproduce(int ioffspring,
                         Organism &baby,
-                        Population *pop,
+                        CreateInnovationFunc create_innov,
                         vector<Species*> &sorted_species) {
 
     Organism *thechamp = organisms[0];
@@ -319,8 +316,7 @@ void Species::reproduce(int population_index,
                 new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
             } else {
                 //Sometimes we add a link to a superchamp
-                new_genome.mutate_add_link(population_index,
-                                           pop->innovations,
+                new_genome.mutate_add_link(create_innov,
                                            NEAT::newlink_tries);
             }
         }
@@ -335,7 +331,7 @@ void Species::reproduce(int population_index,
         //Clone a random parent
         rng.element(organisms)->genome.duplicate_into(new_genome, ioffspring);
 
-        mutate(population_index, new_genome, pop, rng);
+        new_genome.mutate(create_innov);
 
         //Otherwise we should mate 
     } else {
@@ -351,72 +347,13 @@ void Species::reproduce(int population_index,
             dad = get_random(rng, this, sorted_species);
         }
 
-        //Perform mating based on probabilities of differrent mating types
-        if( rng.prob() < NEAT::mate_multipoint_prob ) { 
-            Genome::mate_multipoint(&mom->genome,
-                                    &dad->genome,
-                                    &new_genome,
-                                    ioffspring,
-                                    mom->orig_fitness,
-                                    dad->orig_fitness);
-        } else {
-            Genome::mate_multipoint_avg(&mom->genome,
-                                        &dad->genome,
-                                        &new_genome,
-                                        ioffspring,
-                                        mom->orig_fitness,
-                                        dad->orig_fitness);
-        }
-
-        //Determine whether to mutate the baby's Genome
-        //This is done randomly or if the mom and dad are the same organism
-        if ((rng.prob()>NEAT::mate_only_prob)||
-            ((dad->genome).genome_id==(mom->genome).genome_id)||
-            (((dad->genome).compatibility(&mom->genome))==0.0)) {
-
-            mutate(population_index, new_genome, pop, rng);
-        }
-    }
-}
-
-static void mutate(int population_index,
-                   Genome &new_genome,
-                   Population *pop,
-                   rng_t &rng) {
-    //Do the mutation depending on probabilities of 
-    //various mutations
-    if( rng.under(NEAT::mutate_add_node_prob) ) {
-        new_genome.mutate_add_node(population_index,
-                                   pop->innovations);
-    } else if( rng.under(NEAT::mutate_add_link_prob) ) {
-        new_genome.mutate_add_link(population_index,
-                                   pop->innovations,
-                                   NEAT::newlink_tries);
-    } else if( rng.under(NEAT::mutate_delete_link_prob) ) {
-        new_genome.mutate_delete_link();
-    } else if( rng.under(NEAT::mutate_delete_node_prob) ) {
-        new_genome.mutate_delete_node();
-    } else {
-        //Only do other mutations when not doing sturctural mutations
-
-        if( rng.under(NEAT::mutate_random_trait_prob) ) {
-            new_genome.mutate_random_trait();
-        }
-        if( rng.under(NEAT::mutate_link_trait_prob) ) {
-            new_genome.mutate_link_trait(1);
-        }
-        if( rng.under(NEAT::mutate_node_trait_prob) ) {
-            new_genome.mutate_node_trait(1);
-        }
-        if( rng.under(NEAT::mutate_link_weights_prob) ) {
-            new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
-        }
-        if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
-            new_genome.mutate_toggle_enable(1);
-        }
-        if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
-            new_genome.mutate_gene_reenable(); 
-        }
+        Genome::mate(create_innov,
+                     &mom->genome,
+                     &dad->genome,
+                     &new_genome,
+                     ioffspring,
+                     mom->orig_fitness,
+                     dad->orig_fitness);
     }
 }
 
