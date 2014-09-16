@@ -257,3 +257,22 @@ introduce reenable on add_link
 
 s0: 0.913566 @ gen 4108; halted at gen 5000
         nnodes=76.2541, nlinks=647.643, disabled=0.0659483
+
+--------------------------------------------------------------------------------
+introduce mutate_delete_node (same settings as codeinit/ne)
+
+[mutate/delete_node]
+
+s0: 0.996404 @ gen 750
+        nnodes=14.9729, nlinks=97.7788, disabled=0.29762
+
+failures were all at points of silence.
+
+--------------------------------------------------------------------------------
+give more weight to silence points
+
+[mutate/delte_node-heavier-weight-4,25,55]
+
+s0: 0.927591 @ gen 4666
+        nnodes=15.5124, nlinks=105.684, disabled=0.338734
+
