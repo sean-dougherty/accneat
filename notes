@@ -283,3 +283,5 @@ delete links instead of disabling
 
 s0: 0.999275 @ gen 3207
         nnodes=28.2124, nlinks=225.778, disabled=0
+
+s1: 

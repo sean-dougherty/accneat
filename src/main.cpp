@@ -14,31 +14,27 @@
   limitations under the License.
 */
 #include <iostream>
-#include <vector>
 #include "neat.h"
-#include "population.h"
 #include "seq_experiment.h"
 using namespace std;
 
-#if false
-#define RAND_SEED (unsigned)time( NULL )
-#else
-#define RAND_SEED 1
-#endif
-
-
 
 int main(int argc, char *argv[]) {
-    NEAT::rng_t rng;
-    rng.seed(RAND_SEED);
 
-    if (argc != 3) {
-        cerr << "usage: neat maxpop maxgens" << endl;
+    if (argc != 4) {
+        cerr << "usage: neat rng_seed pop_size maxgens" << endl;
         return -1;
     }
 
-    NEAT::pop_size = atoi(argv[1]);
-    int maxgens = atoi(argv[2]);
+    int argi = 1;
+    int rng_seed = stoi(argv[argi++]);
+    int pop_size = stoi(argv[argi++]);
+    int maxgens = stoi(argv[argi++]);
+
+    NEAT::rng_t rng;
+    rng.seed(rng_seed);
+
+    NEAT::pop_size = pop_size;
 
     seq_experiment(rng, maxgens);
 
