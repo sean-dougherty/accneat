@@ -190,6 +190,7 @@ namespace NEAT {
         LinkGene *find_link(int in_node_id, int out_node_id, bool is_recurrent);
         NodeGene *get_node(int id);
         void delete_if_orphaned_hidden_node(int node_id);
+        void delete_link(LinkGene *link);
 
     private:
         class NodeLookup {

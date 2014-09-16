@@ -586,8 +586,6 @@ bool Genome::mutate_add_node(int population_index,
         }
     }
 
-    splitlink->enable = false;
-
     InnovationId innov_id(splitlink->in_node_id(),
                           splitlink->out_node_id(),
                           splitlink->innovation_num);
@@ -616,6 +614,13 @@ bool Genome::mutate_add_node(int population_index,
         add_link(this->links, newlink1);
         add_link(this->links, newlink2);
         add_node(this->nodes, newnode);
+
+        // If deletion of links is permitted, delete it.
+        if(NEAT::mutate_delete_link_prob > 0.0) {
+            delete_link(splitlink);
+        } else {
+            splitlink->enable = false;
+        }
     };
 
     IndividualInnovation innov(population_index, innov_id, innov_parms, innov_apply);
@@ -651,26 +656,6 @@ void Genome::mutate_delete_node() {
                                  });
 
     links.resize(it_end - links.begin());
-}
-
-void Genome::delete_if_orphaned_hidden_node(int node_id) {
-    NodeGene *node = get_node(node_id);
-    if(node->place != HIDDEN)
-        return;
-
-    bool found_link;
-    for(LinkGene &link: links) {
-        if(link.in_node_id() == node_id || link.out_node_id() == node_id) {
-            found_link = true;
-            break;
-        }
-    }
-
-    if(!found_link) {
-        auto iterator = nodes.begin() + (node - nodes.data());
-        assert(iterator->node_id == node_id);
-        nodes.erase(iterator);
-    }
 }
 
 void Genome::mutate_delete_link() {
@@ -1433,4 +1418,33 @@ LinkGene *Genome::find_link(int in_node_id, int out_node_id, bool is_recurrent) 
 
 NodeGene *Genome::get_node(int id) {
     return node_lookup.find(id);
+}
+
+void Genome::delete_if_orphaned_hidden_node(int node_id) {
+    NodeGene *node = get_node(node_id);
+    if(node->place != HIDDEN)
+        return;
+
+    bool found_link;
+    for(LinkGene &link: links) {
+        if(link.in_node_id() == node_id || link.out_node_id() == node_id) {
+            found_link = true;
+            break;
+        }
+    }
+
+    if(!found_link) {
+        auto iterator = nodes.begin() + (node - nodes.data());
+        assert(iterator->node_id == node_id);
+        nodes.erase(iterator);
+    }
+}
+
+void Genome::delete_link(LinkGene *link) {
+    auto iterator = find_if(links.begin(), links.end(),
+                            [link](const LinkGene &l) {
+                                return l.innovation_num == link->innovation_num;
+                            });
+    assert(iterator != links.end());
+    links.erase(iterator);
 }

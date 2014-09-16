@@ -276,3 +276,10 @@ give more weight to silence points
 s0: 0.927591 @ gen 4666
         nnodes=15.5124, nlinks=105.684, disabled=0.338734
 
+--------------------------------------------------------------------------------
+delete links instead of disabling
+
+[mutate/delete_link]
+
+s0: 0.999275 @ gen 3207
+        nnodes=28.2124, nlinks=225.778, disabled=0
