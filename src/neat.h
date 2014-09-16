@@ -74,19 +74,17 @@ namespace NEAT {
 	extern real_t mutate_toggle_enable_prob;
 	extern real_t mutate_gene_reenable_prob;
 	extern real_t mutate_add_node_prob;
+	extern real_t mutate_delete_node_prob;
 	extern real_t mutate_add_link_prob;
 	extern bool mutate_add_link_reenables;
 	extern real_t interspecies_mate_rate;    // Prob. of a mate being outside species 
 	extern real_t mate_multipoint_prob;     
-	extern real_t mate_multipoint_avg_prob;
-	extern real_t mate_singlepoint_prob;
 	extern real_t mate_only_prob;            // Prob. of mating without mutation 
 	extern real_t recur_only_prob;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 	extern int pop_size;  // Size of population 
 	extern int dropoff_age;  // Age where Species starts to be penalized 
 	extern int newlink_tries;  // Number of tries mutate_add_link will attempt to find an open link 
 	extern int print_every; // Tells to print population to file every n generations 
-	extern int babies_stolen; // The number of babies to siphon off to the champions 
 
 	extern int num_runs; //number of times to run experiment
 

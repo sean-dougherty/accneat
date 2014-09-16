@@ -624,6 +624,35 @@ bool Genome::mutate_add_node(int population_index,
 	return true;
 }
 
+void Genome::mutate_delete_node() {
+    size_t first_non_io;
+    for(first_non_io = 0; first_non_io < nodes.size(); first_non_io++) {
+        if( nodes[first_non_io].place == HIDDEN ) {
+            break;
+        }
+    }
+
+    //Don't delete if only 0 or 1 hidden nodes
+    if(first_non_io >= (nodes.size()-1)) {
+        return;
+    }
+
+    size_t node_index = rng.index(nodes, first_non_io);
+    NodeGene node = nodes[node_index];
+    assert(node.place == HIDDEN);
+
+    nodes.erase(nodes.begin() + node_index);
+
+    //todo: we should have a way to look up links by in/out id
+    auto it_end = std::remove_if(links.begin(), links.end(),
+                                 [&node] (const LinkGene &link) {
+                                     return link.in_node_id() == node.node_id
+                                     || link.out_node_id() == node.node_id;
+                                 });
+
+    links.resize(it_end - links.begin());
+}
+
 bool Genome::mutate_add_link(int population_index,
                              PopulationInnovations &innovations,
                              int tries) {

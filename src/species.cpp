@@ -295,6 +295,7 @@ static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &
     return result->first();
 }
 
+//todo: this method better belongs in the population class.
 void Species::reproduce(int population_index, 
                         int ioffspring,
                         Organism &baby,
@@ -351,24 +352,20 @@ void Species::reproduce(int population_index,
         }
 
         //Perform mating based on probabilities of differrent mating types
-        if( rng.prob()<NEAT::mate_multipoint_prob ) { 
+        if( rng.prob() < NEAT::mate_multipoint_prob ) { 
             Genome::mate_multipoint(&mom->genome,
                                     &dad->genome,
                                     &new_genome,
                                     ioffspring,
                                     mom->orig_fitness,
                                     dad->orig_fitness);
-        } else if( rng.prob() < (NEAT::mate_multipoint_avg_prob/(NEAT::mate_multipoint_avg_prob+NEAT::mate_singlepoint_prob)) ) {
+        } else {
             Genome::mate_multipoint_avg(&mom->genome,
                                         &dad->genome,
                                         &new_genome,
                                         ioffspring,
                                         mom->orig_fitness,
                                         dad->orig_fitness);
-        } else {
-            // todo: catch non-zero probability at time of parsing. completely elim this
-            // from code.
-            std::cerr << "singlepoint mating no longer supported" << std::endl;
         }
 
         //Determine whether to mutate the baby's Genome
@@ -388,13 +385,15 @@ static void mutate(int population_index,
                    rng_t &rng) {
     //Do the mutation depending on probabilities of 
     //various mutations
-    if (rng.prob()<NEAT::mutate_add_node_prob) {
+    if (rng.prob() < NEAT::mutate_add_node_prob) {
         new_genome.mutate_add_node(population_index,
                                    pop->innovations);
-    } else if (rng.prob()<NEAT::mutate_add_link_prob) {
+    } else if (rng.prob() < NEAT::mutate_add_link_prob) {
         new_genome.mutate_add_link(population_index,
                                    pop->innovations,
                                    NEAT::newlink_tries);
+    } else if (rng.prob() < NEAT::mutate_delete_node_prob) {
+        new_genome.mutate_delete_node();
     } else {
         //Only do other mutations when not doing sturctural mutations
 

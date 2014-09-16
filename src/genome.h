@@ -43,8 +43,6 @@ namespace NEAT {
 		int get_last_node_id(); //Return id of final NodeGene in Genome
 		real_t get_last_gene_innovnum(); //Return last innovation number in Genome
 
-		void print_genome(); //Displays Genome on screen
-
         // todo: use c++11 move for constructor vectors?
 
         Genome();
@@ -111,6 +109,9 @@ namespace NEAT {
 		// Mutate genome by adding a node respresentation 
 		bool mutate_add_node(int population_index,
                              PopulationInnovations &innovations);
+
+		// Mutate genome by adding a node respresentation 
+		void mutate_delete_node();
 
 		// Mutate the genome by adding a new link between 2 random NodeGenes 
 		bool mutate_add_link(int population_index,

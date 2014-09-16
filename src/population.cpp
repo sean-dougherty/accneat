@@ -339,11 +339,7 @@ bool Population::epoch(int generation) {
             sorted_species[0]->first()->super_champ_offspring += total_organisms - half_pop;
             sorted_species[0]->expected_offspring += total_organisms - half_pop;
 		}
-	} else if (NEAT::babies_stolen>0) {
-        //todo: catch at ne parsing
-        trap("stolen babies no longer supported!");
 	}
-
 
 	//Kill off all Organisms marked for death.  The remainder
 	//will be allowed to reproduce.

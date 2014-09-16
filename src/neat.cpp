@@ -30,7 +30,7 @@ real_t NEAT::recur_prob = 0.05; // Prob. that a link mutation which doesn't have
 real_t NEAT::disjoint_coeff = 1.0;
 real_t NEAT::excess_coeff = 1.0;
 real_t NEAT::mutdiff_coeff = 3.0;
-real_t NEAT::compat_threshold = 10.0;
+real_t NEAT::compat_threshold = 10.0; //legacy = 4.0
 real_t NEAT::age_significance = 1.0; // How much does age matter? 
 real_t NEAT::survival_thresh = 0.4; // Percent of ave fitness for survival 
 real_t NEAT::mutate_only_prob = 0.25; // Prob. of a non-mating reproduction 
@@ -40,20 +40,18 @@ real_t NEAT::mutate_node_trait_prob = 0.1;
 real_t NEAT::mutate_link_weights_prob = 0.8;
 real_t NEAT::mutate_toggle_enable_prob = 0.1;
 real_t NEAT::mutate_gene_reenable_prob = 0.05;
-real_t NEAT::mutate_add_node_prob = 0.001; //legacy = 0.01
-real_t NEAT::mutate_add_link_prob = 0.05; //legacy = 0.3
-bool NEAT::mutate_add_link_reenables = true; //[new] legacy = false
+real_t NEAT::mutate_add_node_prob = 0.01;
+real_t NEAT::mutate_delete_node_prob = 0.001; //[new] legacy = 0.0
+real_t NEAT::mutate_add_link_prob = 0.3;
+bool NEAT::mutate_add_link_reenables = false;
 real_t NEAT::interspecies_mate_rate = 0.001; // Prob. of a mate being outside species 
 real_t NEAT::mate_multipoint_prob = 0.6;     
-real_t NEAT::mate_multipoint_avg_prob = 0.4;
-real_t NEAT::mate_singlepoint_prob = 0.0;
 real_t NEAT::mate_only_prob = 0.2; // Prob. of mating without mutation 
 real_t NEAT::recur_only_prob = 0.2;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 int NEAT::pop_size = 10000;  // Size of population 
 int NEAT::dropoff_age = 15;  // Age where Species starts to be penalized 
 int NEAT::newlink_tries = 20;  // Number of tries mutate_add_link will attempt to find an open link 
 int NEAT::print_every = 1000; // Tells to print population to file every n generations 
-int NEAT::babies_stolen = 0; // The number of babies to siphen off to the champions 
 int NEAT::num_runs = 1;
 
 int NEAT::getUnitCount(const char *string, const char *set)
