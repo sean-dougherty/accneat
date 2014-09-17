@@ -327,8 +327,10 @@ void SpeciesPopulation::next_generation() {
         innovations.apply();
 
         //Create the neural nets for the new organisms.
-        for(Organism &baby: orgs.curr())
-            baby.create_phenotype();
+#pragma omp parallel for
+        for(size_t iorg = 0; iorg < size(); iorg++) {
+            orgs.curr()[iorg].create_phenotype();
+        }
 
         timer.stop();
     }
