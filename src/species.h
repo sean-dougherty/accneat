@@ -72,7 +72,6 @@ namespace NEAT {
 		}
 
 		//Remove an organism from Species
-		bool remove_org(Organism *org);
         void remove_eliminated();
         void remove_generation(int gen);
 

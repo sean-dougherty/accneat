@@ -78,44 +78,12 @@ Organism *Species::get_champ() {
 	return thechamp;
 }
 
-bool Species::remove_org(Organism *org) {
-	std::vector<Organism*>::iterator curorg;
-
-	curorg=organisms.begin();
-	while((curorg!=organisms.end())&&
-		((*curorg)!=org))
-		++curorg;
-
-	if (curorg==organisms.end()) {
-		//cout<<"ALERT: Attempt to remove nonexistent Organism from Species"<<endl;
-		return false;
-	}
-	else {
-		organisms.erase(curorg);
-		return true;
-	}
-}
-
 void Species::remove_eliminated() {
-    size_t n = 0;
-    for(size_t i = 0; i < organisms.size(); i++) {
-        Organism *org = organisms[i];
-        if(!org->eliminate) {
-            organisms[n++] = organisms[i];
-        }
-    }
-    organisms.resize(n);    
+    erase_if(organisms, [](Organism *org) {return org->eliminate;});
 }
 
 void Species::remove_generation(int gen) {
-    size_t n = 0;
-    for(size_t i = 0; i < organisms.size(); i++) {
-        Organism *org = organisms[i];
-        if(org->generation != gen) {
-            organisms[n++] = organisms[i];
-        }
-    }
-    organisms.resize(n);    
+    erase_if(organisms, [gen](Organism *org) {return org->generation == gen;});
 }
 
 Organism *Species::first() {

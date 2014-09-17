@@ -137,10 +137,6 @@ namespace NEAT {
 	//      emphasize decorrelation on hebbian learning!	
 	extern real_t hebbian(real_t weight, real_t maxweight, real_t active_in, real_t active_out, real_t hebb_rate, real_t pre_rate, real_t post_rate);
 
-	bool load_neat_params(const char *filename, bool output = false);
-
-#define warn(msg) {std::cout << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl;}
-#define trap(msg) {std::cout << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; abort();}
 } // namespace NEAT
 
 #endif

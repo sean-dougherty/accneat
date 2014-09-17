@@ -16,6 +16,7 @@
 #include "population.h"
 #include "organism.h"
 #include "timer.h"
+#include "util.h"
 #include <iostream>
 #include <sstream>
 #include <fstream>

@@ -15,6 +15,7 @@
 */
 
 #include "innovation.h"
+#include "util.h"
 
 #include <algorithm>
 #include <iostream>

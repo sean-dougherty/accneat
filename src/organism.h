@@ -17,6 +17,7 @@
 
 #include "genome.h"
 #include "species.h"
+#include "util.h"
 
 #include <iostream>
 
