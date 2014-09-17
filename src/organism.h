@@ -58,7 +58,7 @@ namespace NEAT {
 		Organism(const Organism& org) {trap("shouldn't ever have to copy");}
 		~Organism();
 
-        void init(real_t fit, int gen, const char *metadata = nullptr);
+        void init(int gen, const char *metadata = nullptr);
 
         void create_phenotype();
 	};

@@ -16,7 +16,7 @@ namespace NEAT {
 
         size_t size();
         std::vector<Organism> &curr();
-        void swap();
+        void next_generation(int generation);
     };
 
 }

@@ -286,7 +286,7 @@ void SpeciesPopulation::next_generation() {
         static Timer timer("reproduce");
         timer.start();
 
-        orgs.swap();
+        orgs.next_generation(generation);
 
         //Initialize the parms for each reproduce invocation
         struct reproduce_parms_t {
@@ -310,8 +310,6 @@ void SpeciesPopulation::next_generation() {
 #pragma omp parallel for
         for(size_t iorg = 0; iorg < size(); iorg++) {
             Organism &baby = orgs.curr()[iorg];
-            baby.init(0.0, generation);
-
             reproduce_parms_t &parms = reproduce_parms[iorg];
 
             auto create_innov = [iorg,this] (InnovationId id,

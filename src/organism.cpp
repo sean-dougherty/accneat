@@ -21,12 +21,12 @@ using namespace NEAT;
 using std::vector;
 
 Organism::Organism() {
-    init(0.0, 0, nullptr);
+    init(0, nullptr);
 }
 
-void Organism::init(real_t fit, int gen, const char* md) {
-	fitness=fit;
-	orig_fitness=fitness;
+void Organism::init(int gen, const char* md) {
+	fitness=0.0;
+	orig_fitness=0.0;
 	species=0;  //Start it in no Species
 	expected_offspring=0;
 	generation=gen;

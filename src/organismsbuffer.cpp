@@ -23,7 +23,11 @@ vector<Organism> &OrganismsBuffer::curr() {
     return *_curr;
 }
 
-void OrganismsBuffer::swap() {
+void OrganismsBuffer::next_generation(int generation) {
     if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
     assert( _curr->size() == _n );
+
+    for(Organism &org: curr())
+        org.init(generation);
+
 }
