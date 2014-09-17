@@ -28,8 +28,6 @@ namespace NEAT {
 		SpeciesPopulation(rng_t &rng, Genome *g, int size);
 		virtual ~SpeciesPopulation();
 
-		// Turnover the population to a new generation using fitness 
-		// The generation argument is the next generation
 		virtual void next_generation() override;
 
         virtual size_t size() override {return orgs.size();}

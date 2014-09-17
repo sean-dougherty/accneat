@@ -14,6 +14,7 @@
    limitations under the License.
 */
 #include "population.h"
+#include "demespopulation.h"
 #include "speciespopulation.h"
 
 using namespace NEAT;
@@ -22,5 +23,12 @@ Population *Population::create(rng_t &rng,
                                class Genome *seed,
                                size_t norganisms) {
 
-    return new SpeciesPopulation(rng, seed, norganisms);
+    switch(NEAT::population_type) {
+    case PopulationType::SPECIES:
+        return new SpeciesPopulation(rng, seed, norganisms);
+    case PopulationType::DEMES:
+        return new DemesPopulation(rng, seed, norganisms);
+    default:
+        trap("invalid pop type");
+    }
 }

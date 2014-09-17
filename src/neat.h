@@ -42,6 +42,9 @@ namespace NEAT {
 
 	const int num_trait_params = 8;
 
+    enum class PopulationType {SPECIES, DEMES};
+    extern PopulationType population_type;
+
 	extern real_t trait_param_mut_prob;
 	extern real_t trait_mutation_power; // Power of mutation on a signle trait param 
 	extern real_t linktrait_mut_sig;  // Amount that mutation_num changes for a trait change inside a link

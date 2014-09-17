@@ -21,6 +21,7 @@
 
 using NEAT::real_t;
 
+NEAT::PopulationType NEAT::population_type = PopulationType::SPECIES;
 real_t NEAT::trait_param_mut_prob = 0.5;
 real_t NEAT::trait_mutation_power = 1.0; // Power of mutation on a signle trait param 
 real_t NEAT::linktrait_mut_sig = 1.0; // Amount that mutation_num changes for a trait change inside a link
