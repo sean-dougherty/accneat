@@ -176,6 +176,9 @@ const real_t max_err = []() {
     return total;
 }();
 
+static float *details_act;
+static float *details_err;
+
 static real_t score(real_t errorsum) {
     return 1.0 - errorsum/max_err;
 };
@@ -187,11 +190,7 @@ static void print(Population *pop, int gen) {
     pop->write(out);
 }
 
-static int epoch(NEAT::Population *pop,
-                 int generation,
-                 int &winnernum,
-                 int &winnergenes,
-                 int &winnernodes);
+static void next_generation(NEAT::Population *pop);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
 void seq_experiment(rng_t &rng, int gens) {
@@ -199,23 +198,8 @@ void seq_experiment(rng_t &rng, int gens) {
 
     Genome *start_genome;
 
-    int evals[NEAT::num_runs];
-    int genes[NEAT::num_runs];
-    int nodes[NEAT::num_runs];
-    int winnernum;
-    int winnergenes;
-    int winnernodes;
-    //For averaging
-    int totalevals=0;
-    int totalgenes=0;
-    int totalnodes=0;
-    int totalgens=0;
-    int expcount;
-    int samples;  //For averaging
-
-    memset (evals, 0, NEAT::num_runs * sizeof(int));
-    memset (genes, 0, NEAT::num_runs * sizeof(int));
-    memset (nodes, 0, NEAT::num_runs * sizeof(int));
+    details_act = new float[NEAT::pop_size * nouts];
+    details_err = new float[NEAT::pop_size * nouts];
 
     cout<<"START SEQ_EXPERIMENT TEST"<<endl;
 
@@ -225,26 +209,27 @@ void seq_experiment(rng_t &rng, int gens) {
                                               tests[0].steps[0].output.size(),
                                               3);
 
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
+    int nsuccesses = 0;
+
+    for(int expcount = 0; expcount < NEAT::num_runs; expcount++) {
         //Spawn the Population
         Population *pop = Population::create(rng, start_genome,NEAT::pop_size);
       
         bool success = false;
         int gen;
-        for (gen=1; !success && (gen <= gens); gen++) {
-            cout<<"Epoch "<<gen<<endl;	
+        for(gen = 1; !success && (gen <= gens); gen++) {
+            cout << "Epoch " << gen << endl;	
 
             static Timer timer("epoch");
             timer.start();
-            //Check for success
-            if (epoch(pop,gen,winnernum,winnergenes,winnernodes)) {
+
+            next_generation(pop);
+
+            if(pop->get_fittest().winner) {
                 success = true;
-                //Collect Stats on end of experiment
-                evals[expcount]=NEAT::pop_size*(gen-1)+winnernum;
-                genes[expcount]=winnergenes;
-                nodes[expcount]=winnernodes;
-                totalgens += gen;
+                nsuccesses++;
             }
+
             timer.stop();
             Timer::report();
 
@@ -259,132 +244,47 @@ void seq_experiment(rng_t &rng, int gens) {
     }
 
     delete start_genome;
-
-
-    //Average and print stats
-    cout<<"Nodes: "<<endl;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-        cout<<nodes[expcount]<<endl;
-        totalnodes+=nodes[expcount];
-    }
     
-    cout<<"Genes: "<<endl;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-        cout<<genes[expcount]<<endl;
-        totalgenes+=genes[expcount];
-    }
-    
-    cout<<"Evals "<<endl;
-    samples=0;
-    for(expcount=0;expcount<NEAT::num_runs;expcount++) {
-        cout<<evals[expcount]<<endl;
-        if (evals[expcount]>0)
-        {
-            totalevals+=evals[expcount];
-            samples++;
-        }
-    }
+    delete [] details_err;
+    delete [] details_act;
 
-    cout<<"Failures: "<<(NEAT::num_runs-samples)<<" out of "<<NEAT::num_runs<<" runs"<<endl;
-    cout<<"Average Generations: "<<real_t(totalgens)/expcount<<endl;
-    cout<<"Average Nodes: "<<(samples>0 ? (real_t)totalnodes/samples : 0)<<endl;
-    cout<<"Average Genes: "<<(samples>0 ? (real_t)totalgenes/samples : 0)<<endl;
-    cout<<"Average Evals: "<<(samples>0 ? (real_t)totalevals/samples : 0)<<endl;
+    cout << "Failures: " << (NEAT::num_runs - nsuccesses) << " out of " << NEAT::num_runs << " runs" << endl;
 }
 
-bool evaluate(Organism *org, float *details_act, float *details_err) {
-    Network *net;
+void next_generation(Population *pop) {
 
-    net=&org->net;
+    //static float best_fitness = 0.0f;
 
-    auto activate = [net] (vector<real_t> &input) {
-        net->load_sensors(input);
+    auto eval_org = [] (Organism &org) {
 
-        for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
-            net->activate();
-        }
-    };
+        float *details_act = ::details_act + org.population_index * nouts;
+        float *details_err = ::details_err + org.population_index * nouts;
+        Network *net = &org.net;
+        real_t errorsum = 0.0;
 
-    float errorsum = 0.0;
-
-    {
         for(auto &test: tests) {
             for(auto &step: test.steps) {
-                activate(step.input);
+                net->load_sensors(step.input);
+                for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
+                    net->activate();
+                }
                 errorsum += step.err( net, &details_act, &details_err );
             }
 
             net->flush();
         }
-    }
  
-    org->fitness = score(errorsum);
-    org->error=errorsum;
+        org.fitness = score(errorsum);
+        org.error = errorsum;
+        org.winner = org.fitness >= 0.9999999;
+    };
 
-    org->winner = org->fitness >= 0.9999999;
-    if(org->winner) {
-        cout << "FOUND A WINNER: " << org->fitness << endl;
-        cout.flush();
-    }
+    if( pop->evaluate(eval_org) ) {
+        Organism &best = pop->get_fittest();
 
-    return org->winner;
-}
-
-int epoch(Population *pop,
-          int generation,
-          int &winnernum,
-          int &winnergenes,
-          int &winnernodes) {
-
-    static float best_fitness = 0.0f;
-
-    bool win=false;
-    //Evaluate each organism on a test
-
-    bool best = false;
-    size_t i_best;
-
-    static Timer timer("evaluate");
-    timer.start();
-
-    const size_t n = pop->size();
-    //todo: should only allocate once
-    float *details_act = new float[n * nouts];
-    float *details_err = new float[n * nouts];
-#pragma omp parallel for
-    for(size_t i = 0; i < n; i++) {
-        Organism *org = pop->get(i);
-        size_t details_offset = i * nouts;
-        if (evaluate(org, details_act + details_offset, details_err + details_offset)) {
-#pragma omp critical
-            {
-                win=true;
-                winnernum=org->genome.genome_id;
-                winnergenes=org->genome.extrons();
-                winnernodes=org->genome.nodes.size();
-            }
-        }
-
-        if(org->fitness > best_fitness) {
-#pragma omp critical
-            if(org->fitness > best_fitness) {
-                best = true;
-                i_best = i;
-                best_fitness = org->fitness;
-            }
-        }
-    }
-
-    timer.stop();
-
-    if(best) {
-        float *best_act = details_act + i_best * nouts;
-        float *best_err = details_err + i_best * nouts;
-        Organism *org = pop->get(i_best);
+        float *best_act = details_act + best.population_index * nouts;
+        float *best_err = details_err + best.population_index * nouts;
         
-        printf("new best_fitness=%f; fitness=%f, errorsum=%f -- activation (err)\n",
-               (float)best_fitness, (float)org->fitness, (float)org->error);
-
         for(auto &test: tests) {
             for(auto &step: test.steps) {
                 for(size_t i = 0; i < step.output.size(); i++) {
@@ -396,12 +296,5 @@ int epoch(Population *pop,
         }
     }
 
-    delete [] details_act;
-    delete [] details_err;
-  
     pop->next_generation();
-
-    if (win) return 1;
-    else return 0;
-
 }

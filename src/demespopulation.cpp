@@ -1,5 +1,7 @@
 #include "demespopulation.h"
 
+#include "timer.h"
+
 using namespace NEAT;
 using namespace std;
 
@@ -9,6 +11,17 @@ DemesPopulation::DemesPopulation(rng_t &rng, Genome *g,int size)
 }
 
 DemesPopulation::~DemesPopulation() {
+}
+
+bool DemesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
+    static Timer timer("evaluate");
+    timer.start();
+
+    trap("here");
+
+    timer.stop();
+
+    return false;
 }
 
 void DemesPopulation::next_generation() {

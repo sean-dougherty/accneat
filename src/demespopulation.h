@@ -12,20 +12,17 @@ namespace NEAT {
 		DemesPopulation(rng_t &rng, Genome *g, int size);
 		virtual ~DemesPopulation();
 
+        virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
+        virtual class Organism &get_fittest() override {return fittest;}
 		virtual void next_generation() override;
-
-        virtual size_t size() override {return orgs.size();}
-        virtual Organism *get(size_t i) override {return &orgs.curr()[i];}
-
-		// Write SpeciesPopulation to a stream (e.g. file) in speciated order with comments separating each species
-		virtual void write(std::ostream& out) override;
-
-		// Run verify on all Genomes in this SpeciesPopulation (Debugging)
 		virtual void verify() override;
+
+		virtual void write(std::ostream& out) override;
 
     private:
         int generation;
         OrganismsBuffer orgs;
+        Organism fittest;
         PopulationInnovations innovations;
     };
 

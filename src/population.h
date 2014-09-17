@@ -16,6 +16,7 @@
 #pragma once
 
 #include <cstddef>
+#include <functional>
 #include <iostream>
 
 namespace NEAT {
@@ -28,14 +29,12 @@ namespace NEAT {
 
         virtual ~Population() {}
 
+        virtual bool evaluate(std::function<void (class Organism &org)> eval_org) = 0;
+        virtual class Organism &get_fittest() = 0;
 		virtual void next_generation() = 0;
-
-        virtual size_t size() = 0;
-        virtual class Organism *get(size_t i) = 0;
+		virtual void verify() = 0;
 
 		virtual void write(std::ostream& out) = 0;
-
-		virtual void verify() = 0;
     };
 
 } // namespace NEAT

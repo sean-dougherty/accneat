@@ -28,23 +28,21 @@ namespace NEAT {
 		SpeciesPopulation(rng_t &rng, Genome *g, int size);
 		virtual ~SpeciesPopulation();
 
+        virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
+        virtual class Organism &get_fittest() override {return fittest;}
 		virtual void next_generation() override;
-
-        virtual size_t size() override {return orgs.size();}
-        virtual Organism *get(size_t i) override {return &orgs.curr()[i];}
-
-		// Write SpeciesPopulation to a stream (e.g. file) in speciated order with comments separating each species
-		virtual void write(std::ostream& out) override;
-
-		// Run verify on all Genomes in this SpeciesPopulation (Debugging)
 		virtual void verify() override;
+
+		virtual void write(std::ostream& out) override;
 
     private:
 		bool spawn(Genome *g);
 		bool speciate();
 
+        size_t norgs;
         int generation;
         OrganismsBuffer orgs;
+        Organism fittest;
 
         std::vector<class Species*> species;  // Species in the SpeciesPopulation. Note that the species should comprise all the genomes 
         PopulationInnovations innovations;

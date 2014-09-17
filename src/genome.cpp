@@ -428,6 +428,15 @@ void Genome::duplicate_into(Genome &offspring) {
     offspring.nodes = nodes;
 }
 
+Genome &Genome::operator=(const Genome &other) {
+    rng = other.rng;
+    genome_id = other.genome_id;
+    traits = other.traits;
+    nodes = other.nodes;
+    links = other.links;
+    return *this;
+}
+
 void Genome::mutate(CreateInnovationFunc create_innov) {
     //Do the mutation depending on probabilities of 
     //various mutations

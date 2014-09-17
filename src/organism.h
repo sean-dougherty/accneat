@@ -31,8 +31,9 @@ namespace NEAT {
 	//   i.e. The genotype and phenotype together
 	// ---------------------------------------------  
 	class Organism {
-
 	public:
+        size_t population_index;
+
 		real_t fitness;  //A measure of fitness for the Organism
 		real_t orig_fitness;  //A fitness measure that won't change during adjustments
 		real_t error;  //Used just for reporting purposes
@@ -55,7 +56,6 @@ namespace NEAT {
 		void write(std::ostream &outFile);
 
 		Organism();
-		Organism(const Organism& org) {trap("shouldn't ever have to copy");}
 		~Organism();
 
         void init(int gen, const char *metadata = nullptr);

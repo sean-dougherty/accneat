@@ -46,7 +46,6 @@ namespace NEAT {
         // todo: use c++11 move for constructor vectors?
 
         Genome();
-
 		//Constructor which takes full genome specs and puts them into the new one
 		Genome(int id,
                const std::vector<Trait> &t,
@@ -74,6 +73,7 @@ namespace NEAT {
         void load_from_file(int id, std::istream &iFile);
 
         void duplicate_into(Genome &offspring);
+        Genome &operator=(const Genome &other);
 
 		// For debugging: A number of tests can be run on a genome to check its
 		// integrity
@@ -255,7 +255,6 @@ namespace NEAT {
             }
         };
         NodeLookup node_lookup;
-        Genome(const Genome &other);
     };
 } // namespace NEAT
 

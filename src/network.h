@@ -37,8 +37,6 @@ namespace NEAT {
 
 		bool adaptable; // Tells whether network can adapt or not
 		real_t maxweight; // Maximum weight in network for adaptation purposes
-
-        Network(const Network &network);
 	public:
         Network();
 		~Network();

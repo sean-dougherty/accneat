@@ -30,7 +30,8 @@ using namespace NEAT;
 using namespace std;
 
 SpeciesPopulation::SpeciesPopulation(rng_t &rng, Genome *g,int size)
-    : generation(0)
+    : norgs(size)
+    , generation(0)
     , orgs(rng, size)
     , winnergen(0)
     , highest_fitness(0.0)
@@ -56,7 +57,7 @@ void SpeciesPopulation::verify() {
 } 
 
 bool SpeciesPopulation::spawn(Genome *g) {
-    for(size_t i = 0; i < size(); i++) {
+    for(size_t i = 0; i < norgs; i++) {
         Organism &org = orgs.curr()[i];
         g->duplicate_into(org.genome);
         org.genome.genome_id = i+1;
@@ -100,6 +101,48 @@ void SpeciesPopulation::write(std::ostream& out) {
         s->print_to_file(out);
 }
 
+bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
+    static Timer timer("evaluate");
+    timer.start();
+
+    size_t nthreads = omp_get_max_threads();
+    Organism *fittest_thread[nthreads];
+
+    for(size_t i = 0; i < nthreads; i++)
+        fittest_thread[i] = nullptr;
+
+#pragma omp parallel for
+    for(size_t i = 0; i < norgs; i++) {
+        Organism &org = orgs.curr()[i];
+        eval_org( org );
+
+        size_t tnum = omp_get_thread_num();
+        if( (fittest_thread[tnum] == nullptr)
+            || (org.fitness > fittest_thread[tnum]->fitness) ) {
+
+            fittest_thread[tnum] = &org;
+        }
+    }
+
+    Organism *best = nullptr;
+    for(size_t i = 0; i < nthreads; i++) {
+        if( !best
+            || (fittest_thread[i] && (fittest_thread[i]->fitness > best->fitness)) ) {
+
+            best = fittest_thread[i];
+        }
+    }
+
+    timer.stop();
+
+    if(best && best->fitness > fittest.fitness) {
+        fittest = *best;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 void SpeciesPopulation::next_generation() {
 #ifndef NDEBUG
     for(Organism &org: orgs.curr()) {
@@ -117,7 +160,7 @@ void SpeciesPopulation::next_generation() {
 	//Offspring
 	real_t skim; 
 	int total_expected;  //precision checking
-	int total_organisms = size(); // todo: get rid of this variable
+	int total_organisms = norgs; // todo: get rid of this variable
     assert(total_organisms == NEAT::pop_size);
 	int max_expected;
 	Species *best_species = nullptr;
@@ -277,8 +320,8 @@ void SpeciesPopulation::next_generation() {
     }
 
     
-    if(total_expected > (int)size()) {
-        warn("total_expected (" << total_expected << ") > size (" << size() << ")"); 
+    if(total_expected > (int)norgs) {
+        warn("total_expected (" << total_expected << ") > size (" << norgs << ")"); 
     }
 
     //Create the next generation.
@@ -292,29 +335,31 @@ void SpeciesPopulation::next_generation() {
         struct reproduce_parms_t {
             Species *species;
             int ioffspring;
-        } reproduce_parms[size()];
+        } reproduce_parms[norgs];
         {
             size_t iorg = 0;
             for(size_t i = 0, n = species.size(); i < n; i++) {
                 Species *s = species[i];
 
-                for(int j = 0; (j < s->expected_offspring) && (iorg < size()); j++) {
+                for(int j = 0; (j < s->expected_offspring) && (iorg < norgs); j++) {
                     reproduce_parms[iorg].species = s;
                     reproduce_parms[iorg].ioffspring = j;
                     iorg++;
                 }
             }
-            assert(iorg == size());
+            assert(iorg == norgs);
         }
 
 #pragma omp parallel for
-        for(size_t iorg = 0; iorg < size(); iorg++) {
+        for(size_t iorg = 0; iorg < norgs; iorg++) {
             Organism &baby = orgs.curr()[iorg];
             reproduce_parms_t &parms = reproduce_parms[iorg];
 
-            auto create_innov = [iorg,this] (InnovationId id,
-                                             InnovationParms parms,
-                                             IndividualInnovation::ApplyFunc apply) {
+            assert(baby.population_index == iorg);
+
+            auto create_innov = [iorg, this] (InnovationId id,
+                                              InnovationParms parms,
+                                              IndividualInnovation::ApplyFunc apply) {
                 innovations.add(IndividualInnovation(iorg, id, parms, apply));
             };
 
@@ -328,7 +373,7 @@ void SpeciesPopulation::next_generation() {
 
         //Create the neural nets for the new organisms.
 #pragma omp parallel for
-        for(size_t iorg = 0; iorg < size(); iorg++) {
+        for(size_t iorg = 0; iorg < norgs; iorg++) {
             orgs.curr()[iorg].create_phenotype();
         }
 
@@ -340,9 +385,8 @@ void SpeciesPopulation::next_generation() {
         timer.start();
 
         {
-            size_t n = size();
 #pragma omp parallel for
-            for(size_t i = 0; i < n; i++) {
+            for(size_t i = 0; i < norgs; i++) {
                 Organism &org = orgs.curr()[i];
                 org.species = nullptr;
 
@@ -443,7 +487,7 @@ void SpeciesPopulation::next_generation() {
                     ndisabled++;
         }
 
-        real_t n = real_t(size());
+        real_t n = real_t(norgs);
         std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/real_t(nlinks)) << std::endl;
     }
 }
