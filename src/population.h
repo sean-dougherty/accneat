@@ -28,6 +28,15 @@
 
 namespace NEAT {
 
+/*
+    class Population {
+    public:
+        virtual ~Population() {}
+
+        virtual bool epoch
+    };
+*/
+
 	// ---------------------------------------------  
 	// POPULATION CLASS:
 	//   A Population is a group of Organisms   
@@ -41,7 +50,7 @@ namespace NEAT {
 
 		// Turnover the population to a new generation using fitness 
 		// The generation argument is the next generation
-		bool epoch(int generation);
+		void next_generation();
 
         size_t size() {return orgs.size();}
         Organism *get(size_t i) {return &orgs.curr()[i];}
@@ -56,6 +65,7 @@ namespace NEAT {
 		bool spawn(Genome *g);
 		bool speciate();
 
+        int generation;
         OrganismsBuffer orgs;
 
         std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 

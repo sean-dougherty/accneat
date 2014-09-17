@@ -398,7 +398,7 @@ int epoch(Population *pop,
     delete [] details_act;
     delete [] details_err;
   
-    pop->epoch(generation);
+    pop->next_generation();
 
     if (win) return 1;
     else return 0;

@@ -22,9 +22,6 @@
 
 namespace NEAT {
 
-	class Organism;
-	class Population;
-
 	// ---------------------------------------------  
 	// SPECIES CLASS:
 	//   A Species is a group of similar Organisms      

@@ -28,7 +28,8 @@ using namespace NEAT;
 using namespace std;
 
 Population::Population(rng_t &rng, Genome *g,int size)
-    : orgs(rng, size)
+    : generation(0)
+    , orgs(rng, size)
     , winnergen(0)
     , highest_fitness(0.0)
     , highest_last_changed(0) {
@@ -96,12 +97,14 @@ void Population::write(std::ostream& out) {
         s->print_to_file(out);
 }
 
-bool Population::epoch(int generation) {
+void Population::next_generation() {
 #ifndef NDEBUG
     for(Organism &org: orgs.curr()) {
-        assert(org.generation == generation - 1 );
+        assert(org.generation == generation);
     }
 #endif
+
+    generation++;
 
 	real_t total=0.0; //Used to compute average fitness over all Organisms
 	real_t overall_average;  //The average modified fitness among ALL organisms
@@ -441,6 +444,4 @@ bool Population::epoch(int generation) {
         real_t n = real_t(size());
         std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/real_t(nlinks)) << std::endl;
     }
-
-	return true;
 }
