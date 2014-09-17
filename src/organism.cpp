@@ -111,24 +111,16 @@ void Organism::create_phenotype() {
     net.init(maxweight);
 }
 
-bool Organism::print_to_file(char *filename) {
-	
-	std::ofstream oFile(filename);
-
-	return write_to_file(oFile);
-}
-
-bool Organism::write_to_file(std::ostream &outFile) {
+void Organism::write(std::ostream &outFile) {
 	
 	char tempbuf2[1024];
-	if(modified == true) {
+	if(modified) {
 		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", genome.genome_id, fitness, time_alive);
 	} else {
 		sprintf(tempbuf2, "/* %s */\n", metadata);
 	}
 	outFile << tempbuf2;
 	genome.print(outFile);
-	return 1;
 }
 bool NEAT::order_orgs(Organism *x, Organism *y) {
 	return (x)->fitness > (y)->fitness;

@@ -52,8 +52,7 @@ namespace NEAT {
 		bool modified;
 
 		// Print the Organism's genome to a file preceded by a comment detailing the organism's species, number, and fitness 
-		bool print_to_file(char *filename);   
-		bool write_to_file(std::ostream &outFile);
+		void write(std::ostream &outFile);
 
 		Organism();
 		Organism(const Organism& org) {trap("shouldn't ever have to copy");}
