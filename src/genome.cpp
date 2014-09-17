@@ -433,6 +433,8 @@ void Genome::duplicate_into(Genome &offspring, int new_id) {
 void Genome::mutate(CreateInnovationFunc create_innov) {
     //Do the mutation depending on probabilities of 
     //various mutations
+
+    //todo: should only need to get one prob and then select
     if( rng.under(NEAT::mutate_add_node_prob) ) {
         mutate_add_node(create_innov);
     } else if( rng.under(NEAT::mutate_add_link_prob) ) {

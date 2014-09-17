@@ -16,7 +16,6 @@
 #pragma once
 
 #include "genome.h"
-#include "species.h"
 #include "util.h"
 
 #include <iostream>
@@ -24,7 +23,6 @@
 namespace NEAT {
 
 	class Species;
-	class Population;
 
 	// ---------------------------------------------  
 	// ORGANISM CLASS:
@@ -41,7 +39,7 @@ namespace NEAT {
 		bool winner;  //Win marker (if needed for a particular task)
 		Network net;  //The Organism's phenotype
 		Genome genome; //The Organism's genotype 
-		Species *species;  //The Organism's Species 
+		class Species *species;  //The Organism's Species 
 		real_t expected_offspring; //Number of children this Organism may have
 		int generation;  //Tells which generation this Organism is from
 		bool eliminate;  //Marker for destruction of inferior Organisms

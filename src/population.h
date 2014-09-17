@@ -22,13 +22,11 @@
 #include "genome.h"
 #include "species.h"
 #include "organism.h"
+#include "organismsbuffer.h"
 
 #include <assert.h>
 
 namespace NEAT {
-
-    class Organism;
-	class Species;
 
 	// ---------------------------------------------  
 	// POPULATION CLASS:
@@ -36,26 +34,34 @@ namespace NEAT {
 	//   including their species                        
 	// ---------------------------------------------  
 	class Population {
-        class OrganismsBuffer {
-            size_t _n;
-            std::vector<Organism> _a;
-            std::vector<Organism> _b;
-            std::vector<Organism> *_curr;
-        public:
-            OrganismsBuffer(rng_t &rng, size_t n);
-
-            size_t size();
-            std::vector<Organism> &curr();
-            void swap();
-        } orgs;
-
-        Population(rng_t &rng, int size);
 	public:
-        std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
+		// Construct off of a single spawning Genome 
+		Population(rng_t &rng, Genome *g, int size);
+		~Population();
 
-		// ******* Member variables used during reproduction *******
+		// Turnover the population to a new generation using fitness 
+		// The generation argument is the next generation
+		bool epoch(int generation);
+
+        size_t size() {return orgs.size();}
+        Organism *get(size_t i) {return &orgs.curr()[i];}
+
+		// Write Population to a stream (e.g. file) in speciated order with comments separating each species
+		void write(std::ostream& out);
+
+		// Run verify on all Genomes in this Population (Debugging)
+		void verify();
+
+    private:
+		bool spawn(Genome *g);
+		bool speciate();
+
+        OrganismsBuffer orgs;
+
+        std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
         PopulationInnovations innovations;
 
+		// ******* Member variables used during reproduction *******
 		int last_species;  //The highest species number
 
 		// ******* Fitness Statistics *******
@@ -68,52 +74,6 @@ namespace NEAT {
 		// ******* When do we need to delta code? *******
 		real_t highest_fitness;  //Stagnation detector
 		int highest_last_changed; //If too high, leads to delta coding
-
-        size_t size() {return orgs.size();}
-        Organism *get(size_t i) {return &orgs.curr()[i];}
-
-		// Separate the Organisms into species
-		bool speciate();
-
-		// Print Population to a file specified by a string 
-		bool print_to_file(std::ostream& outFile);
-
-		// Print Population to a file in speciated order with comments separating each species
-		bool print_to_file_by_species(std::ostream& outFile);
-		bool print_to_file_by_species(char *filename);
-
-		// Prints the champions of each species to files starting with directory_prefix
-		// The file name are as follows: [prefix]g[generation_num]cs[species_num]
-		// Thus, they can be indexed by generation or species
-		bool print_species_champs_tofiles(char *directory_prefix,int generation);
-
-		// Run verify on all Genomes in this Population (Debugging)
-		void verify();
-
-		// Turnover the population to a new generation using fitness 
-		// The generation argument is the next generation
-		bool epoch(int generation);
-
-		// *** Real-time methods *** 
-
-		// Places the organisms in species in order from best to worst fitness 
-		bool rank_within_species();
-
-		// Construct off of a single spawning Genome 
-		Population(rng_t &rng, Genome *g, int size);
-
-		// Construct off of a single spawning Genome without mutation
-		Population(rng_t &rng, Genome *g, int size, float power);
-		
-		// It can delete a Population in two ways:
-		//    -delete by killing off the species
-		//    -delete by killing off the organisms themselves (if not speciated)
-		// It does the latter if it sees the species list is empty
-		~Population();
-
-    private:
-		bool clone(Genome *g, float power);
-		bool spawn(Genome *g);
 	};
 
 } // namespace NEAT

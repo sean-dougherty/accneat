@@ -27,47 +27,13 @@
 using namespace NEAT;
 using namespace std;
 
-Population::OrganismsBuffer::OrganismsBuffer(rng_t &rng, size_t n)
-    : _n(n) {
-    _a.resize(n);
-    _b.resize(n);
-    _curr = &_a;
-
-    for(auto &org: _a)
-        org.genome.rng.seed(rng.integer());
-    for(auto &org: _b)
-        org.genome.rng.seed(rng.integer());
-}
-
-size_t Population::OrganismsBuffer::size(){
-    return _n;
-}
-
-vector<Organism> &Population::OrganismsBuffer::curr() {
-    return *_curr;
-}
-
-void Population::OrganismsBuffer::swap() {
-    if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
-    assert( _curr->size() == _n );
-}
-
-Population::Population(rng_t &rng, int size)
+Population::Population(rng_t &rng, Genome *g,int size)
     : orgs(rng, size)
     , winnergen(0)
     , highest_fitness(0.0)
     , highest_last_changed(0) {
-}
-
-Population::Population(rng_t &rng, Genome *g,int size)
-    : Population(rng, size) {
 
 	spawn(g);
-}
-
-Population::Population(rng_t &rng, Genome *g,int size, float power)
-    : Population(rng, size) {
-	clone(g, power);
 }
 
 Population::~Population() {
@@ -85,37 +51,6 @@ void Population::verify() {
     for(auto &org: orgs.curr())
         org.genome.verify();
 } 
-
-bool Population::clone(Genome *g, float power) {
-
-    //Create an exact clone.
-    {
-        Organism &org = orgs.curr()[0];
-        g->duplicate_into(org.genome, 1);
-        org.create_phenotype();
-    }
-	
-	//Create copies of the Genome with perturbed linkweights
-	for(size_t i = 1; i < size(); i++) {
-        Organism &org = orgs.curr()[i];
-        
-        g->duplicate_into(org.genome, i+1);
-		if(power>0)
-			org.genome.mutate_link_weights(power, 1.0, GAUSSIAN);
-		
-        org.genome.randomize_traits();
-        org.create_phenotype();
-	}
-
-	//Keep a record of the innovation and node number we are on
-    innovations.init(orgs.curr().back().genome.get_last_node_id(),
-                     orgs.curr().back().genome.get_last_gene_innovnum());
-
-	//Separate the new Population into species
-	speciate();
-
-	return true;
-}
 
 bool Population::spawn(Genome *g) {
     for(size_t i = 0; i < size(); i++) {
@@ -156,27 +91,9 @@ bool Population::speciate() {
     return true;
 }
 
-bool Population::print_to_file_by_species(char *filename) {
-  std::ofstream outFile(filename,std::ios::out);
-  //Make sure it worked
-  if (!outFile) {
-    std::cerr<<"Can't open "<<filename<<" for output"<<std::endl;
-    return false;
-  }
-
-  bool result = print_to_file_by_species(outFile);
-
-  outFile.close();
-
-  return result;
-}
-
-
-bool Population::print_to_file_by_species(std::ostream& outFile) {
+void Population::write(std::ostream& out) {
     for(auto &s: species)
-        s->print_to_file(outFile);
-
-	return true;
+        s->print_to_file(out);
 }
 
 bool Population::epoch(int generation) {
@@ -205,6 +122,11 @@ bool Population::epoch(int generation) {
 
 	//We can try to keep the number of species constant at this number
 	int num_species=species.size();
+
+    for(Species *s: species) {
+        s->compute_average_fitness();
+        s->compute_max_fitness();
+    }
 
 	//Stick the Species pointers into a new Species list for sorting
 	for(Species *s: species) {
@@ -519,17 +441,6 @@ bool Population::epoch(int generation) {
         real_t n = real_t(size());
         std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/real_t(nlinks)) << std::endl;
     }
-
-	return true;
-}
-
-bool Population::rank_within_species() {
-	std::vector<Species*>::iterator curspecies;
-
-	//Add each Species in this generation to the snapshot
-	for(curspecies=species.begin();curspecies!=species.end();++curspecies) {
-		(*curspecies)->rank();
-	}
 
 	return true;
 }

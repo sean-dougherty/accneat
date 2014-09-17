@@ -1,6 +1,6 @@
 #include "seq_experiment.h"
 
-#include "organism.h"
+#include "population.h"
 #include "timer.h"
 
 #include <assert.h>
@@ -180,7 +180,8 @@ static real_t score(real_t errorsum) {
 static void print(Population *pop, int gen) {
     char filename[1024];
     sprintf(filename, "gen_%d", gen);
-    pop->print_to_file_by_species(filename);
+    ofstream out(filename);
+    pop->write(out);
 }
 
 static int epoch(NEAT::Population *pop,
@@ -397,23 +398,6 @@ int epoch(Population *pop,
     delete [] details_act;
     delete [] details_err;
   
-    //Average and max their fitnesses for dumping to file and snapshot
-    for(curspecies=(pop->species).begin();curspecies!=(pop->species).end();++curspecies) {
-
-        //This experiment control routine issues commands to collect ave
-        //and max fitness, as opposed to having the snapshot do it, 
-        //because this allows flexibility in terms of what time
-        //to observe fitnesses at
-
-        (*curspecies)->compute_average_fitness();
-        (*curspecies)->compute_max_fitness();
-    }
-
-    //Take a snapshot of the population, so that it can be
-    //visualized later on
-    //if ((generation%1)==0)
-    //  pop->snapshot();
-
     pop->epoch(generation);
 
     if (win) return 1;
