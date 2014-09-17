@@ -1,5 +1,8 @@
 #include "seq_experiment.h"
 
+#include "genome.h"
+#include "network.h"
+#include "organism.h"
 #include "population.h"
 #include "timer.h"
 
@@ -224,7 +227,7 @@ void seq_experiment(rng_t &rng, int gens) {
 
     for(expcount=0;expcount<NEAT::num_runs;expcount++) {
         //Spawn the Population
-        Population *pop = new Population(rng, start_genome,NEAT::pop_size);
+        Population *pop = Population::create(rng, start_genome,NEAT::pop_size);
       
         bool success = false;
         int gen;
@@ -334,8 +337,6 @@ int epoch(Population *pop,
           int &winnernodes) {
 
     static float best_fitness = 0.0f;
-
-    vector<Species*>::iterator curspecies;
 
     bool win=false;
     //Evaluate each organism on a test

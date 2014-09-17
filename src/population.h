@@ -13,79 +13,30 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#ifndef _POPULATION_H_
-#define _POPULATION_H_
+#pragma once
 
-#include <cmath>
-#include <vector>
-#include "innovation.h"
-#include "genome.h"
-#include "species.h"
-#include "organism.h"
-#include "organismsbuffer.h"
-
-#include <assert.h>
+#include <cstddef>
+#include <iostream>
 
 namespace NEAT {
 
-/*
     class Population {
     public:
+        static Population *create(class rng_t &rng,
+                                  class Genome *seed,
+                                  size_t norganisms);
+
         virtual ~Population() {}
 
-        virtual bool epoch
+		virtual void next_generation() = 0;
+
+        virtual size_t size() = 0;
+        virtual class Organism *get(size_t i) = 0;
+
+		virtual void write(std::ostream& out) = 0;
+
+		virtual void verify() = 0;
     };
-*/
-
-	// ---------------------------------------------  
-	// POPULATION CLASS:
-	//   A Population is a group of Organisms   
-	//   including their species                        
-	// ---------------------------------------------  
-	class Population {
-	public:
-		// Construct off of a single spawning Genome 
-		Population(rng_t &rng, Genome *g, int size);
-		~Population();
-
-		// Turnover the population to a new generation using fitness 
-		// The generation argument is the next generation
-		void next_generation();
-
-        size_t size() {return orgs.size();}
-        Organism *get(size_t i) {return &orgs.curr()[i];}
-
-		// Write Population to a stream (e.g. file) in speciated order with comments separating each species
-		void write(std::ostream& out);
-
-		// Run verify on all Genomes in this Population (Debugging)
-		void verify();
-
-    private:
-		bool spawn(Genome *g);
-		bool speciate();
-
-        int generation;
-        OrganismsBuffer orgs;
-
-        std::vector<Species*> species;  // Species in the Population. Note that the species should comprise all the genomes 
-        PopulationInnovations innovations;
-
-		// ******* Member variables used during reproduction *******
-		int last_species;  //The highest species number
-
-		// ******* Fitness Statistics *******
-		real_t mean_fitness;
-		real_t variance;
-		real_t standard_deviation;
-
-		int winnergen; //An integer that when above zero tells when the first winner appeared
-
-		// ******* When do we need to delta code? *******
-		real_t highest_fitness;  //Stagnation detector
-		int highest_last_changed; //If too high, leads to delta coding
-	};
 
 } // namespace NEAT
 
-#endif

@@ -271,7 +271,7 @@ void Species::reproduce(int ioffspring,
     Genome &new_genome = baby.genome;  //For holding baby's genes
     rng_t &rng = baby.genome.rng;
 
-    //If we have a super_champ (Population champion), finish off some special clones
+    //If we have a super_champ (SpeciesPopulation champion), finish off some special clones
     if( ioffspring < thechamp->super_champ_offspring ) {
         thechamp->genome.duplicate_into(new_genome, ioffspring);
 
