@@ -120,8 +120,7 @@ public:
     
 };
 
-void Genome::reset(int new_id) {
-    genome_id = new_id;
+void Genome::reset() {
     traits.clear();
     nodes.clear();
     links.clear();
@@ -423,8 +422,7 @@ real_t Genome::get_last_gene_innovnum() {
     return links.back().innovation_num + 1;
 }
 
-void Genome::duplicate_into(Genome &offspring, int new_id) {
-    offspring.genome_id = new_id;
+void Genome::duplicate_into(Genome &offspring) {
     offspring.traits = traits;
     offspring.links = links;
     offspring.nodes = nodes;
@@ -814,7 +812,6 @@ void Genome::mate(CreateInnovationFunc create_innov,
                   Genome *genome1,
                   Genome *genome2,
                   Genome *offspring,
-                  int genomeid,
                   real_t fitness1,
                   real_t fitness2) {
 
@@ -823,14 +820,12 @@ void Genome::mate(CreateInnovationFunc create_innov,
         Genome::mate_multipoint(genome1,
                                 genome2,
                                 offspring,
-                                genomeid,
                                 fitness1,
                                 fitness2);
     } else {
         Genome::mate_multipoint_avg(genome1,
                                     genome2,
                                     offspring,
-                                    genomeid,
                                     fitness1,
                                     fitness2);
     }
@@ -849,7 +844,6 @@ void Genome::mate(CreateInnovationFunc create_innov,
 void Genome::mate_multipoint(Genome *genome1,
                              Genome *genome2,
                              Genome *offspring,
-                             int genomeid,
                              real_t fitness1,
                              real_t fitness2) {
     rng_t &rng = offspring->rng;
@@ -857,7 +851,7 @@ void Genome::mate_multipoint(Genome *genome1,
     vector<LinkGene> &links2 = genome2->links;
 
 	//The baby Genome will contain these new Traits, NodeGenes, and LinkGenes
-    offspring->reset(genomeid);
+    offspring->reset();
 	vector<Trait> &newtraits = offspring->traits;
 	vector<NodeGene> &newnodes = offspring->nodes;   
 	vector<LinkGene> &newlinks = offspring->links;    
@@ -1083,7 +1077,6 @@ void Genome::mate_multipoint(Genome *genome1,
 void Genome::mate_multipoint_avg(Genome *genome1,
                                  Genome *genome2,
                                  Genome *offspring,
-                                 int genomeid,
                                  real_t fitness1,
                                  real_t fitness2) {
     rng_t &rng = offspring->rng;
@@ -1091,7 +1084,7 @@ void Genome::mate_multipoint_avg(Genome *genome1,
     vector<LinkGene> &links2 = genome2->links;
 
 	//The baby Genome will contain these new Traits, NodeGenes, and LinkGenes
-    offspring->reset(genomeid);
+    offspring->reset();
 	vector<Trait> &newtraits = offspring->traits;
 	vector<NodeGene> &newnodes = offspring->nodes;
 	vector<LinkGene> &newlinks = offspring->links;

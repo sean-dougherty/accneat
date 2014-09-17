@@ -270,10 +270,11 @@ void Species::reproduce(int ioffspring,
     Organism *thechamp = organisms[0];
     Genome &new_genome = baby.genome;  //For holding baby's genes
     rng_t &rng = baby.genome.rng;
+    baby.genome.genome_id = ioffspring;
 
     //If we have a super_champ (SpeciesPopulation champion), finish off some special clones
     if( ioffspring < thechamp->super_champ_offspring ) {
-        thechamp->genome.duplicate_into(new_genome, ioffspring);
+        thechamp->genome.duplicate_into(new_genome);
 
         //Most superchamp offspring will have their connection weights mutated only
         //The last offspring will be an exact duplicate of this super_champ
@@ -292,12 +293,12 @@ void Species::reproduce(int ioffspring,
     } else if( (ioffspring == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
 
         //Clone the species champion
-        thechamp->genome.duplicate_into(new_genome, ioffspring);
+        thechamp->genome.duplicate_into(new_genome);
 
     } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
 
         //Clone a random parent
-        rng.element(organisms)->genome.duplicate_into(new_genome, ioffspring);
+        rng.element(organisms)->genome.duplicate_into(new_genome);
 
         new_genome.mutate(create_innov);
 
@@ -319,7 +320,6 @@ void Species::reproduce(int ioffspring,
                      &mom->genome,
                      &dad->genome,
                      &new_genome,
-                     ioffspring,
                      mom->orig_fitness,
                      dad->orig_fitness);
     }

@@ -58,7 +58,8 @@ void SpeciesPopulation::verify() {
 bool SpeciesPopulation::spawn(Genome *g) {
     for(size_t i = 0; i < size(); i++) {
         Organism &org = orgs.curr()[i];
-        g->duplicate_into(org.genome, i+1); 
+        g->duplicate_into(org.genome);
+        org.genome.genome_id = i+1;
 		org.genome.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
 		org.genome.randomize_traits();
         org.create_phenotype();
@@ -310,8 +311,7 @@ void SpeciesPopulation::next_generation() {
         for(size_t iorg = 0; iorg < size(); iorg++) {
             Organism &baby = orgs.curr()[iorg];
             baby.init(0.0, generation);
-            baby.genome.reset(iorg+1);
-            
+
             reproduce_parms_t &parms = reproduce_parms[iorg];
 
             auto create_innov = [iorg,this] (InnovationId id,

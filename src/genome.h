@@ -38,7 +38,7 @@ namespace NEAT {
 		std::vector<NodeGene> nodes;
 		std::vector<LinkGene> links;
 
-        void reset(int new_id);
+        void reset();
 
 		int get_last_node_id(); //Return id of final NodeGene in Genome
 		real_t get_last_gene_innovnum(); //Return last innovation number in Genome
@@ -73,7 +73,7 @@ namespace NEAT {
 		void print(std::ostream &out);
         void load_from_file(int id, std::istream &iFile);
 
-        void duplicate_into(Genome &offspring, int new_id);
+        void duplicate_into(Genome &offspring);
 
 		// For debugging: A number of tests can be run on a genome to check its
 		// integrity
@@ -125,7 +125,6 @@ namespace NEAT {
                          Genome *genome1,
                          Genome *genome2,
                          Genome *offspring,
-                         int genomeid,
                          real_t fitness1,
                          real_t fitness2);
 
@@ -138,7 +137,6 @@ namespace NEAT {
 		static void mate_multipoint(Genome *genome1,
                                     Genome *genome2,
                                     Genome *offspring,
-                                    int genomeid,
                                     real_t fitness1,
                                     real_t fitness2);
 
@@ -148,7 +146,6 @@ namespace NEAT {
 		static void mate_multipoint_avg(Genome *genome1,
                                         Genome *genome2,
                                         Genome *offspring,
-                                        int genomeid,
                                         real_t fitness1,
                                         real_t fitness2);
 
