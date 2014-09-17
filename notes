@@ -284,4 +284,5 @@ delete links instead of disabling
 s0: 0.999275 @ gen 3207
         nnodes=28.2124, nlinks=225.778, disabled=0
 
-s1: 
+s2: 1.0 @ gen 2090
+        nnodes=23.8047, nlinks=191.454, disabled=0
