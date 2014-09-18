@@ -18,6 +18,7 @@
 #include "innovation.h"
 #include "organismsbuffer.h"
 #include "population.h"
+#include "speciesorganism.h"
 #include <vector>
 
 namespace NEAT {
@@ -41,8 +42,8 @@ namespace NEAT {
 
         size_t norgs;
         int generation;
-        OrganismsBuffer orgs;
-        Organism fittest;
+        OrganismsBuffer<SpeciesOrganism> orgs;
+        SpeciesOrganism fittest;
 
         std::vector<class Species*> species;  // Species in the SpeciesPopulation. Note that the species should comprise all the genomes 
         PopulationInnovations innovations;

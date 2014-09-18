@@ -42,7 +42,7 @@ SpeciesPopulation::SpeciesPopulation(rng_t &rng, Genome *g,int size)
 
 SpeciesPopulation::~SpeciesPopulation() {
 	std::vector<Species*>::iterator curspec;
-	std::vector<Organism*>::iterator curorg;
+	std::vector<SpeciesOrganism*>::iterator curorg;
 
 	if (species.begin()!=species.end()) {
 		for(curspec=species.begin();curspec!=species.end();++curspec) {
@@ -58,7 +58,7 @@ void SpeciesPopulation::verify() {
 
 bool SpeciesPopulation::spawn(Genome *g) {
     for(size_t i = 0; i < norgs; i++) {
-        Organism &org = orgs.curr()[i];
+        SpeciesOrganism &org = orgs.curr()[i];
         g->duplicate_into(org.genome);
         org.genome.genome_id = i+1;
 		org.genome.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
@@ -78,7 +78,7 @@ bool SpeciesPopulation::spawn(Genome *g) {
 
 bool SpeciesPopulation::speciate() {
     last_species = 0;
-    for(Organism &org: orgs.curr()) {
+    for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.species == nullptr);
         for(Species *s: species) {
             if( org.genome.compatibility(&s->first()->genome) < NEAT::compat_threshold ) {
@@ -106,14 +106,14 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
     timer.start();
 
     size_t nthreads = omp_get_max_threads();
-    Organism *fittest_thread[nthreads];
+    SpeciesOrganism *fittest_thread[nthreads];
 
     for(size_t i = 0; i < nthreads; i++)
         fittest_thread[i] = nullptr;
 
 #pragma omp parallel for
     for(size_t i = 0; i < norgs; i++) {
-        Organism &org = orgs.curr()[i];
+        SpeciesOrganism &org = orgs.curr()[i];
         eval_org( org );
 
         size_t tnum = omp_get_thread_num();
@@ -124,7 +124,7 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
         }
     }
 
-    Organism *best = nullptr;
+    SpeciesOrganism *best = nullptr;
     for(size_t i = 0; i < nthreads; i++) {
         if( !best
             || (fittest_thread[i] && (fittest_thread[i]->fitness > best->fitness)) ) {
@@ -145,7 +145,7 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
 
 void SpeciesPopulation::next_generation() {
 #ifndef NDEBUG
-    for(Organism &org: orgs.curr()) {
+    for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.generation == generation);
     }
 #endif
@@ -215,14 +215,14 @@ void SpeciesPopulation::next_generation() {
 
 	//Go through the organisms and add up their fitnesses to compute the
 	//overall average
-    for(Organism &o: orgs.curr()) {
+    for(SpeciesOrganism &o: orgs.curr()) {
         total += o.fitness;
     }
 	overall_average=total/total_organisms;
 	std::cout<<"Generation "<<generation<<": "<<"overall_average = "<<overall_average<<std::endl;
 
 	//Now compute expected number of offspring for each individual organism
-    for(Organism &o: orgs.curr()) {
+    for(SpeciesOrganism &o: orgs.curr()) {
 		o.expected_offspring = o.fitness / overall_average;
 	}
 
@@ -273,7 +273,7 @@ void SpeciesPopulation::next_generation() {
 
 	//Check for SpeciesPopulation-level stagnation
     {
-        Organism *pop_champ = sorted_species[0]->first();
+        SpeciesOrganism *pop_champ = sorted_species[0]->first();
         if(pop_champ->orig_fitness > highest_fitness) {
             real_t old_highest = highest_fitness;
             highest_fitness = pop_champ->orig_fitness;
@@ -352,7 +352,7 @@ void SpeciesPopulation::next_generation() {
 
 #pragma omp parallel for
         for(size_t iorg = 0; iorg < norgs; iorg++) {
-            Organism &baby = orgs.curr()[iorg];
+            SpeciesOrganism &baby = orgs.curr()[iorg];
             reproduce_parms_t &parms = reproduce_parms[iorg];
 
             assert(baby.population_index == iorg);
@@ -387,7 +387,7 @@ void SpeciesPopulation::next_generation() {
         {
 #pragma omp parallel for
             for(size_t i = 0; i < norgs; i++) {
-                Organism &org = orgs.curr()[i];
+                SpeciesOrganism &org = orgs.curr()[i];
                 org.species = nullptr;
 
                 for(Species *s: species) {
@@ -404,7 +404,7 @@ void SpeciesPopulation::next_generation() {
 
         size_t index_new_species = species.size();
 
-        for(Organism &org: orgs.curr()) {
+        for(SpeciesOrganism &org: orgs.curr()) {
             if(!org.species) {
                 //It didn't fit into any of the existing species. Check if it fits
                 //into one we've just created.
@@ -459,7 +459,7 @@ void SpeciesPopulation::next_generation() {
                 
                 //Go through the organisms of the curspecies and add them to 
                 //the master list
-                for(Organism *org: s->organisms) {
+                for(SpeciesOrganism *org: s->organisms) {
                     org->genome.genome_id = orgcount++;
                 }
             }
@@ -469,7 +469,7 @@ void SpeciesPopulation::next_generation() {
     }
 
 #ifndef NDEBUG
-    for(Organism &org: orgs.curr()) {
+    for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.generation == generation);
     }
 #endif
@@ -479,7 +479,7 @@ void SpeciesPopulation::next_generation() {
         size_t nlinks = 0;
         size_t ndisabled = 0;
 
-        for(Organism &org: orgs.curr()) {
+        for(SpeciesOrganism &org: orgs.curr()) {
             nnodes += org.genome.nodes.size();
             nlinks += org.genome.links.size();
             for(LinkGene &g: org.genome.links)

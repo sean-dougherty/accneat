@@ -59,16 +59,16 @@ bool Species::rank() {
 	return true;
 }
 
-bool Species::add_Organism(Organism *o){
+bool Species::add_Organism(SpeciesOrganism *o){
 	organisms.push_back(o);
 	return true;
 }
 
-Organism *Species::get_champ() {
+SpeciesOrganism *Species::get_champ() {
 	real_t champ_fitness=-1.0;
-	Organism *thechamp = nullptr;
+	SpeciesOrganism *thechamp = nullptr;
 
-    for(Organism *org: organisms) {
+    for(SpeciesOrganism *org: organisms) {
         if(org->fitness > champ_fitness) {
             thechamp = org;
             champ_fitness = thechamp->fitness;
@@ -79,14 +79,14 @@ Organism *Species::get_champ() {
 }
 
 void Species::remove_eliminated() {
-    erase_if(organisms, [](Organism *org) {return org->eliminate;});
+    erase_if(organisms, [](SpeciesOrganism *org) {return org->eliminate;});
 }
 
 void Species::remove_generation(int gen) {
-    erase_if(organisms, [gen](Organism *org) {return org->generation == gen;});
+    erase_if(organisms, [gen](SpeciesOrganism *org) {return org->generation == gen;});
 }
 
-Organism *Species::first() {
+SpeciesOrganism *Species::first() {
 	return *(organisms.begin());
 }
 
@@ -96,7 +96,7 @@ bool Species::print_to_file(std::ostream &outFile) {
     outFile<<std::endl<<"/* Species #"<<id<<" : (Size "<<organisms.size()<<") (AF "<<ave_fitness<<") (Age "<<age<<")  */"<<std::endl<<std::endl;
 
     //Print all the Organisms' Genomes to the outFile
-    for(Organism *org: organisms) {
+    for(SpeciesOrganism *org: organisms) {
         //Put the fitness for each organism in a comment
         outFile<<std::endl<<"/* Organism #"<<(org->genome).genome_id<<" Fitness: "<<org->fitness<<" Error: "<<org->error<<" */"<<std::endl;
 
@@ -110,7 +110,7 @@ bool Species::print_to_file(std::ostream &outFile) {
 }
 
 void Species::adjust_fitness() {
-	std::vector<Organism*>::iterator curorg;
+	std::vector<SpeciesOrganism*>::iterator curorg;
 
 	int num_parents;
 	int count;
@@ -185,7 +185,7 @@ void Species::adjust_fitness() {
 }
 
 real_t Species::compute_average_fitness() {
-	std::vector<Organism*>::iterator curorg;
+	std::vector<SpeciesOrganism*>::iterator curorg;
 
 	real_t total=0.0;
 
@@ -208,7 +208,7 @@ real_t Species::compute_average_fitness() {
 
 real_t Species::compute_max_fitness() {
 	real_t max=0.0;
-	std::vector<Organism*>::iterator curorg;
+	std::vector<SpeciesOrganism*>::iterator curorg;
 
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 		if (((*curorg)->fitness)>max)
@@ -221,7 +221,7 @@ real_t Species::compute_max_fitness() {
 }
 
 real_t Species::count_offspring(real_t skim) {
-	std::vector<Organism*>::iterator curorg;
+	std::vector<SpeciesOrganism*>::iterator curorg;
 	int e_o_intpart;  //The floor of an organism's expected offspring
 	real_t e_o_fracpart; //Expected offspring fractional part
 	real_t skim_intpart;  //The whole offspring in the skim
@@ -250,7 +250,7 @@ real_t Species::count_offspring(real_t skim) {
 
 }
 
-static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &sorted_species) {
+static SpeciesOrganism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &sorted_species) {
     Species *result = thiz;
     for(int i = 0; (result == thiz) && (i < 5); i++) {
         real_t randmult = std::min(real_t(1.0), rng.gauss() / 4);
@@ -263,11 +263,11 @@ static Organism *get_random(rng_t &rng, Species *thiz, const vector<Species *> &
 
 //todo: this method better belongs in the population class.
 void Species::reproduce(int ioffspring,
-                        Organism &baby,
+                        SpeciesOrganism &baby,
                         CreateInnovationFunc create_innov,
                         vector<Species*> &sorted_species) {
 
-    Organism *thechamp = organisms[0];
+    SpeciesOrganism *thechamp = organisms[0];
     Genome &new_genome = baby.genome;  //For holding baby's genes
     rng_t &rng = baby.genome.rng;
     baby.genome.genome_id = ioffspring;
@@ -305,10 +305,10 @@ void Species::reproduce(int ioffspring,
         //Otherwise we should mate 
     } else {
         //Choose the random mom
-        Organism *mom = rng.element(organisms);
+        SpeciesOrganism *mom = rng.element(organisms);
 
         //Choose random dad
-        Organism *dad;
+        SpeciesOrganism *dad;
         if ((rng.prob() > NEAT::interspecies_mate_rate)) {
             //Mate within Species
             dad = rng.element(organisms);

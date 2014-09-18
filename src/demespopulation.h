@@ -21,7 +21,7 @@ namespace NEAT {
 
     private:
         int generation;
-        OrganismsBuffer orgs;
+        OrganismsBuffer<> orgs;
         Organism fittest;
         PopulationInnovations innovations;
     };

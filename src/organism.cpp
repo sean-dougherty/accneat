@@ -26,15 +26,9 @@ Organism::Organism() {
 
 void Organism::init(int gen) {
 	fitness=0.0;
-	orig_fitness=0.0;
-	species=0;  //Start it in no Species
-	expected_offspring=0;
 	generation=gen;
-	eliminate=false;
 	error=0;
 	winner=false;
-	champion=false;
-	super_champ_offspring=0;
 }
 
 Organism::~Organism() {
@@ -102,8 +96,4 @@ void Organism::create_phenotype() {
 
 bool NEAT::order_orgs(Organism *x, Organism *y) {
 	return (x)->fitness > (y)->fitness;
-}
-
-bool NEAT::order_orgs_by_adjusted_fit(Organism *x, Organism *y) {
-	return (x)->fitness / (x->species)->organisms.size()  > (y)->fitness / (y->species)->organisms.size();
 }

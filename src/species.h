@@ -17,7 +17,7 @@
 #define _SPECIES_H_
 
 #include "neat.h"
-#include "organism.h"
+#include "speciesorganism.h"
 #include "population.h"
 
 namespace NEAT {
@@ -40,14 +40,14 @@ namespace NEAT {
 		bool novel;
 		bool checked;
 		bool obliterate;  //Allows killing off in competitive coevolution stagnation
-		std::vector<Organism*> organisms; //The organisms in the Species
-		//std::vector<Organism*> reproduction_pool;  //The organisms for reproduction- NOT NEEDED 
+		std::vector<SpeciesOrganism*> organisms; //The organisms in the Species
+		//std::vector<SpeciesOrganism*> reproduction_pool;  //The organisms for reproduction- NOT NEEDED 
 		int age_of_last_improvement;  //If this is too long ago, the Species will goes extinct
 		real_t average_est; //When playing real-time allows estimating average fitness
 
-		bool add_Organism(Organism *o);
+		bool add_Organism(SpeciesOrganism *o);
 
-		Organism *first();
+		SpeciesOrganism *first();
 
 		bool print_to_file(std::ostream &outFile);
 
@@ -76,11 +76,11 @@ namespace NEAT {
 			return organisms.size();
 		}
 
-		Organism *get_champ();
+		SpeciesOrganism *get_champ();
 
 		//Perform mating and mutation to form next generation
         void reproduce(int ioffspring,
-                       Organism &baby,
+                       SpeciesOrganism &baby,
                        CreateInnovationFunc create_innov,
                        std::vector<Species*> &sorted_species);
 

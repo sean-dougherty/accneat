@@ -43,25 +43,16 @@ namespace NEAT {
 		Genome genome; //The Organism's genotype 
 		int generation;  //Tells which generation this Organism is from
 
-		real_t orig_fitness;  //A fitness measure that won't change during adjustments
-		class Species *species;  //The Organism's Species 
-		real_t expected_offspring; //Number of children this Organism may have
-		bool eliminate;  //Marker for destruction of inferior Organisms
-		bool champion; //Marks the species champ
-		int super_champ_offspring;  //Number of reserved offspring for a population leader
-
 		Organism();
 		~Organism();
 
-        void init(int gen);
+        virtual void init(int gen);
 
         void create_phenotype();
 	};
 
 	// This is used for list sorting of Organisms by fitness..highest fitness first
 	bool order_orgs(Organism *x, Organism *y);
-
-	bool order_orgs_by_adjusted_fit(Organism *x, Organism *y);
 
 } // namespace NEAT
 
