@@ -7,6 +7,7 @@ namespace NEAT {
     class SpeciesOrganism : public Organism {
     public:
 		class Species *species;  //The Organism's Species 
+        real_t adjusted_fitness;
 		real_t expected_offspring; //Number of children this Organism may have
 		bool eliminate;  //Marker for destruction of inferior Organisms
 		bool champion; //Marks the species champ

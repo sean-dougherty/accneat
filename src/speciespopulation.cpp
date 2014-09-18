@@ -115,8 +115,6 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
         SpeciesOrganism &org = orgs.curr()[i];
         eval_org( org );
 
-        org.orig_fitness = org.fitness;
-
         size_t tnum = omp_get_thread_num();
         if( (fittest_thread[tnum] == nullptr)
             || (org.fitness > fittest_thread[tnum]->fitness) ) {
@@ -217,14 +215,14 @@ void SpeciesPopulation::next_generation() {
 	//Go through the organisms and add up their fitnesses to compute the
 	//overall average
     for(SpeciesOrganism &o: orgs.curr()) {
-        total += o.fitness;
+        total += o.adjusted_fitness;
     }
 	overall_average=total/total_organisms;
 	std::cout<<"Generation "<<generation<<": "<<"overall_average = "<<overall_average<<std::endl;
 
 	//Now compute expected number of offspring for each individual organism
     for(SpeciesOrganism &o: orgs.curr()) {
-		o.expected_offspring = o.fitness / overall_average;
+		o.expected_offspring = o.adjusted_fitness / overall_average;
 	}
 
 	//Now add those offspring up within each Species to get the number of
@@ -275,9 +273,9 @@ void SpeciesPopulation::next_generation() {
 	//Check for SpeciesPopulation-level stagnation
     {
         SpeciesOrganism *pop_champ = sorted_species[0]->first();
-        if(pop_champ->orig_fitness > highest_fitness) {
+        if(pop_champ->fitness > highest_fitness) {
             real_t old_highest = highest_fitness;
-            highest_fitness = pop_champ->orig_fitness;
+            highest_fitness = pop_champ->fitness;
             highest_last_changed=0;
 
             printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg @ gen=%d\n",

@@ -36,8 +36,7 @@ namespace NEAT {
                                  //Provides client with convenient storage of associated
                                  //data in an array.
 
-		real_t fitness;  //A measure of fitness for the Organism
-		real_t orig_fitness;  //A fitness measure that won't change during adjustments
+		real_t fitness;  //A fitness measure that won't change during adjustments
 		real_t error;  //Used just for reporting purposes
 		Network net;  //The Organism's phenotype
 		Genome genome; //The Organism's genotype 
@@ -50,9 +49,6 @@ namespace NEAT {
 
         void create_phenotype();
 	};
-
-	// This is used for list sorting of Organisms by fitness..highest fitness first
-	bool order_orgs(Organism *x, Organism *y);
 
 } // namespace NEAT
 

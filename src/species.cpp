@@ -101,7 +101,7 @@ void Species::adjust_fitness() {
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 
 		//Remember the original fitness before it gets modified
-		(*curorg)->orig_fitness=(*curorg)->fitness;
+        (*curorg)->adjusted_fitness = (*curorg)->fitness;
 
 		//Make fitness decrease after a stagnation point dropoff_age
 		//Added an if to keep species pristine until the dropoff point
@@ -109,31 +109,32 @@ void Species::adjust_fitness() {
 		//by obliterating the worst species over a certain age
 		if ((age_debt>=1)||obliterate) {
 			//Extreme penalty for a long period of stagnation (divide fitness by 100)
-			((*curorg)->fitness)=((*curorg)->fitness)*0.01;
+			((*curorg)->adjusted_fitness)=((*curorg)->adjusted_fitness)*0.01;
 		}
 
 		//Give a fitness boost up to some young age (niching)
 		//The age_significance parameter is a system parameter
 		//  if it is 1, then young species get no fitness boost
-		if (age<=10) ((*curorg)->fitness)=((*curorg)->fitness)*NEAT::age_significance; 
+		if (age<=10) ((*curorg)->adjusted_fitness)=((*curorg)->adjusted_fitness)*NEAT::age_significance; 
 
 		//Do not allow negative fitness
-		if (((*curorg)->fitness)<0.0) (*curorg)->fitness=0.0001; 
+		if (((*curorg)->adjusted_fitness)<0.0) (*curorg)->adjusted_fitness=0.0001; 
 
 		//Share fitness with the species
-		(*curorg)->fitness=((*curorg)->fitness)/(organisms.size());
-
+		(*curorg)->adjusted_fitness=((*curorg)->adjusted_fitness)/(organisms.size());
 	}
 
 	//Sort the population and mark for death those after survival_thresh*pop_size
-	//organisms.qsort(order_orgs);
-	std::sort(organisms.begin(), organisms.end(), order_orgs);
+	std::sort(organisms.begin(), organisms.end(),
+              [] (SpeciesOrganism *x, SpeciesOrganism *y) {
+                  return x->adjusted_fitness > y->adjusted_fitness;
+              });
 
 	//Update age_of_last_improvement here
-	if (((*(organisms.begin()))->orig_fitness)> 
+	if (((*(organisms.begin()))->fitness)> 
 	    max_fitness_ever) {
 	  age_of_last_improvement=age;
-	  max_fitness_ever=((*(organisms.begin()))->orig_fitness);
+	  max_fitness_ever=((*(organisms.begin()))->fitness);
 	}
 
 	//Decide how many get to reproduce based on survival_thresh*pop_size
@@ -283,13 +284,13 @@ void Species::reproduce(int ioffspring,
                      &mom->genome,
                      &dad->genome,
                      &new_genome,
-                     mom->orig_fitness,
-                     dad->orig_fitness);
+                     mom->fitness,
+                     dad->fitness);
     }
 }
 
 bool NEAT::order_species(Species *x, Species *y) { 
-	return (((*((x->organisms).begin()))->orig_fitness) > ((*((y->organisms).begin()))->orig_fitness));
+	return (((*((x->organisms).begin()))->fitness) > ((*((y->organisms).begin()))->fitness));
 }
 
 bool NEAT::order_new_species(Species *x, Species *y) {

@@ -25,7 +25,6 @@ Organism::Organism() {
 }
 
 void Organism::init(int gen) {
-	orig_fitness=0.0;
 	fitness=0.0;
 	generation=gen;
 	error=0;
@@ -92,8 +91,4 @@ void Organism::create_phenotype() {
 	}
 
     net.init(maxweight);
-}
-
-bool NEAT::order_orgs(Organism *x, Organism *y) {
-	return (x)->fitness > (y)->fitness;
 }
