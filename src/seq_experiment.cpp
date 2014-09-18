@@ -190,7 +190,7 @@ static void print(Population *pop, int gen) {
     pop->write(out);
 }
 
-static void next_generation(NEAT::Population *pop);
+static void evaluate(NEAT::Population *pop);
 
 //Perform evolution on SEQ_EXPERIMENT, for gens generations
 void seq_experiment(rng_t &rng, int gens) {
@@ -223,9 +223,13 @@ void seq_experiment(rng_t &rng, int gens) {
             static Timer timer("epoch");
             timer.start();
 
-            next_generation(pop);
+            if(gen != 1) {
+                pop->next_generation();
+            }
 
-            if(pop->get_fittest().winner) {
+            evaluate(pop);
+
+            if(pop->get_fittest().fitness >= 0.9999999) {
                 success = true;
                 nsuccesses++;
             }
@@ -251,9 +255,7 @@ void seq_experiment(rng_t &rng, int gens) {
     cout << "Failures: " << (NEAT::num_runs - nsuccesses) << " out of " << NEAT::num_runs << " runs" << endl;
 }
 
-void next_generation(Population *pop) {
-
-    //static float best_fitness = 0.0f;
+void evaluate(Population *pop) {
 
     auto eval_org = [] (Organism &org) {
 
@@ -276,7 +278,6 @@ void next_generation(Population *pop) {
  
         org.fitness = score(errorsum);
         org.error = errorsum;
-        org.winner = org.fitness >= 0.9999999;
     };
 
     if( pop->evaluate(eval_org) ) {
@@ -295,6 +296,4 @@ void next_generation(Population *pop) {
             printf("---\n");
         }
     }
-
-    pop->next_generation();
 }

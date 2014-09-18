@@ -38,7 +38,6 @@ namespace NEAT {
 
 		real_t fitness;  //A measure of fitness for the Organism
 		real_t error;  //Used just for reporting purposes
-		bool winner;  //Win marker (if needed for a particular task)
 		Network net;  //The Organism's phenotype
 		Genome genome; //The Organism's genotype 
 		int generation;  //Tells which generation this Organism is from

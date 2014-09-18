@@ -100,9 +100,6 @@ bool Species::print_to_file(std::ostream &outFile) {
         //Put the fitness for each organism in a comment
         outFile<<std::endl<<"/* Organism #"<<(org->genome).genome_id<<" Fitness: "<<org->fitness<<" Error: "<<org->error<<" */"<<std::endl;
 
-        //If it is a winner, mark it in a comment
-        if (org->winner) outFile<<"/* ##------$ WINNER "<<(org->genome).genome_id<<" SPECIES #"<<id<<" $------## */"<<std::endl;
-
         (org->genome).print(outFile);
     }
 

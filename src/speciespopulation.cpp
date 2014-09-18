@@ -33,7 +33,6 @@ SpeciesPopulation::SpeciesPopulation(rng_t &rng, Genome *g,int size)
     : norgs(size)
     , generation(0)
     , orgs(rng, size)
-    , winnergen(0)
     , highest_fitness(0.0)
     , highest_last_changed(0) {
 

@@ -28,7 +28,6 @@ void Organism::init(int gen) {
 	fitness=0.0;
 	generation=gen;
 	error=0;
-	winner=false;
 }
 
 Organism::~Organism() {
