@@ -115,6 +115,8 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
         SpeciesOrganism &org = orgs.curr()[i];
         eval_org( org );
 
+        org.orig_fitness = org.fitness;
+
         size_t tnum = omp_get_thread_num();
         if( (fittest_thread[tnum] == nullptr)
             || (org.fitness > fittest_thread[tnum]->fitness) ) {

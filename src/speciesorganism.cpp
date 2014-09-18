@@ -15,7 +15,6 @@ void SpeciesOrganism::init(int gen) {
     Organism::init(gen);
 
 	species = nullptr;  //Start it in no Species
-	orig_fitness=0.0;
 	expected_offspring=0;
 	eliminate=false;
 	champion=false;

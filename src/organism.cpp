@@ -25,6 +25,7 @@ Organism::Organism() {
 }
 
 void Organism::init(int gen) {
+	orig_fitness=0.0;
 	fitness=0.0;
 	generation=gen;
 	error=0;

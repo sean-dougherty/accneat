@@ -37,6 +37,7 @@ namespace NEAT {
                                  //data in an array.
 
 		real_t fitness;  //A measure of fitness for the Organism
+		real_t orig_fitness;  //A fitness measure that won't change during adjustments
 		real_t error;  //Used just for reporting purposes
 		Network net;  //The Organism's phenotype
 		Genome genome; //The Organism's genotype 
