@@ -53,29 +53,9 @@ Species::Species(int i,bool n) {
 Species::~Species() {
 }
 
-bool Species::rank() {
-	//organisms.qsort(order_orgs);
-    std::sort(organisms.begin(), organisms.end(), order_orgs);
-	return true;
-}
-
 bool Species::add_Organism(SpeciesOrganism *o){
 	organisms.push_back(o);
 	return true;
-}
-
-SpeciesOrganism *Species::get_champ() {
-	real_t champ_fitness=-1.0;
-	SpeciesOrganism *thechamp = nullptr;
-
-    for(SpeciesOrganism *org: organisms) {
-        if(org->fitness > champ_fitness) {
-            thechamp = org;
-            champ_fitness = thechamp->fitness;
-        }
-    }
-
-	return thechamp;
 }
 
 void Species::remove_eliminated() {

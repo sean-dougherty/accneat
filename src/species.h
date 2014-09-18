@@ -76,8 +76,6 @@ namespace NEAT {
 			return organisms.size();
 		}
 
-		SpeciesOrganism *get_champ();
-
 		//Perform mating and mutation to form next generation
         void reproduce(int ioffspring,
                        SpeciesOrganism &baby,
@@ -85,9 +83,6 @@ namespace NEAT {
                        std::vector<Species*> &sorted_species);
 
 		// *** Real-time methods *** 
-
-		//Place organisms in this species in order by their fitness
-		bool rank();
 
 		Species(int i);
 
