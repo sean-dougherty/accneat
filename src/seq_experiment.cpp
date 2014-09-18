@@ -285,17 +285,17 @@ void evaluate(Population *pop) {
         org.error = errorsum;
     };
 
-    Organism &best = pop->get_fittest();
+    bool new_fittest = pop->evaluate(eval_org);
+    Organism &fittest = pop->get_fittest();
 
-    if( pop->evaluate(eval_org) ) {
-
-        float *best_act = details_act + best.population_index * nouts;
-        float *best_err = details_err + best.population_index * nouts;
+    if(new_fittest) {
+        float *fittest_act = details_act + fittest.population_index * nouts;
+        float *fittest_err = details_err + fittest.population_index * nouts;
         
         for(auto &test: tests) {
             for(auto &step: test.steps) {
                 for(size_t i = 0; i < step.output.size(); i++) {
-                    printf("%f (%f) ", *best_act++, *best_err++);
+                    printf("%f (%f) ", *fittest_act++, *fittest_err++);
                 }
                 printf("\n");
             }
@@ -303,6 +303,6 @@ void evaluate(Population *pop) {
         }
     }
 
-    cout << "best: fitness=" << best.fitness << ", nnodes=" << best.genome.nodes.size() << ", nlinks=" << best.genome.links.size() << endl;
+    cout << "fittest: fitness=" << fittest.fitness << ", nnodes=" << fittest.genome.nodes.size() << ", nlinks=" << fittest.genome.links.size() << endl;
 
 }
