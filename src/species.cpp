@@ -108,14 +108,8 @@ void Species::adjust_fitness() {
 		//obliterate is used in competitive coevolution to mark stagnation
 		//by obliterating the worst species over a certain age
 		if ((age_debt>=1)||obliterate) {
-
-			//Possible graded dropoff
-			//((*curorg)->fitness)=((*curorg)->fitness)*(-atan(age_debt));
-
 			//Extreme penalty for a long period of stagnation (divide fitness by 100)
 			((*curorg)->fitness)=((*curorg)->fitness)*0.01;
-			//std::cout<<"OBLITERATE Species "<<id<<" of age "<<age<<std::endl;
-			//std::cout<<"dropped fitness to "<<((*curorg)->fitness)<<std::endl;
 		}
 
 		//Give a fitness boost up to some young age (niching)
@@ -155,7 +149,6 @@ void Species::adjust_fitness() {
 	}
 	while(curorg!=organisms.end()) {
 	  (*curorg)->eliminate=true;  //Mark for elimination
-	  //std::std::cout<<"marked org # "<<(*curorg)->gnome->genome_id<<" fitness = "<<(*curorg)->fitness<<std::std::endl;
 	  ++curorg;
 	}             
 
@@ -166,18 +159,11 @@ real_t Species::compute_average_fitness() {
 
 	real_t total=0.0;
 
-	//int pause; //DEBUG: Remove
-
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 		total+=(*curorg)->fitness;
-		//std::cout<<"new total "<<total<<std::endl; //DEBUG: Remove
 	}
 
 	ave_fitness=total/(organisms.size());
-
-	//DEBUG: Remove
-	//std::cout<<"average of "<<(organisms.size())<<" organisms: "<<ave_fitness<<std::endl;
-	//cin>>pause;
 
 	return ave_fitness;
 
