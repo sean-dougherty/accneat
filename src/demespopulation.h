@@ -1,9 +1,8 @@
 #pragma once
 
+#include "deme.h"
 #include "population.h"
-
 #include "innovation.h"
-#include "organismsbuffer.h"
 
 namespace NEAT {
 
@@ -13,17 +12,18 @@ namespace NEAT {
 		virtual ~DemesPopulation();
 
         virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
-        virtual class Organism &get_fittest() override {return fittest;}
+        virtual class Organism &get_fittest() override;
 		virtual void next_generation() override;
 		virtual void verify() override;
 
 		virtual void write(std::ostream& out) override;
 
     private:
-        int generation;
-        OrganismsBuffer<> orgs;
-        Organism fittest;
         PopulationInnovations innovations;
+        int generation;
+        std::vector<Deme> demes;
+        std::vector<Organism *> global_elites;
+        std::vector<Organism *> elites;
     };
 
 }

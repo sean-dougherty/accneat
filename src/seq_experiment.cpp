@@ -20,8 +20,13 @@ using namespace std;
 static void init_env() {
     const bool DELETE_NODES = true;
     const bool DELETE_LINKS = true;
+    const bool DEMES = true;
 
-    NEAT::compat_threshold = 10.0;
+    if(DEMES) {
+        NEAT::population_type = PopulationType::DEMES;
+    } else {
+        NEAT::compat_threshold = 10.0;
+    }
 
     if(DELETE_NODES) {
         NEAT::mutate_delete_node_prob = 0.001;
@@ -280,8 +285,9 @@ void evaluate(Population *pop) {
         org.error = errorsum;
     };
 
+    Organism &best = pop->get_fittest();
+
     if( pop->evaluate(eval_org) ) {
-        Organism &best = pop->get_fittest();
 
         float *best_act = details_act + best.population_index * nouts;
         float *best_err = details_err + best.population_index * nouts;
@@ -296,4 +302,7 @@ void evaluate(Population *pop) {
             printf("---\n");
         }
     }
+
+    cout << "best: fitness=" << best.fitness << ", nnodes=" << best.genome.nodes.size() << ", nlinks=" << best.genome.links.size() << endl;
+
 }

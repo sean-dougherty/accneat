@@ -86,6 +86,7 @@ namespace NEAT {
 	extern real_t mate_only_prob;            // Prob. of mating without mutation 
 	extern real_t recur_only_prob;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 	extern int pop_size;  // Size of population 
+	extern size_t deme_count;  // Number of demes
 	extern int dropoff_age;  // Age where Species starts to be penalized 
 	extern int newlink_tries;  // Number of tries mutate_add_link will attempt to find an open link 
 	extern int print_every; // Tells to print population to file every n generations 

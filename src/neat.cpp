@@ -51,6 +51,7 @@ real_t NEAT::mate_multipoint_prob = 0.6;
 real_t NEAT::mate_only_prob = 0.2; // Prob. of mating without mutation 
 real_t NEAT::recur_only_prob = 0.2;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 int NEAT::pop_size = 1000;  // Size of population 
+size_t NEAT::deme_count = 10;
 int NEAT::dropoff_age = 15;  // Age where Species starts to be penalized 
 int NEAT::newlink_tries = 20;  // Number of tries mutate_add_link will attempt to find an open link 
 int NEAT::print_every = 1000; // Tells to print population to file every n generations 

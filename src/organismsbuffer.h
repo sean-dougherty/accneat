@@ -12,19 +12,21 @@ namespace NEAT {
         std::vector<TOrganism> _a;
         std::vector<TOrganism> _b;
         std::vector<TOrganism> *_curr;
+        std::vector<TOrganism> *_prev;
     public:
-        OrganismsBuffer(rng_t &rng, size_t n)
+    OrganismsBuffer(rng_t &rng, size_t n, size_t population_index = 0)
             : _n(n) {
             _a.resize(n);
             _b.resize(n);
             _curr = &_a;
+            _prev = &_b;
 
             for(size_t i = 0; i < n; i++) {
-                _a[i].population_index = i;
+                _a[i].population_index = i + population_index;
                 _a[i].genome.rng.seed(rng.integer());
             }
             for(size_t i = 0; i < n; i++) {
-                _b[i].population_index = i;
+                _b[i].population_index = i + population_index;
                 _b[i].genome.rng.seed(rng.integer());
             }
         }
@@ -37,8 +39,19 @@ namespace NEAT {
             return *_curr;
         }
 
+        std::vector<TOrganism> &prev() {
+            return *_prev;
+        }
+
         void next_generation(int generation) {
-            if(_curr == &_a) {_curr = &_b;} else {_curr = &_a; }
+            if(_curr == &_a) {
+                _curr = &_b;
+                _prev = &_a;
+            } else {
+                _curr = &_a;
+                _prev = &_b;
+            }
+
             assert( _curr->size() == _n );
 
             for(TOrganism &org: curr())

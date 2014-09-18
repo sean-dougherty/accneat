@@ -29,7 +29,10 @@ namespace NEAT {
 
         virtual ~Population() {}
 
+        //Executes eval_org for each Organism in the population.
+        //Returns true if a new fittest was found.
         virtual bool evaluate(std::function<void (class Organism &org)> eval_org) = 0;
+
         virtual class Organism &get_fittest() = 0;
 		virtual void next_generation() = 0;
 		virtual void verify() = 0;

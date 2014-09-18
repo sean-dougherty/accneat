@@ -1,48 +1,147 @@
 #include "demespopulation.h"
 
 #include "timer.h"
+#include "util.h"
+#include <algorithm>
 
 using namespace NEAT;
 using namespace std;
 
-DemesPopulation::DemesPopulation(rng_t &rng, Genome *g,int size)
-    : generation(0)
-    , orgs(rng, size) {
+//todo: put in env
+#define NUM_GLOBAL_ELITES 5
+
+static bool cmp_org_desc(const Organism *a, const Organism *b) {
+    return a->fitness > b->fitness;
+}
+
+static void sort_elites(vector<Organism *> &elites) {
+    std::sort(elites.begin(), elites.end(), cmp_org_desc);
+}
+
+static int insert_if_elite(vector<Organism *> &elites, Organism *candidate) {
+    auto it = std::lower_bound(elites.begin(), elites.end(), candidate, cmp_org_desc);
+    if(it == elites.end())
+        return -1;
+
+    size_t i = it - elites.begin();
+    Organism *free_slot = elites.back();
+
+    assert(candidate->fitness >= free_slot->fitness);
+    assert(candidate->fitness >= elites[i]->fitness);
+    assert(i == 0 || candidate->fitness <= elites[i-1]->fitness);
+
+    *free_slot = *candidate;
+
+    elites.erase(elites.end() - 1);
+    elites.insert(elites.begin() + i, free_slot);
+
+    assert(elites[i] == free_slot);
+
+    return i;
+}
+
+DemesPopulation::DemesPopulation(rng_t &rng, Genome *seed, int size)
+    : generation(0) {
+    assert(size == NEAT::pop_size); //todo: need a single mechanism setting size
+    assert(NEAT::pop_size % NEAT::deme_count == 0);
+
+    demes.reserve(NEAT::deme_count);
+    for(size_t i = 0; i < (size_t)NEAT::deme_count; i++) {
+        demes.emplace_back(seed,
+                           rng,
+                           NEAT::pop_size / NEAT::deme_count,
+                           i * NEAT::deme_count,
+                           i == (size_t)deme_count - 1 ? &innovations : nullptr);
+    }
+
+    for(size_t i = 0; i < NUM_GLOBAL_ELITES; i++) {
+        global_elites.push_back(new Organism());
+    }
 }
 
 DemesPopulation::~DemesPopulation() {
+}
+
+Organism &DemesPopulation::get_fittest() {
+    return *global_elites.front();
 }
 
 bool DemesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
     static Timer timer("evaluate");
     timer.start();
 
-    trap("here");
+    real_t old_fitness = global_elites.front()->fitness;
+
+    for(Deme &deme: demes) {
+        deme.evaluate(eval_org);
+    }
+
+    elites.clear();
+    for(Deme &deme: demes) {
+        elites.push_back( &deme.get_fittest() );
+    }
+    sort_elites(elites);
+
+    bool new_fittest = false;
+    for(Organism *elite: elites) {
+        int index = insert_if_elite(global_elites, elite);
+        if(index < 0) {
+            break;
+        } else if(index == 0) {
+            new_fittest = true;
+        }
+    }
+
+    for(Organism *elite: global_elites) {
+        elites.push_back(elite);
+    }
 
     timer.stop();
 
-    return false;
+    if(new_fittest) {
+        real_t new_fitness = global_elites.front()->fitness;
+        real_t delta = new_fitness - old_fitness;
+        if(delta > 0) {
+            cout << "new fittest: " << new_fitness << ", delta: " << (new_fitness - old_fitness) << " @ gen " << generation << endl;
+        } else {
+            // In the case of a fitness tie, we let the new guy in, for the sake of
+            // diversity, but we don't really want to report it.
+            new_fittest = false;
+        }
+    }
+
+    return new_fittest;
 }
 
 void DemesPopulation::next_generation() {
-#ifndef NDEBUG
-    for(Organism &org: orgs.curr()) {
-        assert(org.generation == generation);
-    }
-#endif
+    static Timer timer("reproduce");
+    timer.start();
 
     generation++;
 
-    trap("implement");
+    for(Deme &deme: demes) {
+        deme.next_generation(elites, innovations);
+    }
+
+    innovations.apply();
+
+    for(Deme &deme: demes) {
+        deme.create_phenotypes();
+    }
+
+    timer.stop();
 }
 
 void DemesPopulation::write(std::ostream& out) {
-    trap("implement");
+    for(Deme &deme: demes) {
+        deme.write(out);
+    }
 }
 
 void DemesPopulation::verify() {
-    for(auto &org: orgs.curr())
-        org.genome.verify();
+    for(Deme &deme: demes) {
+        deme.verify();
+    }
 } 
 
 

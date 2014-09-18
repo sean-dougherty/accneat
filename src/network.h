@@ -29,6 +29,7 @@ namespace NEAT {
 	//   or learn on its own, even though it may be part of a larger framework 
 	class Network {
     private:
+    public: // todo: remove public
         friend class Organism; // todo: remove friend
 
 		std::vector<NNode> nodes;  // A list of all the nodes
@@ -37,7 +38,7 @@ namespace NEAT {
 
 		bool adaptable; // Tells whether network can adapt or not
 		real_t maxweight; // Maximum weight in network for adaptation purposes
-	public:
+    public:
         Network();
 		~Network();
 
