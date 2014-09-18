@@ -655,16 +655,16 @@ bool Genome::mutate_add_node(CreateInnovationFunc create_innov) {
                           innov->innovation_num2,
                           0);    
 
-        add_link(this->links, newlink1);
-        add_link(this->links, newlink2);
-        add_node(this->nodes, newnode);
-
         // If deletion of links is permitted, delete it.
         if(NEAT::mutate_delete_link_prob > 0.0) {
             delete_link(splitlink);
         } else {
             splitlink->enable = false;
         }
+
+        add_link(this->links, newlink1);
+        add_link(this->links, newlink2);
+        add_node(this->nodes, newnode);
     };
 
     create_innov(innov_id, innov_parms, innov_apply);
