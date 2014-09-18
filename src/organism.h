@@ -32,33 +32,28 @@ namespace NEAT {
 	// ---------------------------------------------  
 	class Organism {
 	public:
-        size_t population_index;
+        size_t population_index; //Unique within the population,always in [0, NEAT::pop_size).
+                                 //Provides client with convenient storage of associated
+                                 //data in an array.
 
 		real_t fitness;  //A measure of fitness for the Organism
-		real_t orig_fitness;  //A fitness measure that won't change during adjustments
 		real_t error;  //Used just for reporting purposes
 		bool winner;  //Win marker (if needed for a particular task)
 		Network net;  //The Organism's phenotype
 		Genome genome; //The Organism's genotype 
+		int generation;  //Tells which generation this Organism is from
+
+		real_t orig_fitness;  //A fitness measure that won't change during adjustments
 		class Species *species;  //The Organism's Species 
 		real_t expected_offspring; //Number of children this Organism may have
-		int generation;  //Tells which generation this Organism is from
 		bool eliminate;  //Marker for destruction of inferior Organisms
 		bool champion; //Marks the species champ
 		int super_champ_offspring;  //Number of reserved offspring for a population leader
-		int time_alive; //When playing in real-time allows knowing the maturity of an individual
-
-		// MetaData for the object
-		char metadata[128];
-		bool modified;
-
-		// Print the Organism's genome to a file preceded by a comment detailing the organism's species, number, and fitness 
-		void write(std::ostream &outFile);
 
 		Organism();
 		~Organism();
 
-        void init(int gen, const char *metadata = nullptr);
+        void init(int gen);
 
         void create_phenotype();
 	};

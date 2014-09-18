@@ -21,10 +21,10 @@ using namespace NEAT;
 using std::vector;
 
 Organism::Organism() {
-    init(0, nullptr);
+    init(0);
 }
 
-void Organism::init(int gen, const char* md) {
+void Organism::init(int gen) {
 	fitness=0.0;
 	orig_fitness=0.0;
 	species=0;  //Start it in no Species
@@ -35,17 +35,6 @@ void Organism::init(int gen, const char* md) {
 	winner=false;
 	champion=false;
 	super_champ_offspring=0;
-
-	// If md is null, then we don't have metadata, otherwise we do have metadata so copy it over
-	if(md == 0) {
-		strcpy(metadata, "");
-	} else {
-		strncpy(metadata, md, 128);
-	}
-
-	time_alive=0;
-
-	modified = true;
 }
 
 Organism::~Organism() {
@@ -111,17 +100,6 @@ void Organism::create_phenotype() {
     net.init(maxweight);
 }
 
-void Organism::write(std::ostream &outFile) {
-	
-	char tempbuf2[1024];
-	if(modified) {
-		sprintf(tempbuf2, "/* Organism #%d Fitness: %f Time: %d */\n", genome.genome_id, fitness, time_alive);
-	} else {
-		sprintf(tempbuf2, "/* %s */\n", metadata);
-	}
-	outFile << tempbuf2;
-	genome.print(outFile);
-}
 bool NEAT::order_orgs(Organism *x, Organism *y) {
 	return (x)->fitness > (y)->fitness;
 }
