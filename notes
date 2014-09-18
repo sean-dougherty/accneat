@@ -279,10 +279,39 @@ s0: 0.927591 @ gen 4666
 --------------------------------------------------------------------------------
 delete links instead of disabling
 
-[mutate/delete_link]
+[mutate/delete_link{_50k}]
 
-s0: 0.999275 @ gen 3207
-        nnodes=28.2124, nlinks=225.778, disabled=0
+s1: 1.0 @ gen 7697
+        nnodes=31.0054, nlinks=184.51, disabled=0
 
 s2: 1.0 @ gen 2090
         nnodes=23.8047, nlinks=191.454, disabled=0
+
+s3: 1.0 @ gen 1736
+        nnodes=26.9842, nlinks=208.996, disabled=0
+
+s4: 1.0 @ gen 14848
+        nnodes=29.0633, nlinks=238.396, disabled=0
+gen_1000 @ 0.25 hours, gen_2000 @ 1 hours, gen_3000 @ 1.25 hours, gen_4000 @ 1.5 hours,
+gen_5000 @ 1.75 hours, gen_10000 @ 3.75 hours, gen_14000 @ 4.75 hours
+
+s5: 1.0 @ gen 1431
+        nnodes=20.5119, nlinks=191.433, disabled=0
+
+s6: 1.0 @ gen 1004
+        nnodes=25.9438, nlinks=192.616, disabled=0
+
+s7: 1.0 @ gen 8958
+        nnodes=37.4216, nlinks=238.632, disabled=0
+
+s8: 1.0 @ gen 5824
+        nnodes=20.5015, nlinks=126.108, disabled=0
+
+s9: 1.0 @ gen 1814
+        nnodes=29.0706, nlinks=236.711, disabled=0
+
+s10: 1.0 @ gen 9775
+        nnodes=27.6211, nlinks=168.426, disabled=0
+
+********************************************************************************
+
