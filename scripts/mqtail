@@ -11,7 +11,7 @@ if len(args):
 else:
     seconds = 60
 
-stat_period = max(5, min(60, seconds / 2))
+stat_period = int(max(5, min(60, seconds / 2)))
 
 def stat():
     print time.ctime()
@@ -22,10 +22,10 @@ while True:
     os.system("tail -n 80 out")
     stat()
     remain = seconds
-    for i in range(0, seconds, stat_period):
+    for i in range(0, int(seconds), stat_period):
         time.sleep(stat_period)
         remain -= stat_period
-        if remain > 0:
+        if remain > 5:
             stat()
 
     if remain > 0:
