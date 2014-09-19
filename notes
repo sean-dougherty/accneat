@@ -314,4 +314,38 @@ s10: 1.0 @ gen 9775
         nnodes=27.6211, nlinks=168.426, disabled=0
 
 ********************************************************************************
+DEMES
 
+--------------------------------------------------------------------------------
+initial deme settings (10 demes)
+
+[demes/init]
+
+s1: 0.990349 @ gen 2710
+        fittest: fitness=0.990349, nnodes=80, nlinks=1269
+
+looked as if it might achieve a 1.0, eventually, but it was clearly making nets that
+were too large.
+
+--------------------------------------------------------------------------------
+increase delete probability by factor of 10
+
+[demes/deleteX10]
+
+s1: 0.953972 @ gen 1814
+        fittest: fitness=0.953972, nnodes=58, nlinks=710
+
+better, but still too large
+
+--------------------------------------------------------------------------------
+increase delete probability by factor of 20
+
+[demes/deleteX20]
+
+s1: 0.998909 @ gen 40430
+        fittest: fitness=0.998909, nnodes=27, nlinks=182
+
+--------------------------------------------------------------------------------
+delete_link_prob x 10, delete_node_prob x 20
+
+[demes/del_linkX10-del_nodeX20]

@@ -22,12 +22,6 @@ static void init_env() {
     const bool DELETE_LINKS = true;
     const bool DEMES = true;
 
-    if(DEMES) {
-        NEAT::population_type = PopulationType::DEMES;
-    } else {
-        NEAT::compat_threshold = 10.0;
-    }
-
     if(DELETE_NODES) {
         NEAT::mutate_delete_node_prob = 0.001;
     }
@@ -37,6 +31,14 @@ static void init_env() {
 
         NEAT::mutate_toggle_enable_prob = 0.0;
         NEAT::mutate_gene_reenable_prob = 0.0;
+    }
+
+    if(DEMES) {
+        NEAT::population_type = PopulationType::DEMES;
+        NEAT::mutate_delete_link_prob *= 10;
+        NEAT::mutate_delete_node_prob *= 20;
+    } else {
+        NEAT::compat_threshold = 10.0;
     }
 }
 
