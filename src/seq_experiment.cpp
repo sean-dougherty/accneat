@@ -35,8 +35,9 @@ static void init_env() {
 
     if(DEMES) {
         NEAT::population_type = PopulationType::DEMES;
-        NEAT::mutate_delete_link_prob *= 10;
-        NEAT::mutate_delete_node_prob *= 20;
+        NEAT::mutate_delete_link_prob *= 25;
+        NEAT::mutate_delete_node_prob *= 25;
+        NEAT::mate_only_prob *= 0.25;
     } else {
         NEAT::compat_threshold = 10.0;
     }

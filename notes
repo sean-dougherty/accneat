@@ -349,3 +349,32 @@ s1: 0.998909 @ gen 40430
 delete_link_prob x 10, delete_node_prob x 20
 
 [demes/del_linkX10-del_nodeX20]
+
+s1: 0.946435 @ gen 1238
+        fittest: fitness=0.946435, nnodes=44, nlinks=546
+
+--------------------------------------------------------------------------------
+delete_prob x 20, mate_only_prob x 0.25
+
+[demes/deleteX20-mate_onlyX0.25]
+
+s1: 0.996179 @ gen 1373
+        fittest: fitness=0.996179, nnodes=48, nlinks=549
+
+Was doing pretty well, still making progress, but nets too big.
+
+--------------------------------------------------------------------------------
+delete_prob x 30, mate_only_prob x 0.25
+
+[demes/deleteX30-mate_onlyX0.25]
+
+s1: 0.725 @ gen 954
+        fittest: fitness=0.725, nnodes=11, nlinks=11
+
+--------------------------------------------------------------------------------
+delete_prob x 25, mate_only_prob x 0.25
+
+[demes/deleteX25-mate_onlyX0.25]
+
+s1: 0.993547 @ gen 2541
+        fittest: fitness=0.993547, nnodes=80, nlinks=1039
