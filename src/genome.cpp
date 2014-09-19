@@ -440,20 +440,19 @@ Genome &Genome::operator=(const Genome &other) {
 void Genome::mutate(CreateInnovationFunc create_innov) {
     //Do the mutation depending on probabilities of 
     //various mutations
+    rng_t::prob_switch_t op = rng.prob_switch();
 
-    //todo: should only need to get one prob and then select
-    if( rng.under(NEAT::mutate_add_node_prob) ) {
+    if( op.prob_case(NEAT::mutate_add_node_prob) ) {
         mutate_add_node(create_innov);
-    } else if( rng.under(NEAT::mutate_add_link_prob) ) {
+    } else if( op.prob_case(NEAT::mutate_add_link_prob) ) {
         mutate_add_link(create_innov,
                         NEAT::newlink_tries);
-    } else if( rng.under(NEAT::mutate_delete_link_prob) ) {
+    } else if( op.prob_case(NEAT::mutate_delete_link_prob) ) {
         mutate_delete_link();
-    } else if( rng.under(NEAT::mutate_delete_node_prob) ) {
+    } else if( op.prob_case(NEAT::mutate_delete_node_prob) ) {
         mutate_delete_node();
     } else {
         //Only do other mutations when not doing sturctural mutations
-
         if( rng.under(NEAT::mutate_random_trait_prob) ) {
             mutate_random_trait();
         }

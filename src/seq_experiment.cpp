@@ -23,11 +23,11 @@ static void init_env() {
     const bool DEMES = true;
 
     if(DELETE_NODES) {
-        NEAT::mutate_delete_node_prob = 0.001;
+        NEAT::mutate_delete_node_prob = NEAT::mutate_add_node_prob;
     }
 
     if(DELETE_LINKS) {
-        NEAT::mutate_delete_link_prob = 0.01;
+        NEAT::mutate_delete_link_prob = NEAT::mutate_add_link_prob;
 
         NEAT::mutate_toggle_enable_prob = 0.0;
         NEAT::mutate_gene_reenable_prob = 0.0;
@@ -35,8 +35,6 @@ static void init_env() {
 
     if(DEMES) {
         NEAT::population_type = PopulationType::DEMES;
-        NEAT::mutate_delete_link_prob *= 25;
-        NEAT::mutate_delete_node_prob *= 25;
         NEAT::mate_only_prob *= 0.25;
     } else {
         NEAT::compat_threshold = 10.0;
@@ -307,5 +305,4 @@ void evaluate(Population *pop) {
     }
 
     cout << "fittest: fitness=" << fittest.fitness << ", nnodes=" << fittest.genome.nodes.size() << ", nlinks=" << fittest.genome.links.size() << endl;
-
 }

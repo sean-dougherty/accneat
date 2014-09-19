@@ -6,6 +6,7 @@
 #include <vector>
 
 namespace NEAT {
+
     class rng_t {
         std::default_random_engine engine;
 
@@ -36,8 +37,27 @@ namespace NEAT {
             return dist(engine);
         }
 
-        real_t under(real_t prob) {
-            return prob == 0.0 ? false : this->prob() < prob;
+        bool under(real_t prob) {
+            return prob <= 0.0 ? false : this->prob() < prob;
+        }
+
+        class prob_switch_t {
+            real_t x;
+            friend class rng_t;
+            prob_switch_t(real_t x_) : x(x_) {}
+        public:
+            bool prob_case(real_t prob) {
+                if(x < prob) {
+                    return true;
+                } else {
+                    x -= prob;
+                    return false;
+                }
+            }
+        };
+
+        prob_switch_t prob_switch() {
+            return prob_switch_t(prob());
         }
 
         // -1 or 1
