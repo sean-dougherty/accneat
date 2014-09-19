@@ -45,12 +45,14 @@ DemesPopulation::DemesPopulation(rng_t &rng, Genome *seed, int size)
     assert(size == NEAT::pop_size); //todo: need a single mechanism setting size
     assert(NEAT::pop_size % NEAT::deme_count == 0);
 
+    size_t deme_size = pop_size / NEAT::deme_count;
+
     demes.reserve(NEAT::deme_count);
     for(size_t i = 0; i < (size_t)NEAT::deme_count; i++) {
         demes.emplace_back(seed,
                            rng,
-                           NEAT::pop_size / NEAT::deme_count,
-                           i * NEAT::deme_count,
+                           deme_size,
+                           i * deme_size,
                            i == (size_t)deme_count - 1 ? &innovations : nullptr);
     }
 
