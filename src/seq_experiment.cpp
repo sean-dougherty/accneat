@@ -52,10 +52,9 @@ struct Step {
         real_t result = 0.0;
 
         for(size_t i = 0; i < output.size(); i++) {
-            real_t diff = net->get_output(i) - output[i];
-            real_t err = diff * diff;
+            real_t err = abs(net->get_output(i) - output[i]);
 
-            if(err < (0.05 * 0.05)) {
+            if(err < 0.05) {
                 err = 0.0;
             }
 
@@ -178,7 +177,7 @@ const size_t nouts = []() {
 }();
 const real_t max_err = []() {
     real_t total = 0.0;
-    for(auto &t: tests) for(auto &s: t.steps) total += s.weight;
+    for(auto &t: tests) for(auto &s: t.steps) total += s.weight * s.output.size();
     return total;
 }();
 
@@ -186,7 +185,8 @@ static float *details_act;
 static float *details_err;
 
 static real_t score(real_t errorsum) {
-    return 1.0 - errorsum/max_err;
+    real_t x = 1.0 - errorsum/max_err;
+    return x * x;
 };
 
 static void print(Population *pop, int gen) {
@@ -304,5 +304,5 @@ void evaluate(Population *pop) {
         }
     }
 
-    cout << "fittest: fitness=" << fittest.fitness << ", nnodes=" << fittest.genome.nodes.size() << ", nlinks=" << fittest.genome.links.size() << endl;
+    cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << fittest.genome.nodes.size() << ", nlinks=" << fittest.genome.links.size() << endl;
 }
