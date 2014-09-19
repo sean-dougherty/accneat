@@ -1,0 +1,32 @@
+#!/bin/env python
+
+import sys
+import os
+import time
+
+args = sys.argv[1:]
+
+if len(args):
+    seconds = float(args[0]) * 60
+else:
+    seconds = 60
+
+stat_period = max(5, min(60, seconds / 2))
+
+def stat():
+    print time.ctime()
+    os.system('qselect -u dougher1')
+
+while True:
+    print "**************************************"
+    os.system("tail -n 80 out")
+    stat()
+    remain = seconds
+    for i in range(0, seconds, stat_period):
+        time.sleep(stat_period)
+        remain -= stat_period
+        if remain > 0:
+            stat()
+
+    if remain > 0:
+        time.seep(remain)
