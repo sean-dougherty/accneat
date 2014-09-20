@@ -314,67 +314,77 @@ s10: 1.0 @ gen 9775
         nnodes=27.6211, nlinks=168.426, disabled=0
 
 ********************************************************************************
-DEMES
+fixed fitness score, no more negative values.
 
 --------------------------------------------------------------------------------
-initial deme settings (10 demes)
+demes with equal probability of add/delete node/link
 
 [demes/init]
 
-s1: 0.990349 @ gen 2710
-        fittest: fitness=0.990349, nnodes=80, nlinks=1269
-
-looked as if it might achieve a 1.0, eventually, but it was clearly making nets that
-were too large.
+s1: 0.813553 @ 281, halted at 730
+        fittest [8333]: fitness=0.813553, error=235.268, nnodes=22, nlinks=115
 
 --------------------------------------------------------------------------------
-increase delete probability by factor of 10
+probability of deleting 0.5 of adding
 
-[demes/deleteX10]
+[demes/delete_probX0.5]
 
-s1: 0.953972 @ gen 1814
-        fittest: fitness=0.953972, nnodes=58, nlinks=710
+s1: 0.805136 @ gen 980
+        fittest [8617]: fitness=0.805136, error=246.495, nnodes=26, nlinks=216
 
-better, but still too large
-
---------------------------------------------------------------------------------
-increase delete probability by factor of 20
-
-[demes/deleteX20]
-
-s1: 0.998909 @ gen 40430
-        fittest: fitness=0.998909, nnodes=27, nlinks=182
+Made consistent, but very slow, progress
 
 --------------------------------------------------------------------------------
-delete_link_prob x 10, delete_node_prob x 20
+probability of deleting 0.1 of adding
 
-[demes/del_linkX10-del_nodeX20]
+[demes/delete_probX0.1]
 
-s1: 0.946435 @ gen 1238
-        fittest: fitness=0.946435, nnodes=44, nlinks=546
+s1: 0.912623 @ gen 2229
+        fittest [2684]: fitness=0.912623, error=107.249, nnodes=31, nlinks=268
 
---------------------------------------------------------------------------------
-delete_prob x 20, mate_only_prob x 0.25
-
-[demes/deleteX20-mate_onlyX0.25]
-
-s1: 0.996179 @ gen 1373
-        fittest: fitness=0.996179, nnodes=48, nlinks=549
-
-Was doing pretty well, still making progress, but nets too big.
+Was doing okay... but want to see effect of further reducing delete.
 
 --------------------------------------------------------------------------------
-delete_prob x 30, mate_only_prob x 0.25
+probability of deleting 0.05 of adding
 
-[demes/deleteX30-mate_onlyX0.25]
+[demes/delete_probX0.05]
 
-s1: 0.725 @ gen 954
-        fittest: fitness=0.725, nnodes=11, nlinks=11
+s1: 0.809682 @ gen 884, halted at 1341
+        fittest [9001]: fitness=0.809682, error=240.424, nnodes=25, nlinks=195
+
+Seemed fairly stuck. Net size wasn't exploding, so further reducing delete prob.
 
 --------------------------------------------------------------------------------
-delete_prob x 25, mate_only_prob x 0.25
+probability of deleting 0.01 of adding
 
-[demes/deleteX25-mate_onlyX0.25]
+[demes/delete_probX0.01]
 
-s1: 0.993547 @ gen 2541
-        fittest: fitness=0.993547, nnodes=80, nlinks=1039
+s1: 0.82077 @ gen 1956
+        fittest [8427]: fitness=0.82077, error=225.687, nnodes=63, nlinks=759
+
+Nets got way too big.
+
+--------------------------------------------------------------------------------
+0.25 probability of mate_only, probability of deleting 0.1 of adding
+
+[demes/mate_onlyX0.25-delete_probX0.1]
+
+s1: 0.775646 @ gen 620
+        fittest [1252]: fitness=0.775646, error=286.301, nnodes=20, nlinks=139
+
+--------------------------------------------------------------------------------
+1.5 probability of mate_only, probability of deleting 0.1 of adding
+
+[demes/mate_onlyX1.5-delete_probX0.1]
+
+********************************************************************************
+verify species with delete still working, or tweak settings if needed. This is
+necessary because of the "prob_switch" change and fixes to fitness function.
+
+--------------------------------------------------------------------------------
+probability of deleting 0.01 of adding
+
+[species-delete-verify/delete_probX0.1]
+
+s1: 1.0 @ gen 1499
+        fittest [2085]: fitness=1, error=0, nnodes=21, nlinks=166

@@ -20,14 +20,14 @@ using namespace std;
 static void init_env() {
     const bool DELETE_NODES = true;
     const bool DELETE_LINKS = true;
-    const bool DEMES = true;
+    const bool DEMES = false;
 
     if(DELETE_NODES) {
-        NEAT::mutate_delete_node_prob = NEAT::mutate_add_node_prob;
+        NEAT::mutate_delete_node_prob = 0.1 * NEAT::mutate_add_node_prob;
     }
 
     if(DELETE_LINKS) {
-        NEAT::mutate_delete_link_prob = NEAT::mutate_add_link_prob;
+        NEAT::mutate_delete_link_prob = 0.1 * NEAT::mutate_add_link_prob;
 
         NEAT::mutate_toggle_enable_prob = 0.0;
         NEAT::mutate_gene_reenable_prob = 0.0;
@@ -35,7 +35,6 @@ static void init_env() {
 
     if(DEMES) {
         NEAT::population_type = PopulationType::DEMES;
-        NEAT::mate_only_prob *= 0.25;
     } else {
         NEAT::compat_threshold = 10.0;
     }
