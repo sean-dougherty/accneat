@@ -52,22 +52,21 @@ SpeciesPopulation::~SpeciesPopulation() {
 
 void SpeciesPopulation::verify() {
     for(auto &org: orgs.curr())
-        org.genome.verify();
+        org.genome->verify();
 } 
 
 bool SpeciesPopulation::spawn(Genome *g) {
     for(size_t i = 0; i < norgs; i++) {
         SpeciesOrganism &org = orgs.curr()[i];
         g->duplicate_into(org.genome);
-        org.genome.genome_id = i+1;
-		org.genome.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		org.genome.randomize_traits();
+		org.genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
+		org.genome->randomize_traits();
         org.create_phenotype();
 	}
 
 	//Keep a record of the innovation and node number we are on
-    innovations.init(orgs.curr().back().genome.get_last_node_id(),
-                     orgs.curr().back().genome.get_last_gene_innovnum());
+    innovations.init(orgs.curr().back().genome->get_last_node_id(),
+                     orgs.curr().back().genome->get_last_gene_innovnum());
 
 	//Separate the new SpeciesPopulation into species
 	speciate();
@@ -80,7 +79,7 @@ bool SpeciesPopulation::speciate() {
     for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.species == nullptr);
         for(Species *s: species) {
-            if( org.genome.compatibility(&s->first()->genome) < NEAT::compat_threshold ) {
+            if( org.genome->compatibility(s->first()->genome) < NEAT::compat_threshold ) {
                 org.species = s;
                 break;
             }
@@ -391,7 +390,7 @@ void SpeciesPopulation::next_generation() {
 
                 for(Species *s: species) {
                     if(s->size()) {
-                        real_t comp = org.genome.compatibility(&s->first()->genome);
+                        real_t comp = org.genome->compatibility(s->first()->genome);
                         if(comp < NEAT::compat_threshold) {
                             org.species = s;
                             break;
@@ -412,7 +411,7 @@ void SpeciesPopulation::next_generation() {
                     i++) {
 
                     Species *s = species[i];
-                    real_t comp = org.genome.compatibility(&s->first()->genome);
+                    real_t comp = org.genome->compatibility(s->first()->genome);
                     if(comp < NEAT::compat_threshold) {
                         org.species = s;
                         break;
@@ -439,7 +438,6 @@ void SpeciesPopulation::next_generation() {
 	//As this happens, create master organism list for the new generation
     {
         size_t nspecies = 0;
-        int orgcount = 0;
 
         for(size_t i = 0; i < species.size(); i++) {
             Species *s = species[i];
@@ -448,18 +446,11 @@ void SpeciesPopulation::next_generation() {
             } else {
                 species[nspecies++] = s;
 
-                //Age surviving Species and 
-                //Rebuild master Organism list: NUMBER THEM as they are added to the list
+                //Age surviving Species 
                 if(s->novel) {
                     s->novel = false;
                 } else {
                     s->age++;
-                }
-                
-                //Go through the organisms of the curspecies and add them to 
-                //the master list
-                for(SpeciesOrganism *org: s->organisms) {
-                    org->genome.genome_id = orgcount++;
                 }
             }
         }
@@ -479,9 +470,9 @@ void SpeciesPopulation::next_generation() {
         size_t ndisabled = 0;
 
         for(SpeciesOrganism &org: orgs.curr()) {
-            nnodes += org.genome.nodes.size();
-            nlinks += org.genome.links.size();
-            for(LinkGene &g: org.genome.links)
+            nnodes += org.genome->nodes.size();
+            nlinks += org.genome->links.size();
+            for(LinkGene &g: org.genome->links)
                 if(!g.enable)
                     ndisabled++;
         }

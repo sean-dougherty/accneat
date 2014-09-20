@@ -39,7 +39,7 @@ namespace NEAT {
 		real_t fitness;  //A fitness measure that won't change during adjustments
 		real_t error;  //Used just for reporting purposes
 		Network net;  //The Organism's phenotype
-		Genome genome; //The Organism's genotype 
+		Genome *genome; //The Organism's genotype 
 		int generation;  //Tells which generation this Organism is from
 
 		Organism();
@@ -48,6 +48,11 @@ namespace NEAT {
         virtual void init(int gen);
 
         void create_phenotype();
+
+        Organism &operator=(const Organism &other);
+
+    protected:
+        virtual void copy_into(Organism &dst) const;
 	};
 
 } // namespace NEAT

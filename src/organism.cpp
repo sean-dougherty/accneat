@@ -21,6 +21,7 @@ using namespace NEAT;
 using std::vector;
 
 Organism::Organism() {
+    genome = new Genome();
     init(0);
 }
 
@@ -31,6 +32,7 @@ void Organism::init(int gen) {
 }
 
 Organism::~Organism() {
+    delete genome;
 }
 
 void Organism::create_phenotype() {
@@ -41,7 +43,7 @@ void Organism::create_phenotype() {
     vector<NNode> &netnodes = net.nodes;
 
 	//Create the nodes
-	for(NodeGene &node: genome.nodes) {
+	for(NodeGene &node: genome->nodes) {
         netnodes.emplace_back(node);
 	}
 
@@ -69,7 +71,7 @@ void Organism::create_phenotype() {
     } node_lookup(netnodes);
 
 	//Create the links by iterating through the genes
-    for(LinkGene &gene: genome.links) {
+    for(LinkGene &gene: genome->links) {
 		//Only create the link if the gene is enabled
 		if(gene.enable) {
             node_index_t inode = node_lookup.find(gene.in_node_id());
@@ -91,4 +93,22 @@ void Organism::create_phenotype() {
 	}
 
     net.init(maxweight);
+}
+
+Organism &Organism::operator=(const Organism &other) {
+    other.copy_into(*this);
+    return *this;
+}
+
+void Organism::copy_into(Organism &dst) const {
+#define copy(field) dst.field = this->field;
+    
+    copy(population_index);
+    copy(fitness);
+    copy(error);
+    copy(net);
+    *dst.genome = *this->genome;
+    copy(generation);
+
+#undef copy
 }

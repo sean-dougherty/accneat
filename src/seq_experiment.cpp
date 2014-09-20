@@ -303,5 +303,5 @@ void evaluate(Population *pop) {
         }
     }
 
-    cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << fittest.genome.nodes.size() << ", nlinks=" << fittest.genome.links.size() << endl;
+    cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << fittest.genome->nodes.size() << ", nlinks=" << fittest.genome->links.size() << endl;
 }

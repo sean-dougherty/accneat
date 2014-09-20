@@ -72,7 +72,7 @@ namespace NEAT {
 		void print(std::ostream &out);
         void load_from_file(int id, std::istream &iFile);
 
-        void duplicate_into(Genome &offspring);
+        void duplicate_into(Genome *offspring);
         Genome &operator=(const Genome &other);
 
 		// For debugging: A number of tests can be run on a genome to check its

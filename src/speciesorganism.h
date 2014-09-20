@@ -17,6 +17,9 @@ namespace NEAT {
         virtual ~SpeciesOrganism();
 
         virtual void init(int gen) override;
+
+    protected:
+        virtual void copy_into(Organism &dst) const override;
     };
 
 }

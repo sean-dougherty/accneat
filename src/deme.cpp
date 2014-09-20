@@ -17,22 +17,22 @@ Deme::Deme(Genome *seed,
     int i = 1;
     for(Organism &org: orgs.curr()) {
         seed->duplicate_into(org.genome);
-        org.genome.genome_id = population_index_ + i++;
-		org.genome.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		org.genome.randomize_traits();
+        org.genome->genome_id = population_index_ + i++;
+		org.genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
+		org.genome->randomize_traits();
         org.create_phenotype();
         assert(org.net.ninput_nodes == 6); //tmp
     }
 
     if(innovations) {
         //Keep a record of the innovation and node number we are on
-        innovations->init(orgs.curr().back().genome.get_last_node_id(),
-                          orgs.curr().back().genome.get_last_gene_innovnum());
+        innovations->init(orgs.curr().back().genome->get_last_node_id(),
+                          orgs.curr().back().genome->get_last_gene_innovnum());
     }
 
     i = 1;
     for(Organism &org: orgs.prev()) {
-        org.genome.genome_id = population_index_ + i++;
+        org.genome->genome_id = population_index_ + i++;
     }
 }
 
@@ -85,7 +85,7 @@ void Deme::next_generation(std::vector<Organism *> &elites,
 #pragma omp parallel for
     for(size_t i = 0; i < orgs.size(); i++) {
         Organism *offspring = &orgs.curr()[i];
-        rng_t &rng = offspring->genome.rng;
+        rng_t &rng = offspring->genome->rng;
 
         Organism *parent1 = get_tournament_winner(rng);
         Organism *parent2 = get_tournament_winner(rng);
@@ -103,9 +103,9 @@ void Deme::next_generation(std::vector<Organism *> &elites,
         };
 
         Genome::mate(create_innov,
-                     &parent1->genome,
-                     &parent2->genome,
-                     &offspring->genome,
+                     parent1->genome,
+                     parent2->genome,
+                     offspring->genome,
                      parent1->fitness,
                      parent2->fitness);        
     }
@@ -121,12 +121,12 @@ void Deme::create_phenotypes() {
 
 void Deme::write(std::ostream& out) {
     for(Organism &org: orgs.curr()) {
-        org.genome.print(out);
+        org.genome->print(out);
     }
 }
 
 void Deme::verify() {
     for(Organism &org: orgs.curr()) {
-        org.genome.verify();
+        org.genome->verify();
     }
 }

@@ -422,10 +422,10 @@ real_t Genome::get_last_gene_innovnum() {
     return links.back().innovation_num + 1;
 }
 
-void Genome::duplicate_into(Genome &offspring) {
-    offspring.traits = traits;
-    offspring.links = links;
-    offspring.nodes = nodes;
+void Genome::duplicate_into(Genome *offspring) {
+    offspring->traits = traits;
+    offspring->links = links;
+    offspring->nodes = nodes;
 }
 
 Genome &Genome::operator=(const Genome &other) {

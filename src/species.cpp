@@ -78,9 +78,9 @@ bool Species::print_to_file(std::ostream &outFile) {
     //Print all the Organisms' Genomes to the outFile
     for(SpeciesOrganism *org: organisms) {
         //Put the fitness for each organism in a comment
-        outFile<<std::endl<<"/* Organism #"<<(org->genome).genome_id<<" Fitness: "<<org->fitness<<" Error: "<<org->error<<" */"<<std::endl;
+        outFile<<std::endl<<"/* Organism #"<<org->genome->genome_id<<" Fitness: "<<org->fitness<<" Error: "<<org->error<<" */"<<std::endl;
 
-        (org->genome).print(outFile);
+        org->genome->print(outFile);
     }
 
     return true;
@@ -232,13 +232,12 @@ void Species::reproduce(int ioffspring,
                         vector<Species*> &sorted_species) {
 
     SpeciesOrganism *thechamp = organisms[0];
-    Genome &new_genome = baby.genome;  //For holding baby's genes
-    rng_t &rng = baby.genome.rng;
-    baby.genome.genome_id = ioffspring;
+    Genome *new_genome = baby.genome;  //For holding baby's genes
+    rng_t &rng = baby.genome->rng;
 
     //If we have a super_champ (SpeciesPopulation champion), finish off some special clones
     if( ioffspring < thechamp->super_champ_offspring ) {
-        thechamp->genome.duplicate_into(new_genome);
+        thechamp->genome->duplicate_into(new_genome);
 
         //Most superchamp offspring will have their connection weights mutated only
         //The last offspring will be an exact duplicate of this super_champ
@@ -246,10 +245,10 @@ void Species::reproduce(int ioffspring,
         //      Settings used for published experiments did not use this
         if( ioffspring < (thechamp->super_champ_offspring - 1) ) {
             if ( (rng.prob() < 0.8)|| (NEAT::mutate_add_link_prob == 0.0)) {
-                new_genome.mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
+                new_genome->mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
             } else {
                 //Sometimes we add a link to a superchamp
-                new_genome.mutate_add_link(create_innov,
+                new_genome->mutate_add_link(create_innov,
                                            NEAT::newlink_tries);
             }
         }
@@ -257,14 +256,14 @@ void Species::reproduce(int ioffspring,
     } else if( (ioffspring == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
 
         //Clone the species champion
-        thechamp->genome.duplicate_into(new_genome);
+        thechamp->genome->duplicate_into(new_genome);
 
     } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
 
         //Clone a random parent
-        rng.element(organisms)->genome.duplicate_into(new_genome);
+        rng.element(organisms)->genome->duplicate_into(new_genome);
 
-        new_genome.mutate(create_innov);
+        new_genome->mutate(create_innov);
 
         //Otherwise we should mate 
     } else {
@@ -281,9 +280,9 @@ void Species::reproduce(int ioffspring,
         }
 
         Genome::mate(create_innov,
-                     &mom->genome,
-                     &dad->genome,
-                     &new_genome,
+                     mom->genome,
+                     dad->genome,
+                     new_genome,
                      mom->fitness,
                      dad->fitness);
     }

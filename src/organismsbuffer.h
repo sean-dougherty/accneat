@@ -23,11 +23,13 @@ namespace NEAT {
 
             for(size_t i = 0; i < n; i++) {
                 _a[i].population_index = i + population_index;
-                _a[i].genome.rng.seed(rng.integer());
+                _a[i].genome->genome_id = _a[i].population_index;
+                _a[i].genome->rng.seed(rng.integer());
             }
             for(size_t i = 0; i < n; i++) {
                 _b[i].population_index = i + population_index;
-                _b[i].genome.rng.seed(rng.integer());
+                _b[i].genome->genome_id = _b[i].population_index;
+                _b[i].genome->rng.seed(rng.integer());
             }
         }
 

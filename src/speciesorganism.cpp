@@ -21,3 +21,20 @@ void SpeciesOrganism::init(int gen) {
 	champion=false;
 	super_champ_offspring=0;
 }
+
+void SpeciesOrganism::copy_into(Organism &dst_) const {
+    Organism::copy_into(dst_);
+
+    SpeciesOrganism *dst = dynamic_cast<SpeciesOrganism *>(&dst_);
+
+#define copy(field) dst->field = this->field;
+    
+    copy(species);
+    copy(adjusted_fitness);
+    copy(expected_offspring);
+    copy(eliminate);
+    copy(champion);
+    copy(super_champ_offspring);
+
+#undef copy
+}
