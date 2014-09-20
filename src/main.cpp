@@ -14,22 +14,33 @@
   limitations under the License.
 */
 #include <iostream>
+#include <string>
 #include "neat.h"
 #include "seq_experiment.h"
+#include "util.h"
 using namespace std;
 
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 4) {
-        cerr << "usage: neat rng_seed pop_size maxgens" << endl;
+    if (argc != 5) {
+        cerr << "usage: neat rng_seed pop_type pop_size maxgens" << endl;
         return -1;
     }
 
     int argi = 1;
     int rng_seed = stoi(argv[argi++]);
+    string pop_type = argv[argi++];
     int pop_size = stoi(argv[argi++]);
     int maxgens = stoi(argv[argi++]);
+
+    if(pop_type == "s") {
+        NEAT::population_type = NEAT::PopulationType::SPECIES;
+    } else if(pop_type == "d") {
+        NEAT::population_type = NEAT::PopulationType::DEMES;
+    } else {
+        panic();
+    }
 
     NEAT::rng_t rng;
     rng.seed(rng_seed);

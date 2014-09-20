@@ -20,7 +20,6 @@ using namespace std;
 static void init_env() {
     const bool DELETE_NODES = true;
     const bool DELETE_LINKS = true;
-    const bool DEMES = false;
 
     if(DELETE_NODES) {
         NEAT::mutate_delete_node_prob = 0.1 * NEAT::mutate_add_node_prob;
@@ -33,11 +32,7 @@ static void init_env() {
         NEAT::mutate_gene_reenable_prob = 0.0;
     }
 
-    if(DEMES) {
-        NEAT::population_type = PopulationType::DEMES;
-    } else {
-        NEAT::compat_threshold = 10.0;
-    }
+    NEAT::compat_threshold = 10.0;
 }
 
 struct Step {
