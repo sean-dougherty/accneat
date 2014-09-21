@@ -22,11 +22,12 @@ using namespace std;
 
 
 Population *Population::create(rng_t rng,
+                               GenomeManager *genome_manager,
                                vector<unique_ptr<Genome>> &seeds) {
 
     switch(NEAT::population_type) {
     case PopulationType::SPECIES:
-        return new SpeciesPopulation(rng, seeds);
+        return new SpeciesPopulation(rng, genome_manager, seeds);
     case PopulationType::DEMES:
         return new DemesPopulation(rng, seeds);
     default:

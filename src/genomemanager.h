@@ -1,6 +1,8 @@
 #pragma once
 
 #include "neat.h"
+#include "rng.h"
+#include <memory>
 #include <vector>
 
 namespace NEAT {
@@ -13,12 +15,12 @@ namespace NEAT {
 
         virtual ~GenomeManager() {}
 
-        virtual std::vector<Genome *> create_seed_generation(size_t ngenomes,
-                                                             class rng_t &rng,
-                                                             size_t ntraits,
-                                                             size_t ninputs,
-                                                             size_t noutputs,
-                                                             size_t nhidden) = 0;
+        virtual std::vector<std::unique_ptr<Genome>> create_seed_generation(size_t ngenomes,
+                                                                            class rng_t rng,
+                                                                            size_t ntraits,
+                                                                            size_t ninputs,
+                                                                            size_t noutputs,
+                                                                            size_t nhidden) = 0;
 
         virtual void mate(Genome *genome1,
                           Genome *genome2,

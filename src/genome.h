@@ -46,6 +46,11 @@ namespace NEAT {
         // todo: use c++11 move for constructor vectors?
 
         Genome();
+        Genome(rng_t rng,
+               size_t ntraits,
+               size_t ninputs,
+               size_t noutputs,
+               size_t nhidden);
 		//Constructor which takes full genome specs and puts them into the new one
 		Genome(int id,
                const std::vector<Trait> &t,
@@ -55,12 +60,6 @@ namespace NEAT {
 		//Special constructor which spawns off an input file
 		//This constructor assumes that some routine has already read in GENOMESTART
         Genome(int id, std::ifstream &iFile);
-
-        static Genome *create_seed_genome(rng_t &rng,
-                                          size_t ntraits,
-                                          size_t ninputs,
-                                          size_t noutputs,
-                                          size_t nhidden);
 
 		// Loads a new Genome from a file (doesn't require knowledge of Genome's id)
 		static Genome *new_Genome_load(char *filename);

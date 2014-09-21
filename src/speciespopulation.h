@@ -16,6 +16,7 @@
 #pragma once 
 
 #include "innovation.h"
+#include "innovgenomemanager.h" //todo: remove
 #include "organismsbuffer.h"
 #include "population.h"
 #include "speciesorganism.h"
@@ -26,7 +27,9 @@ namespace NEAT {
 	class SpeciesPopulation : public Population {
 	public:
 		// Construct off of a single spawning Genome 
-		SpeciesPopulation(rng_t rng, std::vector<std::unique_ptr<Genome>> &seeds);
+		SpeciesPopulation(rng_t rng,
+                          GenomeManager *genome_manager,
+                          std::vector<std::unique_ptr<Genome>> &seeds);
 		virtual ~SpeciesPopulation();
 
         virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
@@ -37,8 +40,8 @@ namespace NEAT {
 		virtual void write(std::ostream& out) override;
 
     private:
-		bool spawn();
-		bool speciate();
+		void spawn();
+		void speciate();
 
         size_t norgs;
         int generation;
@@ -46,7 +49,7 @@ namespace NEAT {
         SpeciesOrganism fittest;
 
         std::vector<class Species*> species;  // Species in the SpeciesPopulation. Note that the species should comprise all the genomes 
-        PopulationInnovations innovations;
+        InnovGenomeManager *genome_manager;
 
 		// ******* Member variables used during reproduction *******
 		int last_species;  //The highest species number

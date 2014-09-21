@@ -130,31 +130,14 @@ Genome::Genome()
     : node_lookup(nodes) {
 }
 
-Genome::Genome(int id,
-               const vector<Trait> &t,
-               const vector<NodeGene> &n,
-               const vector<LinkGene> &g)
-    : node_lookup(nodes) {
-	genome_id=id;
-	traits=t;
-    links = g;
-    nodes = n;
-}
+Genome::Genome(rng_t rng_,
+               size_t ntraits,
+               size_t ninputs,
+               size_t noutputs,
+               size_t nhidden)
+    : Genome() {
 
-Genome::Genome(int id, std::ifstream &iFile)
-    : node_lookup(nodes) {
-
-    load_from_file(id, iFile);
-}
-
-Genome *Genome::create_seed_genome(rng_t rng,
-                                   size_t ntraits,
-                                   size_t ninputs,
-                                   size_t noutputs,
-                                   size_t nhidden) {
-    vector<Trait> traits;
-    vector<NodeGene> nodes;
-    vector<LinkGene> links;
+    rng = rng_;
 
     for(size_t i = 0; i < ntraits; i++) {
         traits.emplace_back(i + 1,
@@ -236,8 +219,23 @@ Genome *Genome::create_seed_genome(rng_t rng,
                                       0.0));
         }
     }
+}
 
-    return new Genome(-1, traits, nodes, links);
+Genome::Genome(int id,
+               const vector<Trait> &t,
+               const vector<NodeGene> &n,
+               const vector<LinkGene> &g)
+    : node_lookup(nodes) {
+	genome_id=id;
+	traits=t;
+    links = g;
+    nodes = n;
+}
+
+Genome::Genome(int id, std::ifstream &iFile)
+    : node_lookup(nodes) {
+
+    load_from_file(id, iFile);
 }
 
 Genome* Genome::new_Genome_load(char *filename) {

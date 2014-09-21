@@ -9,12 +9,12 @@ namespace NEAT {
     public:
         virtual ~InnovGenomeManager();
 
-        virtual std::vector<Genome *> create_seed_generation(size_t ngenomes,
-                                                             class rng_t &rng,
-                                                             size_t ntraits,
-                                                             size_t ninputs,
-                                                             size_t noutputs,
-                                                             size_t nhidden) override;
+        virtual std::vector<std::unique_ptr<Genome>> create_seed_generation(size_t ngenomes,
+                                                                            class rng_t rng,
+                                                                            size_t ntraits,
+                                                                            size_t ninputs,
+                                                                            size_t noutputs,
+                                                                            size_t nhidden) override;
 
         virtual void mate(Genome *genome1,
                           Genome *genome2,
@@ -25,7 +25,7 @@ namespace NEAT {
 
         virtual void mutate(Genome *genome) override;
 
-    private:
+        //private: todo: uncomment
         PopulationInnovations innovations;        
     };
 

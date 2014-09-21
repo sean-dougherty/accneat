@@ -16,6 +16,7 @@
 #pragma once
 
 #include "genome.h"
+#include "genomemanager.h"
 #include "rng.h"
 #include <cstddef>
 #include <functional>
@@ -27,6 +28,7 @@ namespace NEAT {
     class Population {
     public:
         static Population *create(rng_t rng,
+                                  GenomeManager *genome_manager,
                                   std::vector<std::unique_ptr<Genome>> &seeds);
 
         virtual ~Population() {}

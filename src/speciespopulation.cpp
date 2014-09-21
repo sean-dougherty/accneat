@@ -29,10 +29,13 @@
 using namespace NEAT;
 using namespace std;
 
-SpeciesPopulation::SpeciesPopulation(rng_t rng, vector<unique_ptr<Genome>> &seeds)
+SpeciesPopulation::SpeciesPopulation(rng_t rng,
+                                     GenomeManager *genome_manager_,
+                                     vector<unique_ptr<Genome>> &seeds)
     : norgs(seeds.size())
     , generation(0)
     , orgs(rng, seeds, seeds.size())
+    , genome_manager(dynamic_cast<InnovGenomeManager*>(genome_manager_))
     , highest_fitness(0.0)
     , highest_last_changed(0) {
 
@@ -55,11 +58,7 @@ void SpeciesPopulation::verify() {
         org.genome->verify();
 } 
 
-bool SpeciesPopulation::spawn() {
-	//Keep a record of the innovation and node number we are on
-    innovations.init(orgs.curr().back().genome->get_last_node_id(),
-                     orgs.curr().back().genome->get_last_gene_innovnum());
-
+void SpeciesPopulation::spawn() {
     for(size_t i = 0; i < norgs; i++) {
         SpeciesOrganism &org = orgs.curr()[i];
         org.create_phenotype();
@@ -67,11 +66,9 @@ bool SpeciesPopulation::spawn() {
 
 	//Separate the new SpeciesPopulation into species
 	speciate();
-
-	return true;
 }
 
-bool SpeciesPopulation::speciate() {
+void SpeciesPopulation::speciate() {
     last_species = 0;
     for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.species == nullptr);
@@ -88,7 +85,6 @@ bool SpeciesPopulation::speciate() {
         }
         org.species->add_Organism(&org);
     }
-    return true;
 }
 
 void SpeciesPopulation::write(std::ostream& out) {
@@ -355,7 +351,7 @@ void SpeciesPopulation::next_generation() {
             auto create_innov = [iorg, this] (InnovationId id,
                                               InnovationParms parms,
                                               IndividualInnovation::ApplyFunc apply) {
-                innovations.add(IndividualInnovation(iorg, id, parms, apply));
+                genome_manager->innovations.add(IndividualInnovation(iorg, id, parms, apply));
             };
 
             parms.species->reproduce(parms.ioffspring,
@@ -364,7 +360,7 @@ void SpeciesPopulation::next_generation() {
                                      sorted_species);
         }
 
-        innovations.apply();
+        genome_manager->innovations.apply();
 
         //Create the neural nets for the new organisms.
 #pragma omp parallel for

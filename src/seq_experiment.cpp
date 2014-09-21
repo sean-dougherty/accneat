@@ -1,6 +1,7 @@
 #include "seq_experiment.h"
 
 #include "genome.h"
+#include "genomemanager.h"
 #include "network.h"
 #include "organism.h"
 #include "population.h"
@@ -196,37 +197,25 @@ static void evaluate(NEAT::Population *pop);
 void seq_experiment(rng_t &rng, int gens) {
     init_env();
 
-    Genome *start_genome;
-
     details_act = new float[NEAT::pop_size * nouts];
     details_err = new float[NEAT::pop_size * nouts];
 
     cout<<"START SEQ_EXPERIMENT TEST"<<endl;
 
-    start_genome = Genome::create_seed_genome(rng,
-                                              1,
-                                              tests[0].steps[0].input.size() - 1,
-                                              tests[0].steps[0].output.size(),
-                                              3);
-
-    vector<unique_ptr<Genome>> genomes;
-    {
-        rng_t _rng = rng;
-        for(int i = 0; i < NEAT::pop_size; i++) {
-            genomes.emplace_back(make_unique<Genome>());
-            Genome &g = *genomes.back();
-            start_genome->duplicate_into(&g);
-            g.rng.seed(_rng.integer());
-            g.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-            g.randomize_traits();
-        }
-    }
+    GenomeManager *genome_manager = GenomeManager::create();
+    vector<unique_ptr<Genome>> genomes = 
+        genome_manager->create_seed_generation(NEAT::pop_size,
+                                               rng,
+                                               1,
+                                               tests[0].steps[0].input.size() - 1,
+                                               tests[0].steps[0].output.size(),
+                                               3);
 
     int nsuccesses = 0;
 
     for(int expcount = 0; expcount < NEAT::num_runs; expcount++) {
         //Spawn the Population
-        Population *pop = Population::create(rng, genomes);
+        Population *pop = Population::create(rng, genome_manager, genomes);
       
         bool success = false;
         int gen;
@@ -260,8 +249,6 @@ void seq_experiment(rng_t &rng, int gens) {
         delete pop;
     }
 
-    delete start_genome;
-    
     delete [] details_err;
     delete [] details_act;
 

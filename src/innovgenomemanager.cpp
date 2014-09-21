@@ -9,32 +9,36 @@ using namespace std;
 InnovGenomeManager::~InnovGenomeManager() {
 }
 
-vector<Genome *> InnovGenomeManager::create_seed_generation(size_t ngenomes,
-                                                            class rng_t &rng,
-                                                            size_t ntraits,
-                                                            size_t ninputs,
-                                                            size_t noutputs,
-                                                            size_t nhidden) {
-    vector<Genome *> result;
+vector<unique_ptr<Genome>> InnovGenomeManager::create_seed_generation(size_t ngenomes,
+                                                                      rng_t rng,
+                                                                      size_t ntraits,
+                                                                      size_t ninputs,
+                                                                      size_t noutputs,
+                                                                      size_t nhidden) {
+    Genome start_genome(rng,
+                        ntraits,
+                        ninputs,
+                        noutputs,
+                        nhidden);
 
-    Genome *start_genome = Genome::create_seed_genome(rng,
-                                                      ntraits,
-                                                      ninputs,
-                                                      noutputs,
-                                                      nhidden);
-
-    for(size_t i = 0; i < ngenomes; i++) {
-        Genome *g = new Genome();
-        start_genome->duplicate_into(g);
-		g->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		g->randomize_traits();
-	}
+    vector<unique_ptr<Genome>> genomes;
+    {
+        rng_t _rng = rng;
+        for(int i = 0; i < NEAT::pop_size; i++) {
+            genomes.emplace_back(make_unique<Genome>());
+            Genome &g = *genomes.back();
+            start_genome.duplicate_into(&g);
+            g.rng.seed(_rng.integer());
+            g.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
+            g.randomize_traits();
+        }
+    }
 
 	//Keep a record of the innovation and node number we are on
-    innovations.init(result.back()->get_last_node_id(),
-                     result.back()->get_last_gene_innovnum());
-    
-    return result;
+    innovations.init(genomes.back()->get_last_node_id(),
+                     genomes.back()->get_last_gene_innovnum());
+
+    return genomes;
 }
 
 void InnovGenomeManager::mate(Genome *genome1,
