@@ -14,6 +14,8 @@
    limitations under the License.
 */
 #include "species.h"
+
+#include "genomemanager.h"
 #include "organism.h"
 #include <cmath>
 #include <iostream>
@@ -228,16 +230,15 @@ static SpeciesOrganism *get_random(rng_t &rng, Species *thiz, const vector<Speci
 //todo: this method better belongs in the population class.
 void Species::reproduce(int ioffspring,
                         SpeciesOrganism &baby,
-                        CreateInnovationFunc create_innov,
+                        GenomeManager *genome_manager,
                         vector<Species*> &sorted_species) {
-
     SpeciesOrganism *thechamp = organisms[0];
     Genome *new_genome = baby.genome;  //For holding baby's genes
     rng_t &rng = baby.genome->rng;
 
     //If we have a super_champ (SpeciesPopulation champion), finish off some special clones
     if( ioffspring < thechamp->super_champ_offspring ) {
-        thechamp->genome->duplicate_into(new_genome);
+        genome_manager->clone(thechamp->genome, new_genome);
 
         //Most superchamp offspring will have their connection weights mutated only
         //The last offspring will be an exact duplicate of this super_champ
@@ -245,25 +246,25 @@ void Species::reproduce(int ioffspring,
         //      Settings used for published experiments did not use this
         if( ioffspring < (thechamp->super_champ_offspring - 1) ) {
             if ( (rng.prob() < 0.8)|| (NEAT::mutate_add_link_prob == 0.0)) {
-                new_genome->mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
+                genome_manager->mutate(new_genome,
+                                       GenomeManager::MUTATE_OP_WEIGHTS);
             } else {
-                //Sometimes we add a link to a superchamp
-                new_genome->mutate_add_link(create_innov,
-                                           NEAT::newlink_tries);
+                genome_manager->mutate(new_genome,
+                                       GenomeManager::MUTATE_OP_STRUCTURE);
             }
         }
 
     } else if( (ioffspring == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
 
         //Clone the species champion
-        thechamp->genome->duplicate_into(new_genome);
+        genome_manager->clone(thechamp->genome, new_genome);
 
     } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
 
         //Clone a random parent
-        rng.element(organisms)->genome->duplicate_into(new_genome);
-
-        new_genome->mutate(create_innov);
+        genome_manager->clone(rng.element(organisms)->genome,
+                              new_genome);
+        genome_manager->mutate(new_genome);
 
         //Otherwise we should mate 
     } else {
@@ -279,12 +280,11 @@ void Species::reproduce(int ioffspring,
             dad = get_random(rng, this, sorted_species);
         }
 
-        Genome::mate(create_innov,
-                     mom->genome,
-                     dad->genome,
-                     new_genome,
-                     mom->fitness,
-                     dad->fitness);
+        genome_manager->mate(mom->genome,
+                             dad->genome,
+                             new_genome,
+                             mom->fitness,
+                             dad->fitness);
     }
 }
 

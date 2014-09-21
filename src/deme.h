@@ -17,7 +17,7 @@ namespace NEAT {
         void evaluate(std::function<void (Organism &org)> eval_org);
         Organism &get_fittest();
 		void next_generation(std::vector<Organism *> &elites,
-                             PopulationInnovations &innovations);
+                             class GenomeManager *genome_manager);
         void create_phenotypes();
 
 		void write(std::ostream& out);

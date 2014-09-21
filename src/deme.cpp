@@ -1,5 +1,7 @@
 #include "deme.h"
 
+#include "genomemanager.h"
+
 using namespace NEAT;
 using namespace std;
 
@@ -41,8 +43,8 @@ Organism &Deme::get_fittest() {
     return *best;
 }
 
-void Deme::next_generation(std::vector<Organism *> &elites,
-                           PopulationInnovations &innovations) {
+void Deme::next_generation(vector<Organism *> &elites,
+                           GenomeManager *genome_manager) {
     generation++;
     orgs.next_generation(generation);
 
@@ -76,21 +78,11 @@ void Deme::next_generation(std::vector<Organism *> &elites,
         assert(parent1->generation < offspring->generation);
         assert(parent2->generation < offspring->generation);
 
-        auto create_innov = [offspring, i, &innovations] (InnovationId id,
-                                                          InnovationParms parms,
-                                                          IndividualInnovation::ApplyFunc apply) {
-            innovations.add(IndividualInnovation(offspring->population_index,
-                                                 id,
-                                                 parms,
-                                                 apply));
-        };
-
-        Genome::mate(create_innov,
-                     parent1->genome,
-                     parent2->genome,
-                     offspring->genome,
-                     parent1->fitness,
-                     parent2->fitness);        
+        genome_manager->mate(parent1->genome,
+                             parent2->genome,
+                             offspring->genome,
+                             parent1->fitness,
+                             parent2->fitness);        
     }
 }
 

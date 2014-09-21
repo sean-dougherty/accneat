@@ -1,5 +1,6 @@
 #include "demespopulation.h"
 
+#include "genomemanager.h"
 #include "timer.h"
 #include "util.h"
 #include <algorithm>
@@ -44,7 +45,7 @@ DemesPopulation::DemesPopulation(rng_t rng,
                                  GenomeManager *genome_manager_,
                                  vector<unique_ptr<Genome>> &seeds)
     : generation(0)
-    , genome_manager(dynamic_cast<InnovGenomeManager*>(genome_manager_)) {
+    , genome_manager(genome_manager_) {
 
     size_t pop_size = seeds.size();
     assert(pop_size % NEAT::deme_count == 0);
@@ -127,10 +128,10 @@ void DemesPopulation::next_generation() {
     generation++;
 
     for(Deme &deme: demes) {
-        deme.next_generation(elites, genome_manager->innovations);
+        deme.next_generation(elites, genome_manager);
     }
 
-    genome_manager->innovations.apply();
+    genome_manager->finalize_generation();
 
     for(Deme &deme: demes) {
         deme.create_phenotypes();

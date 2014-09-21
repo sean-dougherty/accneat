@@ -35,7 +35,7 @@ SpeciesPopulation::SpeciesPopulation(rng_t rng,
     : norgs(seeds.size())
     , generation(0)
     , orgs(rng, seeds, seeds.size())
-    , genome_manager(dynamic_cast<InnovGenomeManager*>(genome_manager_))
+    , genome_manager(genome_manager_)
     , highest_fitness(0.0)
     , highest_last_changed(0) {
 
@@ -348,19 +348,13 @@ void SpeciesPopulation::next_generation() {
 
             assert(baby.population_index == iorg);
 
-            auto create_innov = [iorg, this] (InnovationId id,
-                                              InnovationParms parms,
-                                              IndividualInnovation::ApplyFunc apply) {
-                genome_manager->innovations.add(IndividualInnovation(iorg, id, parms, apply));
-            };
-
             parms.species->reproduce(parms.ioffspring,
                                      baby,
-                                     create_innov,
+                                     genome_manager,
                                      sorted_species);
         }
 
-        genome_manager->innovations.apply();
+        genome_manager->finalize_generation();
 
         //Create the neural nets for the new organisms.
 #pragma omp parallel for

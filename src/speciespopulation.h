@@ -15,8 +15,7 @@
 */
 #pragma once 
 
-#include "innovation.h"
-#include "innovgenomemanager.h" //todo: remove
+#include "genomemanager.h"
 #include "organismsbuffer.h"
 #include "population.h"
 #include "speciesorganism.h"
@@ -49,7 +48,7 @@ namespace NEAT {
         SpeciesOrganism fittest;
 
         std::vector<class Species*> species;  // Species in the SpeciesPopulation. Note that the species should comprise all the genomes 
-        InnovGenomeManager *genome_manager;
+        GenomeManager *genome_manager;
 
 		// ******* Member variables used during reproduction *******
 		int last_species;  //The highest species number

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "deme.h"
-#include "innovgenomemanager.h" //todo: tmp
 #include "population.h"
 #include "innovation.h"
 
@@ -10,7 +9,7 @@ namespace NEAT {
     class DemesPopulation : public Population {
     public:
 		DemesPopulation(rng_t rng,
-                        GenomeManager *genome_manager,
+                        class GenomeManager *genome_manager,
                         std::vector<std::unique_ptr<Genome>> &seeds);
 		virtual ~DemesPopulation();
 
@@ -23,7 +22,7 @@ namespace NEAT {
 
     private:
         int generation;
-        InnovGenomeManager *genome_manager;
+        class GenomeManager *genome_manager;
         std::vector<Deme> demes;
         std::vector<Organism *> global_elites;
         std::vector<Organism *> elites;
