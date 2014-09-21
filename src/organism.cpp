@@ -27,14 +27,24 @@ Organism::Organism() {
     init(0);
 }
 
-void Organism::init(int gen) {
-	fitness=0.0;
-	generation=gen;
-	error=0;
+Organism::Organism(const Organism &other) {
+    other.copy_into(*this);
+}
+
+Organism::Organism(const Genome &genome)
+    : Organism() {
+
+    *this->genome = genome;
 }
 
 Organism::~Organism() {
     delete genome;
+}
+
+void Organism::init(int gen) {
+	fitness=0.0;
+	generation=gen;
+	error=0;
 }
 
 void Organism::create_phenotype() {

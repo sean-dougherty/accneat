@@ -14,7 +14,7 @@ namespace NEAT {
         std::vector<TOrganism> *_curr;
         std::vector<TOrganism> *_prev;
     public:
-    OrganismsBuffer(rng_t &rng, size_t n, size_t population_index = 0)
+    OrganismsBuffer(rng_t rng, size_t n, size_t population_index = 0)
             : _n(n) {
             _a.resize(n);
             _b.resize(n);

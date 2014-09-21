@@ -43,6 +43,8 @@ namespace NEAT {
 		int generation;  //Tells which generation this Organism is from
 
 		Organism();
+		Organism(const Organism &other);
+        Organism(const Genome &genome);
 		~Organism();
 
         virtual void init(int gen);

@@ -19,7 +19,7 @@
 
 using namespace NEAT;
 
-Population *Population::create(rng_t &rng,
+Population *Population::create(rng_t rng,
                                class Genome *seed,
                                size_t norganisms) {
 

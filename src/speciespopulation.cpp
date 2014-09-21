@@ -29,7 +29,7 @@
 using namespace NEAT;
 using namespace std;
 
-SpeciesPopulation::SpeciesPopulation(rng_t &rng, Genome *g,int size)
+SpeciesPopulation::SpeciesPopulation(rng_t rng, Genome *g,int size)
     : norgs(size)
     , generation(0)
     , orgs(rng, size)

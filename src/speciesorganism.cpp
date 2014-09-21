@@ -10,6 +10,16 @@ SpeciesOrganism::SpeciesOrganism()
     init(0);
 }
 
+SpeciesOrganism::SpeciesOrganism(const SpeciesOrganism &other) {
+    other.copy_into(*this);
+}
+
+SpeciesOrganism::SpeciesOrganism(const Genome &genome)
+    : SpeciesOrganism() {
+
+    *this->genome = genome;
+}
+
 SpeciesOrganism::~SpeciesOrganism() {
 }
 

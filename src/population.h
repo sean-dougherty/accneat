@@ -15,6 +15,7 @@
 */
 #pragma once
 
+#include "rng.h"
 #include <cstddef>
 #include <functional>
 #include <iostream>
@@ -23,7 +24,7 @@ namespace NEAT {
 
     class Population {
     public:
-        static Population *create(class rng_t &rng,
+        static Population *create(rng_t rng,
                                   class Genome *seed,
                                   size_t norganisms);
 

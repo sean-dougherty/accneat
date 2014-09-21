@@ -14,6 +14,8 @@ namespace NEAT {
 		int super_champ_offspring;  //Number of reserved offspring for a population leader
 
         SpeciesOrganism();
+		SpeciesOrganism(const SpeciesOrganism &other);
+		SpeciesOrganism(const Genome &genome);
         virtual ~SpeciesOrganism();
 
         virtual void init(int gen) override;

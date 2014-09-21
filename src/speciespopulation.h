@@ -26,7 +26,7 @@ namespace NEAT {
 	class SpeciesPopulation : public Population {
 	public:
 		// Construct off of a single spawning Genome 
-		SpeciesPopulation(rng_t &rng, Genome *g, int size);
+		SpeciesPopulation(rng_t rng, Genome *g, int size);
 		virtual ~SpeciesPopulation();
 
         virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
