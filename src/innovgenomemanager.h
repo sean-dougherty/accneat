@@ -15,22 +15,26 @@ namespace NEAT {
                                                                             size_t ninputs,
                                                                             size_t noutputs,
                                                                             size_t nhidden) override;
-        virtual void clone(Genome *orig,
-                           Genome *clone) override;
 
-        virtual void mate(Genome *genome1,
-                          Genome *genome2,
-                          Genome *offspring,
+        virtual bool are_compatible(Genome &genome1,
+                                    Genome &genome2) override;
+
+        virtual void clone(Genome &orig,
+                           Genome &clone) override;
+
+        virtual void mate(Genome &genome1,
+                          Genome &genome2,
+                          Genome &offspring,
                           real_t fitness1,
                           real_t fitness2) override;
  
-        virtual void mutate(Genome *genome,
+        virtual void mutate(Genome &genome,
                             MutationOperation op = MUTATE_OP_ANY) override;
 
         virtual void finalize_generation() override;
 
         //private: todo: uncomment
-        CreateInnovationFunc create_innov_func(Genome *g);
+        CreateInnovationFunc create_innov_func(Genome &g);
 
         PopulationInnovations innovations;        
     };

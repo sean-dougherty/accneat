@@ -18,8 +18,6 @@
 #include "genome.h"
 #include "util.h"
 
-#include <iostream>
-
 namespace NEAT {
 
 	class Species;
@@ -39,7 +37,7 @@ namespace NEAT {
 		real_t fitness;  //A fitness measure that won't change during adjustments
 		real_t error;  //Used just for reporting purposes
 		Network net;  //The Organism's phenotype
-		Genome *genome; //The Organism's genotype //todo: use unique_ptr
+        std::unique_ptr<Genome> genome; //The Organism's genotype
 		int generation;  //Tells which generation this Organism is from
 
 		Organism();

@@ -21,7 +21,7 @@ using namespace NEAT;
 using std::vector;
 
 Organism::Organism() {
-    genome = new Genome();
+    genome = make_unique<Genome>();
     //Note: We're in the base class constructor, so a derived class' init() won't
     //      be called. The derived class' constructor must also call init().
     init(0);
@@ -38,7 +38,6 @@ Organism::Organism(const Genome &genome)
 }
 
 Organism::~Organism() {
-    delete genome;
 }
 
 void Organism::init(int gen) {

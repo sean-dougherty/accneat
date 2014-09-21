@@ -233,12 +233,12 @@ void Species::reproduce(int ioffspring,
                         GenomeManager *genome_manager,
                         vector<Species*> &sorted_species) {
     SpeciesOrganism *thechamp = organisms[0];
-    Genome *new_genome = baby.genome;  //For holding baby's genes
+    Genome &new_genome = *baby.genome;  //For holding baby's genes
     rng_t &rng = baby.genome->rng;
 
     //If we have a super_champ (SpeciesPopulation champion), finish off some special clones
     if( ioffspring < thechamp->super_champ_offspring ) {
-        genome_manager->clone(thechamp->genome, new_genome);
+        genome_manager->clone(*thechamp->genome, new_genome);
 
         //Most superchamp offspring will have their connection weights mutated only
         //The last offspring will be an exact duplicate of this super_champ
@@ -257,12 +257,12 @@ void Species::reproduce(int ioffspring,
     } else if( (ioffspring == thechamp->super_champ_offspring) && (expected_offspring > 5) ) {
 
         //Clone the species champion
-        genome_manager->clone(thechamp->genome, new_genome);
+        genome_manager->clone(*thechamp->genome, new_genome);
 
     } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
 
         //Clone a random parent
-        genome_manager->clone(rng.element(organisms)->genome,
+        genome_manager->clone(*rng.element(organisms)->genome,
                               new_genome);
         genome_manager->mutate(new_genome);
 
@@ -280,8 +280,8 @@ void Species::reproduce(int ioffspring,
             dad = get_random(rng, this, sorted_species);
         }
 
-        genome_manager->mate(mom->genome,
-                             dad->genome,
+        genome_manager->mate(*mom->genome,
+                             *dad->genome,
                              new_genome,
                              mom->fitness,
                              dad->fitness);

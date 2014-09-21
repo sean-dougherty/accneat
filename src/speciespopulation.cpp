@@ -73,7 +73,8 @@ void SpeciesPopulation::speciate() {
     for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.species == nullptr);
         for(Species *s: species) {
-            if( org.genome->compatibility(s->first()->genome) < NEAT::compat_threshold ) {
+            if( genome_manager->are_compatible(*org.genome,
+                                               *s->first()->genome) ) {
                 org.species = s;
                 break;
             }
@@ -377,8 +378,8 @@ void SpeciesPopulation::next_generation() {
 
                 for(Species *s: species) {
                     if(s->size()) {
-                        real_t comp = org.genome->compatibility(s->first()->genome);
-                        if(comp < NEAT::compat_threshold) {
+                        if(genome_manager->are_compatible(*org.genome,
+                                                          *s->first()->genome)) {
                             org.species = s;
                             break;
                         }
@@ -398,8 +399,8 @@ void SpeciesPopulation::next_generation() {
                     i++) {
 
                     Species *s = species[i];
-                    real_t comp = org.genome->compatibility(s->first()->genome);
-                    if(comp < NEAT::compat_threshold) {
+                    if(genome_manager->are_compatible(*org.genome,
+                                                      *s->first()->genome)) {
                         org.species = s;
                         break;
                     }

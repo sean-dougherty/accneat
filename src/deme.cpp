@@ -78,9 +78,9 @@ void Deme::next_generation(vector<Organism *> &elites,
         assert(parent1->generation < offspring->generation);
         assert(parent2->generation < offspring->generation);
 
-        genome_manager->mate(parent1->genome,
-                             parent2->genome,
-                             offspring->genome,
+        genome_manager->mate(*parent1->genome,
+                             *parent2->genome,
+                             *offspring->genome,
                              parent1->fitness,
                              parent2->fitness);        
     }
