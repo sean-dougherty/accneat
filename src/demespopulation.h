@@ -1,6 +1,7 @@
 #pragma once
 
 #include "deme.h"
+#include "innovgenomemanager.h" //todo: tmp
 #include "population.h"
 #include "innovation.h"
 
@@ -8,7 +9,9 @@ namespace NEAT {
 
     class DemesPopulation : public Population {
     public:
-		DemesPopulation(rng_t rng, std::vector<std::unique_ptr<Genome>> &seeds);
+		DemesPopulation(rng_t rng,
+                        GenomeManager *genome_manager,
+                        std::vector<std::unique_ptr<Genome>> &seeds);
 		virtual ~DemesPopulation();
 
         virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
@@ -19,8 +22,8 @@ namespace NEAT {
 		virtual void write(std::ostream& out) override;
 
     private:
-        PopulationInnovations innovations;
         int generation;
+        InnovGenomeManager *genome_manager;
         std::vector<Deme> demes;
         std::vector<Organism *> global_elites;
         std::vector<Organism *> elites;

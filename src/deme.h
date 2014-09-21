@@ -11,8 +11,7 @@ namespace NEAT {
         Deme(rng_t rng,
              std::vector<std::unique_ptr<Genome>> &seeds,
              size_t size,
-             size_t population_index,
-             PopulationInnovations *innovs);
+             size_t population_index);
         ~Deme();
 
         void evaluate(std::function<void (Organism &org)> eval_org);

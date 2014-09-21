@@ -40,8 +40,11 @@ static int insert_if_elite(vector<Organism *> &elites, Organism *candidate) {
     return i;
 }
 
-DemesPopulation::DemesPopulation(rng_t rng, vector<unique_ptr<Genome>> &seeds)
-    : generation(0) {
+DemesPopulation::DemesPopulation(rng_t rng,
+                                 GenomeManager *genome_manager_,
+                                 vector<unique_ptr<Genome>> &seeds)
+    : generation(0)
+    , genome_manager(dynamic_cast<InnovGenomeManager*>(genome_manager_)) {
 
     size_t pop_size = seeds.size();
     assert(pop_size % NEAT::deme_count == 0);
@@ -55,8 +58,7 @@ DemesPopulation::DemesPopulation(rng_t rng, vector<unique_ptr<Genome>> &seeds)
         demes.emplace_back(deme_rng,
                            seeds,
                            deme_size,
-                           i * deme_size,
-                           i == (size_t)deme_count - 1 ? &innovations : nullptr);
+                           i * deme_size);
     }
 
     for(size_t i = 0; i < NUM_GLOBAL_ELITES; i++) {
@@ -125,10 +127,10 @@ void DemesPopulation::next_generation() {
     generation++;
 
     for(Deme &deme: demes) {
-        deme.next_generation(elites, innovations);
+        deme.next_generation(elites, genome_manager->innovations);
     }
 
-    innovations.apply();
+    genome_manager->innovations.apply();
 
     for(Deme &deme: demes) {
         deme.create_phenotypes();

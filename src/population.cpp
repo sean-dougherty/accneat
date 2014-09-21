@@ -29,7 +29,7 @@ Population *Population::create(rng_t rng,
     case PopulationType::SPECIES:
         return new SpeciesPopulation(rng, genome_manager, seeds);
     case PopulationType::DEMES:
-        return new DemesPopulation(rng, seeds);
+        return new DemesPopulation(rng, genome_manager, seeds);
     default:
         trap("invalid pop type");
     }

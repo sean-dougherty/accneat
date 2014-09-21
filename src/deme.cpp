@@ -9,20 +9,13 @@ using namespace std;
 Deme::Deme(rng_t rng_,
            vector<unique_ptr<Genome>> &seeds_,
            size_t size_,
-           size_t population_index_,
-           PopulationInnovations *innovations)
+           size_t population_index_)
     : orgs(rng_, seeds_, size_, population_index_)
     , population_index(population_index_)
     , generation(0) {
 
     for(Organism &org: orgs.curr()) {
         org.create_phenotype();
-    }
-
-    if(innovations) {
-        //Keep a record of the innovation and node number we are on
-        innovations->init(orgs.curr().back().genome->get_last_node_id(),
-                          orgs.curr().back().genome->get_last_gene_innovnum());
     }
 }
 
