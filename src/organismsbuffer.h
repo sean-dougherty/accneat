@@ -38,6 +38,14 @@ namespace NEAT {
             }
         }
 
+        void init_phenotypes() {
+#pragma omp parallel for
+            for(size_t i = 0; i < _n; i++) {
+                Organism &org = curr()[i];
+                org.genome->init_phenotype(org.net);
+            }
+        }
+
         size_t size(){
             return _n;
         }

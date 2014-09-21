@@ -298,5 +298,6 @@ void evaluate(Population *pop) {
         }
     }
 
-    cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << fittest.genome->nodes.size() << ", nlinks=" << fittest.genome->links.size() << endl;
+    Genome::Stats gstats = fittest.genome->get_stats();
+    cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << gstats.nnodes << ", nlinks=" << gstats.nlinks << endl;
 }

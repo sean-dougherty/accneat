@@ -46,8 +46,6 @@ namespace NEAT {
 
         virtual void init(int gen);
 
-        void create_phenotype();
-
         Organism &operator=(const Organism &other);
 
     protected:

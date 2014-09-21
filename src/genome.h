@@ -30,59 +30,69 @@ namespace NEAT {
 		COLDGAUSSIAN = 1
 	};
 
-	class Genome {
-	public:
+    class Genome {
+    public:
         rng_t rng;
 		int genome_id;
 
+        virtual std::unique_ptr<Genome> make_default() const = 0;
+        virtual std::unique_ptr<Genome> make_clone() const = 0;
+
+        virtual void init_phenotype(class Network &net) = 0;
+
+        virtual void print(std::ostream &out) = 0;
+		virtual void verify() = 0;
+
+        struct Stats {
+            size_t nnodes;
+            size_t nlinks;
+        };
+
+        virtual Stats get_stats() = 0;
+    };
+
+	class InnovGenome : public Genome {
+	public:
 		std::vector<Trait> traits;
 		std::vector<NodeGene> nodes;
 		std::vector<LinkGene> links;
 
-        void reset();
-
-		int get_last_node_id(); //Return id of final NodeGene in Genome
-		real_t get_last_gene_innovnum(); //Return last innovation number in Genome
+		int get_last_node_id(); //Return id of final NodeGene in InnovGenome
+		real_t get_last_gene_innovnum(); //Return last innovation number in InnovGenome
 
         // todo: use c++11 move for constructor vectors?
 
-        Genome();
-        Genome(rng_t rng,
-               size_t ntraits,
-               size_t ninputs,
-               size_t noutputs,
-               size_t nhidden);
+        InnovGenome();
+        InnovGenome(rng_t rng,
+                    size_t ntraits,
+                    size_t ninputs,
+                    size_t noutputs,
+                    size_t nhidden);
 		//Constructor which takes full genome specs and puts them into the new one
-		Genome(int id,
+		InnovGenome(int id,
                const std::vector<Trait> &t,
                const std::vector<NodeGene> &n,
                const std::vector<LinkGene> &g);
 
-		//Special constructor which spawns off an input file
-		//This constructor assumes that some routine has already read in GENOMESTART
-        Genome(int id, std::ifstream &iFile);
-
-        std::unique_ptr<Genome> make_default() const;
-        std::unique_ptr<Genome> make_clone() const;
-
-		// Loads a new Genome from a file (doesn't require knowledge of Genome's id)
-		static Genome *new_Genome_load(char *filename);
+        virtual std::unique_ptr<Genome> make_default() const override;
+        virtual std::unique_ptr<Genome> make_clone() const override;
 
 		//Destructor kills off all lists (including the trait vector)
-		~Genome();
+		~InnovGenome();
 
 		// Dump this genome to specified file
-		void print(std::ostream &out);
+		virtual void print(std::ostream &out) override;
         void load_from_file(int id, std::istream &iFile);
 
-        void duplicate_into(Genome *offspring);
-        Genome &operator=(const Genome &other);
+        void duplicate_into(InnovGenome *offspring);
+        InnovGenome &operator=(const InnovGenome &other);
 
 		// For debugging: A number of tests can be run on a genome to check its
 		// integrity
 		// Note: Some of these tests do not indicate a bug, but rather are meant
 		// to be used to detect specific system states
-		void verify();
+		virtual void verify() override;
+        virtual Stats get_stats() override;
 
 		// ******* MUTATORS *******
 
@@ -125,44 +135,44 @@ namespace NEAT {
 
 		// ****** MATING METHODS ***** 
 		static void mate(CreateInnovationFunc create_innov,
-                         Genome *genome1,
-                         Genome *genome2,
-                         Genome *offspring,
+                         InnovGenome *genome1,
+                         InnovGenome *genome2,
+                         InnovGenome *offspring,
                          real_t fitness1,
                          real_t fitness2);
 
-		//   For every point in each Genome, where each Genome shares
+		//   For every point in each InnovGenome, where each InnovGenome shares
 		//   the innovation number, the LinkGene is chosen randomly from 
 		//   either parent.  If one parent has an innovation absent in 
 		//   the other, the baby will inherit the innovation 
 		//   Interspecies mating leads to all genes being inherited.
 		//   Otherwise, excess genes come from most fit parent.
-		static void mate_multipoint(Genome *genome1,
-                                    Genome *genome2,
-                                    Genome *offspring,
+		static void mate_multipoint(InnovGenome *genome1,
+                                    InnovGenome *genome2,
+                                    InnovGenome *offspring,
                                     real_t fitness1,
                                     real_t fitness2);
 
 		//This method mates like multipoint but instead of selecting one
 		//   or the other when the innovation numbers match, it averages their
 		//   weights 
-		static void mate_multipoint_avg(Genome *genome1,
-                                        Genome *genome2,
-                                        Genome *offspring,
+		static void mate_multipoint_avg(InnovGenome *genome1,
+                                        InnovGenome *genome2,
+                                        InnovGenome *offspring,
                                         real_t fitness1,
                                         real_t fitness2);
 
 		// ******** COMPATIBILITY CHECKING METHODS ********
 
 		// This function gives a measure of compatibility between
-		//   two Genomes by computing a linear combination of 3
+		//   two InnovGenomes by computing a linear combination of 3
 		//   characterizing variables of their compatibilty.
 		//   The 3 variables represent PERCENT DISJOINT GENES, 
 		//   PERCENT EXCESS GENES, MUTATIONAL DIFFERENCE WITHIN
 		//   MATCHING GENES.  So the formula for compatibility 
 		//   is:  disjoint_coeff*pdg+excess_coeff*peg+mutdiff_coeff*mdmg.
 		//   The 3 coefficients are global system parameters 
-		real_t compatibility(Genome *g);
+		real_t compatibility(InnovGenome *g);
 
 		real_t trait_compare(Trait *t1,Trait *t2);
 
@@ -175,7 +185,11 @@ namespace NEAT {
         Trait &get_trait(const NodeGene &node);
         Trait &get_trait(const LinkGene &gene);
 
+        virtual void init_phenotype(class Network &net) override;
+
 	private:
+        void reset();
+
         static bool nodelist_cmp(const NodeGene &a, const NodeGene &b) {
             return a.node_id < b.node_id;
         }
@@ -227,13 +241,13 @@ namespace NEAT {
         };
 
         class ProtoLinkGene {
-            Genome *_genome = nullptr;
+            InnovGenome *_genome = nullptr;
             //todo: does this have to be a LinkGene* now?
             LinkGene *_gene = nullptr;
             NodeGene *_in = nullptr;
             NodeGene *_out = nullptr;
         public:
-            void set_gene(Genome *genome, LinkGene *gene) {
+            void set_gene(InnovGenome *genome, LinkGene *gene) {
                 _genome = genome;
                 _gene = gene;
             }

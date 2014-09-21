@@ -9,46 +9,55 @@ using namespace std;
 InnovGenomeManager::~InnovGenomeManager() {
 }
 
+static InnovGenome *to_innov(Genome &g) {
+    return dynamic_cast<InnovGenome *>(&g);
+}
+
 vector<unique_ptr<Genome>> InnovGenomeManager::create_seed_generation(size_t ngenomes,
                                                                       rng_t rng,
                                                                       size_t ntraits,
                                                                       size_t ninputs,
                                                                       size_t noutputs,
                                                                       size_t nhidden) {
-    Genome start_genome(rng,
-                        ntraits,
-                        ninputs,
-                        noutputs,
-                        nhidden);
+    InnovGenome start_genome(rng,
+                             ntraits,
+                             ninputs,
+                             noutputs,
+                             nhidden);
 
     vector<unique_ptr<Genome>> genomes;
     {
         rng_t _rng = rng;
         for(int i = 0; i < NEAT::pop_size; i++) {
-            genomes.emplace_back(make_unique<Genome>());
-            Genome &g = *genomes.back();
-            start_genome.duplicate_into(&g);
-            g.rng.seed(_rng.integer());
-            g.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-            g.randomize_traits();
+            InnovGenome *g = new InnovGenome();
+            start_genome.duplicate_into(g);
+            g->rng.seed(_rng.integer());
+            g->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
+            g->randomize_traits();
+            
+            genomes.emplace_back(unique_ptr<Genome>(g));
         }
     }
 
-	//Keep a record of the innovation and node number we are on
-    innovations.init(genomes.back()->get_last_node_id(),
-                     genomes.back()->get_last_gene_innovnum());
+    {
+        InnovGenome *g = to_innov(*genomes.back());
+
+        //Keep a record of the innovation and node number we are on
+        innovations.init(g->get_last_node_id(),
+                         g->get_last_gene_innovnum());
+    }
 
     return genomes;
 }
 
 bool InnovGenomeManager::are_compatible(Genome &genome1,
                                         Genome &genome2) {
-    return genome1.compatibility(&genome2) < NEAT::compat_threshold;
+    return to_innov(genome1)->compatibility(to_innov(genome2)) < NEAT::compat_threshold;
 }
 
 void InnovGenomeManager::clone(Genome &orig,
                                Genome &clone) {
-    orig.duplicate_into(&clone);
+    to_innov(orig)->duplicate_into(to_innov(clone));
 }
 
 void InnovGenomeManager::mate(Genome &genome1,
@@ -57,12 +66,12 @@ void InnovGenomeManager::mate(Genome &genome1,
                               real_t fitness1,
                               real_t fitness2) {
 
-    Genome::mate(create_innov_func(offspring),
-                 &genome1,
-                 &genome2,
-                 &offspring,
-                 fitness1,
-                 fitness2);        
+    InnovGenome::mate(create_innov_func(offspring),
+                      to_innov(genome1),
+                      to_innov(genome2),
+                      to_innov(offspring),
+                      fitness1,
+                      fitness2);        
 }
  
 
@@ -70,17 +79,17 @@ void InnovGenomeManager::mutate(Genome &genome,
                                 MutationOperation op) {
     switch(op) {
     case MUTATE_OP_WEIGHTS:
-        genome.mutate_link_weights(NEAT::weight_mut_power,
-                                   1.0,
-                                   GAUSSIAN);
+        to_innov(genome)->mutate_link_weights(NEAT::weight_mut_power,
+                                              1.0,
+                                              GAUSSIAN);
         break;
     case MUTATE_OP_STRUCTURE:
         //todo: other operations as well?
-        genome.mutate_add_link(create_innov_func(genome),
-                               NEAT::newlink_tries);
+        to_innov(genome)->mutate_add_link(create_innov_func(genome),
+                                          NEAT::newlink_tries);
         break;
     case MUTATE_OP_ANY:
-        genome.mutate(create_innov_func(genome));
+        to_innov(genome)->mutate(create_innov_func(genome));
         break;
     default:
         panic();
@@ -92,9 +101,9 @@ void InnovGenomeManager::finalize_generation() {
 }
 
 CreateInnovationFunc InnovGenomeManager::create_innov_func(Genome &g) {
-    return [this, g] (InnovationId id,
-                      InnovationParms parms,
-                      IndividualInnovation::ApplyFunc apply) {
+    return [this, &g] (InnovationId id,
+                       InnovationParms parms,
+                       IndividualInnovation::ApplyFunc apply) {
         innovations.add(IndividualInnovation(g.genome_id, id, parms, apply));
     };
 }

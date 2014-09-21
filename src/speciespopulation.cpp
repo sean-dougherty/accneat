@@ -60,10 +60,7 @@ void SpeciesPopulation::verify() {
 } 
 
 void SpeciesPopulation::spawn() {
-    for(size_t i = 0; i < norgs; i++) {
-        SpeciesOrganism &org = orgs.curr()[i];
-        org.create_phenotype();
-	}
+    orgs.init_phenotypes();
 
 	//Separate the new SpeciesPopulation into species
 	speciate();
@@ -359,10 +356,7 @@ void SpeciesPopulation::next_generation() {
         genome_manager->finalize_generation();
 
         //Create the neural nets for the new organisms.
-#pragma omp parallel for
-        for(size_t iorg = 0; iorg < norgs; iorg++) {
-            orgs.curr()[iorg].create_phenotype();
-        }
+        orgs.init_phenotypes();
 
         timer.stop();
     }
@@ -452,21 +446,4 @@ void SpeciesPopulation::next_generation() {
         assert(org.generation == generation);
     }
 #endif
-
-    {
-        size_t nnodes = 0;
-        size_t nlinks = 0;
-        size_t ndisabled = 0;
-
-        for(SpeciesOrganism &org: orgs.curr()) {
-            nnodes += org.genome->nodes.size();
-            nlinks += org.genome->links.size();
-            for(LinkGene &g: org.genome->links)
-                if(!g.enable)
-                    ndisabled++;
-        }
-
-        real_t n = real_t(norgs);
-        std::cout << "nnodes=" << (nnodes/n) << ", nlinks=" << (nlinks/n) << ", disabled=" << (ndisabled/real_t(nlinks)) << std::endl;
-    }
 }

@@ -16,9 +16,7 @@ Deme::Deme(rng_t rng_,
     , population_index(population_index_)
     , generation(0) {
 
-    for(Organism &org: orgs.curr()) {
-        org.create_phenotype();
-    }
+    orgs.init_phenotypes();
 }
 
 Deme::~Deme() {
@@ -87,11 +85,7 @@ void Deme::next_generation(vector<Organism *> &elites,
 }
 
 void Deme::create_phenotypes() {
-    //Create the neural nets for the new organisms.
-#pragma omp parallel for
-    for(size_t iorg = 0; iorg < orgs.size(); iorg++) {
-        orgs.curr()[iorg].create_phenotype();
-    }
+    orgs.init_phenotypes();
 }
 
 void Deme::write(std::ostream& out) {
