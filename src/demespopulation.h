@@ -8,7 +8,7 @@ namespace NEAT {
 
     class DemesPopulation : public Population {
     public:
-		DemesPopulation(rng_t &rng, Genome *g, int size);
+		DemesPopulation(rng_t rng, std::vector<std::unique_ptr<Genome>> &seeds);
 		virtual ~DemesPopulation();
 
         virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;

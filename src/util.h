@@ -1,6 +1,7 @@
 #pragma once
 
 #include <algorithm>
+#include <memory>
 
 namespace NEAT {
 
@@ -11,8 +12,13 @@ namespace NEAT {
 
     template<typename Container, typename Predicate>
     void erase_if(Container &cont, Predicate predicate) {
-       
         auto iterator = std::remove_if(cont.begin(), cont.end(), predicate);
         cont.erase(iterator, cont.end());
+    }
+
+    template<typename T, typename... Args>
+    std::unique_ptr<T> make_unique(Args&&... args)
+    {
+        return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
     }
 }

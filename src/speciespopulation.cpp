@@ -29,14 +29,14 @@
 using namespace NEAT;
 using namespace std;
 
-SpeciesPopulation::SpeciesPopulation(rng_t rng, Genome *g,int size)
-    : norgs(size)
+SpeciesPopulation::SpeciesPopulation(rng_t rng, vector<unique_ptr<Genome>> &seeds)
+    : norgs(seeds.size())
     , generation(0)
-    , orgs(rng, size)
+    , orgs(rng, seeds, seeds.size())
     , highest_fitness(0.0)
     , highest_last_changed(0) {
 
-	spawn(g);
+	spawn();
 }
 
 SpeciesPopulation::~SpeciesPopulation() {
@@ -55,18 +55,15 @@ void SpeciesPopulation::verify() {
         org.genome->verify();
 } 
 
-bool SpeciesPopulation::spawn(Genome *g) {
-    for(size_t i = 0; i < norgs; i++) {
-        SpeciesOrganism &org = orgs.curr()[i];
-        g->duplicate_into(org.genome);
-		org.genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		org.genome->randomize_traits();
-        org.create_phenotype();
-	}
-
+bool SpeciesPopulation::spawn() {
 	//Keep a record of the innovation and node number we are on
     innovations.init(orgs.curr().back().genome->get_last_node_id(),
                      orgs.curr().back().genome->get_last_gene_innovnum());
+
+    for(size_t i = 0; i < norgs; i++) {
+        SpeciesOrganism &org = orgs.curr()[i];
+        org.create_phenotype();
+	}
 
 	//Separate the new SpeciesPopulation into species
 	speciate();

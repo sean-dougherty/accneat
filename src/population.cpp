@@ -18,16 +18,17 @@
 #include "speciespopulation.h"
 
 using namespace NEAT;
+using namespace std;
+
 
 Population *Population::create(rng_t rng,
-                               class Genome *seed,
-                               size_t norganisms) {
+                               vector<unique_ptr<Genome>> &seeds) {
 
     switch(NEAT::population_type) {
     case PopulationType::SPECIES:
-        return new SpeciesPopulation(rng, seed, norganisms);
+        return new SpeciesPopulation(rng, seeds);
     case PopulationType::DEMES:
-        return new DemesPopulation(rng, seed, norganisms);
+        return new DemesPopulation(rng, seeds);
     default:
         trap("invalid pop type");
     }

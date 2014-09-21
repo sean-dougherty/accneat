@@ -15,18 +15,19 @@
 */
 #pragma once
 
+#include "genome.h"
 #include "rng.h"
 #include <cstddef>
 #include <functional>
 #include <iostream>
+#include <memory>
 
 namespace NEAT {
 
     class Population {
     public:
         static Population *create(rng_t rng,
-                                  class Genome *seed,
-                                  size_t norganisms);
+                                  std::vector<std::unique_ptr<Genome>> &seeds);
 
         virtual ~Population() {}
 

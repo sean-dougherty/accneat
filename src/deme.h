@@ -8,8 +8,8 @@ namespace NEAT {
 
     class Deme {
     public:
-        Deme(Genome *seed,
-             rng_t &rng,
+        Deme(rng_t rng,
+             std::vector<std::unique_ptr<Genome>> &seeds,
              size_t size,
              size_t population_index,
              PopulationInnovations *innovs);

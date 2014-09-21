@@ -1,38 +1,28 @@
 #include "deme.h"
 
 using namespace NEAT;
+using namespace std;
 
 //todo: put in env
 #define TOURNAMENT_SIZE 5
 
-Deme::Deme(Genome *seed,
-           rng_t &rng_,
+Deme::Deme(rng_t rng_,
+           vector<unique_ptr<Genome>> &seeds_,
            size_t size_,
            size_t population_index_,
            PopulationInnovations *innovations)
-    : orgs(rng_, size_, population_index_)
+    : orgs(rng_, seeds_, size_, population_index_)
     , population_index(population_index_)
     , generation(0) {
 
-    int i = 1;
     for(Organism &org: orgs.curr()) {
-        seed->duplicate_into(org.genome);
-        org.genome->genome_id = population_index_ + i++;
-		org.genome->mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
-		org.genome->randomize_traits();
         org.create_phenotype();
-        assert(org.net.ninput_nodes == 6); //tmp
     }
 
     if(innovations) {
         //Keep a record of the innovation and node number we are on
         innovations->init(orgs.curr().back().genome->get_last_node_id(),
                           orgs.curr().back().genome->get_last_gene_innovnum());
-    }
-
-    i = 1;
-    for(Organism &org: orgs.prev()) {
-        org.genome->genome_id = population_index_ + i++;
     }
 }
 

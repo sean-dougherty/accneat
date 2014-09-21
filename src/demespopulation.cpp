@@ -40,17 +40,20 @@ static int insert_if_elite(vector<Organism *> &elites, Organism *candidate) {
     return i;
 }
 
-DemesPopulation::DemesPopulation(rng_t &rng, Genome *seed, int size)
+DemesPopulation::DemesPopulation(rng_t rng, vector<unique_ptr<Genome>> &seeds)
     : generation(0) {
-    assert(size == NEAT::pop_size); //todo: need a single mechanism setting size
-    assert(NEAT::pop_size % NEAT::deme_count == 0);
+
+    size_t pop_size = seeds.size();
+    assert(pop_size % NEAT::deme_count == 0);
 
     size_t deme_size = pop_size / NEAT::deme_count;
 
     demes.reserve(NEAT::deme_count);
     for(size_t i = 0; i < (size_t)NEAT::deme_count; i++) {
-        demes.emplace_back(seed,
-                           rng,
+        rng_t deme_rng;
+        deme_rng.seed(rng.integer());
+        demes.emplace_back(deme_rng,
+                           seeds,
                            deme_size,
                            i * deme_size,
                            i == (size_t)deme_count - 1 ? &innovations : nullptr);

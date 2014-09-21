@@ -209,11 +209,24 @@ void seq_experiment(rng_t &rng, int gens) {
                                               tests[0].steps[0].output.size(),
                                               3);
 
+    vector<unique_ptr<Genome>> genomes;
+    {
+        rng_t _rng = rng;
+        for(int i = 0; i < NEAT::pop_size; i++) {
+            genomes.emplace_back(make_unique<Genome>());
+            Genome &g = *genomes.back();
+            start_genome->duplicate_into(&g);
+            g.rng.seed(_rng.integer());
+            g.mutate_link_weights(1.0,1.0,COLDGAUSSIAN);
+            g.randomize_traits();
+        }
+    }
+
     int nsuccesses = 0;
 
     for(int expcount = 0; expcount < NEAT::num_runs; expcount++) {
         //Spawn the Population
-        Population *pop = Population::create(rng, start_genome,NEAT::pop_size);
+        Population *pop = Population::create(rng, genomes);
       
         bool success = false;
         int gen;

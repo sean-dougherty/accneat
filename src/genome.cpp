@@ -147,7 +147,7 @@ Genome::Genome(int id, std::ifstream &iFile)
     load_from_file(id, iFile);
 }
 
-Genome *Genome::create_seed_genome(rng_t &rng,
+Genome *Genome::create_seed_genome(rng_t rng,
                                    size_t ntraits,
                                    size_t ninputs,
                                    size_t noutputs,
