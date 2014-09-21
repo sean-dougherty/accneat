@@ -20,21 +20,17 @@
 using namespace NEAT;
 using std::vector;
 
-Organism::Organism() {
-    genome = make_unique<Genome>();
-    //Note: We're in the base class constructor, so a derived class' init() won't
-    //      be called. The derived class' constructor must also call init().
-    init(0);
-}
-
 Organism::Organism(const Organism &other) {
+    this->genome = other.genome->make_default();
     other.copy_into(*this);
 }
 
-Organism::Organism(const Genome &genome)
-    : Organism() {
+Organism::Organism(const Genome &genome) {
+    this->genome = genome.make_clone();
 
-    *this->genome = genome;
+    //Note: We're in the base class constructor, so a derived class' init() won't
+    //      be called. The derived class' constructor must also call init().
+    init(0);
 }
 
 Organism::~Organism() {

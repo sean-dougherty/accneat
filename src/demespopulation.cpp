@@ -63,7 +63,7 @@ DemesPopulation::DemesPopulation(rng_t rng,
     }
 
     for(size_t i = 0; i < NUM_GLOBAL_ELITES; i++) {
-        global_elites.push_back(new Organism());
+        global_elites.push_back(new Organism(*seeds.front()));
     }
 }
 

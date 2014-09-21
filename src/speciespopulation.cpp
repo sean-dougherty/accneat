@@ -35,6 +35,7 @@ SpeciesPopulation::SpeciesPopulation(rng_t rng,
     : norgs(seeds.size())
     , generation(0)
     , orgs(rng, seeds, seeds.size())
+    , fittest(*seeds.front())
     , genome_manager(genome_manager_)
     , highest_fitness(0.0)
     , highest_last_changed(0) {

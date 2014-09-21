@@ -13,8 +13,6 @@ namespace NEAT {
 		bool champion; //Marks the species champ
 		int super_champ_offspring;  //Number of reserved offspring for a population leader
 
-        SpeciesOrganism();
-		SpeciesOrganism(const SpeciesOrganism &other);
 		SpeciesOrganism(const Genome &genome);
         virtual ~SpeciesOrganism();
 

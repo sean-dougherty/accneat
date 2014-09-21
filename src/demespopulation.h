@@ -24,7 +24,7 @@ namespace NEAT {
         int generation;
         class GenomeManager *genome_manager;
         std::vector<Deme> demes;
-        std::vector<Organism *> global_elites;
+        std::vector<Organism *> global_elites; //todo: use unique_ptr
         std::vector<Organism *> elites;
     };
 

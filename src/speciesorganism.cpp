@@ -4,20 +4,9 @@
 
 using namespace NEAT;
 
-SpeciesOrganism::SpeciesOrganism()
-    : Organism() {
-
+SpeciesOrganism::SpeciesOrganism(const Genome &genome) {
+    this->genome = genome.make_clone();
     init(0);
-}
-
-SpeciesOrganism::SpeciesOrganism(const SpeciesOrganism &other) {
-    other.copy_into(*this);
-}
-
-SpeciesOrganism::SpeciesOrganism(const Genome &genome)
-    : SpeciesOrganism() {
-
-    *this->genome = genome;
 }
 
 SpeciesOrganism::~SpeciesOrganism() {

@@ -16,11 +16,12 @@
 #ifndef _GENOME_H_
 #define _GENOME_H_
 
-#include <vector>
 #include "linkgene.h"
 #include "nodegene.h"
 #include "innovation.h"
 #include "rng.h"
+#include <memory>
+#include <vector>
 
 namespace NEAT {
 
@@ -60,6 +61,9 @@ namespace NEAT {
 		//Special constructor which spawns off an input file
 		//This constructor assumes that some routine has already read in GENOMESTART
         Genome(int id, std::ifstream &iFile);
+
+        std::unique_ptr<Genome> make_default() const;
+        std::unique_ptr<Genome> make_clone() const;
 
 		// Loads a new Genome from a file (doesn't require knowledge of Genome's id)
 		static Genome *new_Genome_load(char *filename);

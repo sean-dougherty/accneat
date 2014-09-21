@@ -15,6 +15,7 @@
 */
 #include "genome.h"
 
+#include "util.h"
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
@@ -236,6 +237,16 @@ Genome::Genome(int id, std::ifstream &iFile)
     : node_lookup(nodes) {
 
     load_from_file(id, iFile);
+}
+
+unique_ptr<Genome> Genome::make_default() const {
+    return make_unique<Genome>();
+}
+
+unique_ptr<Genome> Genome::make_clone() const {
+    auto ptr = make_unique<Genome>();
+    *ptr = *this;
+    return ptr;
 }
 
 Genome* Genome::new_Genome_load(char *filename) {

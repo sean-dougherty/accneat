@@ -40,8 +40,7 @@ namespace NEAT {
         std::unique_ptr<Genome> genome; //The Organism's genotype
 		int generation;  //Tells which generation this Organism is from
 
-		Organism();
-		Organism(const Organism &other);
+        Organism(const Organism &other);
         Organism(const Genome &genome);
 		~Organism();
 
@@ -52,6 +51,7 @@ namespace NEAT {
         Organism &operator=(const Organism &other);
 
     protected:
+        Organism() {}
         virtual void copy_into(Organism &dst) const;
 	};
 

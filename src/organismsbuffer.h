@@ -20,7 +20,7 @@ namespace NEAT {
                     size_t population_index = 0)
             : _n(n) {
             _a.reserve(n);
-            _b.resize(n);
+            _b.reserve(n);
             _curr = &_a;
             _prev = &_b;
 
@@ -31,24 +31,7 @@ namespace NEAT {
                 _a[i].genome->rng.seed(rng.integer());
             }
             for(size_t i = 0; i < n; i++) {
-                _b[i].population_index = i + population_index;
-                _b[i].genome->genome_id = _b[i].population_index;
-                _b[i].genome->rng.seed(rng.integer());
-            }
-        }
-    OrganismsBuffer(rng_t rng, size_t n, size_t population_index = 0)
-            : _n(n) {
-            _a.resize(n);
-            _b.resize(n);
-            _curr = &_a;
-            _prev = &_b;
-
-            for(size_t i = 0; i < n; i++) {
-                _a[i].population_index = i + population_index;
-                _a[i].genome->genome_id = _a[i].population_index;
-                _a[i].genome->rng.seed(rng.integer());
-            }
-            for(size_t i = 0; i < n; i++) {
+                _b.emplace_back(*seeds[i + population_index]);
                 _b[i].population_index = i + population_index;
                 _b[i].genome->genome_id = _b[i].population_index;
                 _b[i].genome->rng.seed(rng.integer());
