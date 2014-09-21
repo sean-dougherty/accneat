@@ -22,6 +22,8 @@ using std::vector;
 
 Organism::Organism() {
     genome = new Genome();
+    //Note: We're in the base class constructor, so a derived class' init() won't
+    //      be called. The derived class' constructor must also call init().
     init(0);
 }
 

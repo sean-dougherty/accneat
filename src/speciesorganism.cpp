@@ -6,6 +6,8 @@ using namespace NEAT;
 
 SpeciesOrganism::SpeciesOrganism()
     : Organism() {
+
+    init(0);
 }
 
 SpeciesOrganism::~SpeciesOrganism() {
