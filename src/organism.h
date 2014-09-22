@@ -16,11 +16,9 @@
 #pragma once
 
 #include "genome.h"
-#include "util.h"
+#include "network.h"
 
 namespace NEAT {
-
-	class Species;
 
 	// ---------------------------------------------  
 	// ORGANISM CLASS:

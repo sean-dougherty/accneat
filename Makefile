@@ -1,4 +1,5 @@
-SOURCES=$(wildcard src/*.cpp)
+SOURCES=$(shell find src -name "*.cpp")
+INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 OBJECTS=${SOURCES:src/%.cpp=obj/%.o}
 DEPENDS=${OBJECTS:%.o=%.d}
 
@@ -15,7 +16,7 @@ clean:
 	rm -f ./neat
 
 obj/%.o: src/%.cpp Makefile
-	@mkdir -p obj
-	g++ -Wall ${PROFILE} -MMD ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3 $< -o $@
+	@mkdir -p $(shell dirname $@)
+	g++ -Wall ${PROFILE} ${INCLUDES} -MMD ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3 $< -o $@
 
 -include ${DEPENDS}

@@ -1,6 +1,6 @@
 #include "innovgenomemanager.h"
 
-#include "genome.h"
+#include "innovgenome.h"
 #include "util.h"
 
 using namespace NEAT;

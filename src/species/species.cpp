@@ -17,6 +17,7 @@
 
 #include "genomemanager.h"
 #include "organism.h"
+#include "util.h"
 #include <cmath>
 #include <iostream>
 

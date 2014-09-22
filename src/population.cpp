@@ -16,6 +16,7 @@
 #include "population.h"
 #include "demespopulation.h"
 #include "speciespopulation.h"
+#include "util.h"
 
 using namespace NEAT;
 using namespace std;
@@ -31,6 +32,6 @@ Population *Population::create(rng_t rng,
     case PopulationType::DEMES:
         return new DemesPopulation(rng, genome_manager, seeds);
     default:
-        trap("invalid pop type");
+        panic();
     }
 }
