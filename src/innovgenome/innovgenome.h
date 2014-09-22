@@ -16,8 +16,9 @@
 #pragma once
 
 #include "genome.h"
-#include "linkgene.h"
-#include "nodegene.h"
+#include "innovlinkgene.h"
+#include "innovnodegene.h"
+#include "innovnodelookup.h"
 #include "innovation.h"
 #include <memory>
 #include <vector>
@@ -32,10 +33,10 @@ namespace NEAT {
 	class InnovGenome : public Genome {
 	public:
 		std::vector<Trait> traits;
-		std::vector<NodeGene> nodes;
-		std::vector<LinkGene> links;
+		std::vector<InnovNodeGene> nodes;
+		std::vector<InnovLinkGene> links;
 
-		int get_last_node_id(); //Return id of final NodeGene in InnovGenome
+		int get_last_node_id(); //Return id of final InnovNodeGene in InnovGenome
 		real_t get_last_gene_innovnum(); //Return last innovation number in InnovGenome
 
         // todo: use c++11 move for constructor vectors?
@@ -49,8 +50,8 @@ namespace NEAT {
 		//Constructor which takes full genome specs and puts them into the new one
 		InnovGenome(int id,
                const std::vector<Trait> &t,
-               const std::vector<NodeGene> &n,
-               const std::vector<LinkGene> &g);
+               const std::vector<InnovNodeGene> &n,
+               const std::vector<InnovLinkGene> &g);
 
         virtual std::unique_ptr<Genome> make_default() const override;
         virtual std::unique_ptr<Genome> make_clone() const override;
@@ -60,7 +61,6 @@ namespace NEAT {
 
 		// Dump this genome to specified file
 		virtual void print(std::ostream &out) override;
-        void load_from_file(int id, std::istream &iFile);
 
         void duplicate_into(InnovGenome *offspring);
         InnovGenome &operator=(const InnovGenome &other);
@@ -107,7 +107,7 @@ namespace NEAT {
 
 		void mutate_delete_link();
 
-		// Mutate the genome by adding a new link between 2 random NodeGenes 
+		// Mutate the genome by adding a new link between 2 random InnovNodeGenes 
 		bool mutate_add_link(CreateInnovationFunc create_innov,
                              int tries); 
 
@@ -120,7 +120,7 @@ namespace NEAT {
                          real_t fitness2);
 
 		//   For every point in each InnovGenome, where each InnovGenome shares
-		//   the innovation number, the LinkGene is chosen randomly from 
+		//   the innovation number, the InnovLinkGene is chosen randomly from 
 		//   either parent.  If one parent has an innovation absent in 
 		//   the other, the baby will inherit the innovation 
 		//   Interspecies mating leads to all genes being inherited.
@@ -154,102 +154,36 @@ namespace NEAT {
 
 		real_t trait_compare(Trait *t1,Trait *t2);
 
-		// Return number of non-disabled genes 
-		int extrons();
-
 		// Randomize the trait pointers of all the node and connection genes 
 		void randomize_traits();
 
-        Trait &get_trait(const NodeGene &node);
-        Trait &get_trait(const LinkGene &gene);
+        Trait &get_trait(const InnovNodeGene &node);
+        Trait &get_trait(const InnovLinkGene &gene);
+
+        InnovNodeGene *get_node(int id);
 
         virtual void init_phenotype(class Network &net) override;
 
 	private:
         void reset();
 
-        static bool nodelist_cmp(const NodeGene &a, const NodeGene &b) {
-            return a.node_id < b.node_id;
-        }
-        static bool nodelist_cmp_key(const NodeGene &node, int node_id) {
-            return node.node_id < node_id;
-        }
-        static bool linklist_cmp(const LinkGene &a, const LinkGene &b) {
+        static bool linklist_cmp(const InnovLinkGene &a, const InnovLinkGene &b) {
             return a.innovation_num < b.innovation_num;
         }
 
-
-		//Inserts a NodeGene into a given ordered list of NodeGenes in order
-		static void add_node(std::vector<NodeGene> &nlist, const NodeGene &n);
+		//Inserts a InnovNodeGene into a given ordered list of InnovNodeGenes in order
+		static void add_node(std::vector<InnovNodeGene> &nlist, const InnovNodeGene &n);
 
 		//Adds a new gene that has been created through a mutation in the
 		//*correct order* into the list of links in the genome
-		static void add_link(std::vector<LinkGene> &glist, const LinkGene &g);
+		static void add_link(std::vector<InnovLinkGene> &glist, const InnovLinkGene &g);
 
     private:
-        LinkGene *find_link(int in_node_id, int out_node_id, bool is_recurrent);
-        NodeGene *get_node(int id);
+        InnovLinkGene *find_link(int in_node_id, int out_node_id, bool is_recurrent);
         void delete_if_orphaned_hidden_node(int node_id);
-        void delete_link(LinkGene *link);
+        void delete_link(InnovLinkGene *link);
 
-    private:
-        class NodeLookup {
-            std::vector<NodeGene> &nodes;
-        public:
-            // Must be sorted by node_id in ascending order
-        NodeLookup(std::vector<NodeGene> &nodes_)
-            : nodes(nodes_) {
-            }
-
-            NodeGene *find(int node_id) {
-                auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, nodelist_cmp_key);
-                if(it == nodes.end())
-                    return nullptr;
-
-                NodeGene &node = *it;
-                if(node.node_id != node_id)
-                    return nullptr;
-
-                return &node;
-            }
-
-            NodeGene *find(NodeGene *n) {
-                return find(n->node_id);
-            }
-        };
-
-        class ProtoLinkGene {
-            InnovGenome *_genome = nullptr;
-            //todo: does this have to be a LinkGene* now?
-            LinkGene *_gene = nullptr;
-            NodeGene *_in = nullptr;
-            NodeGene *_out = nullptr;
-        public:
-            void set_gene(InnovGenome *genome, LinkGene *gene) {
-                _genome = genome;
-                _gene = gene;
-            }
-            LinkGene *gene() {
-                return _gene;
-            }
-
-            void set_out(NodeGene *out) {
-                _out = out;
-                _gene->set_out_node_id(out->node_id);
-            }
-            NodeGene *out() {
-                return _out ? _out : _genome->get_node(_gene->out_node_id());
-            }
-
-            void set_in(NodeGene *in) {
-                _in = in;
-                _gene->set_in_node_id(in->node_id);
-            }
-            NodeGene *in() {
-                return _in ? _in : _genome->get_node(_gene->in_node_id());
-            }
-        };
-        NodeLookup node_lookup;
+        InnovNodeLookup node_lookup;
     };
 }
 

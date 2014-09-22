@@ -19,12 +19,14 @@
 using namespace NEAT;
 using std::vector;
 
-NNode::NNode(NodeGene &gene) {
+NNode::NNode(int node_id_,
+             nodetype type_,
+             nodeplace place_) {
 	activation=0;
 	last_activation=0;
-    type = gene.type;
-    node_id = gene.node_id;
-    place = gene.place;
+    node_id = node_id_;
+    type = type_;
+    place = place_;
 }
 
 NNode::~NNode() {

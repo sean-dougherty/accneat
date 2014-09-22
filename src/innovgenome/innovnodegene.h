@@ -22,7 +22,7 @@
 
 namespace NEAT {
 
-	class NodeGene {
+	class InnovNodeGene {
 		int trait_id;  // identify the trait derived by this node
 	public:
 		bool frozen; // When frozen, cannot be mutated (meaning its trait pointer is fixed)
@@ -30,13 +30,13 @@ namespace NEAT {
 		int node_id;  // A node can be given an identification number for saving in files
 		nodeplace place;  // Used for genetic marking of nodes
 
-        // Construct NodeGene with invalid state.
-        NodeGene() {}
-		NodeGene(nodetype ntype,int nodeid, nodeplace placement);
+        // Construct InnovNodeGene with invalid state.
+        InnovNodeGene() {}
+		InnovNodeGene(nodetype ntype,int nodeid, nodeplace placement);
 		// Construct the node out of a file specification using given list of traits
-		NodeGene (const char *argline);
+		InnovNodeGene (const char *argline);
 
-		~NodeGene();
+		~InnovNodeGene();
 
         inline void set_trait_id(int id) { assert(id > 0); trait_id = id; }
         inline int get_trait_id() const {return trait_id;}

@@ -13,18 +13,18 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
-#include "linkgene.h"
+#include "innovlinkgene.h"
 
 #include <iostream>
 #include <sstream>
 using namespace NEAT;
 
-LinkGene::LinkGene(real_t w,
-                   int inode_id,
-                   int onode_id,
-                   bool recur,
-                   int innov,
-                   real_t mnum) {
+InnovLinkGene::InnovLinkGene(real_t w,
+                             int inode_id,
+                             int onode_id,
+                             bool recur,
+                             int innov,
+                             real_t mnum) {
     _weight = w;
     _in_node_id = inode_id;
     _out_node_id = onode_id;
@@ -39,13 +39,13 @@ LinkGene::LinkGene(real_t w,
 
 
 //Construct a gene with a trait
-LinkGene::LinkGene(int trait_id,
-                   real_t w,
-                   int inode_id,
-                   int onode_id,
-                   bool recur,
-                   int innov,
-                   real_t mnum) {
+InnovLinkGene::InnovLinkGene(int trait_id,
+                             real_t w,
+                             int inode_id,
+                             int onode_id,
+                             bool recur,
+                             int innov,
+                             real_t mnum) {
     _weight = w;
     _in_node_id = inode_id;
     _out_node_id = onode_id;
@@ -58,10 +58,10 @@ LinkGene::LinkGene(int trait_id,
 	frozen=false;
 }
 
-LinkGene::LinkGene(LinkGene *g,
-                   int trait_id,
-                   int inode_id,
-                   int onode_id) {
+InnovLinkGene::InnovLinkGene(InnovLinkGene *g,
+                             int trait_id,
+                             int inode_id,
+                             int onode_id) {
     _weight = g->_weight;
     _in_node_id = inode_id;
     _out_node_id = onode_id;
@@ -76,8 +76,8 @@ LinkGene::LinkGene(LinkGene *g,
 }
 
 //todo: use NodeLookup
-LinkGene::LinkGene(const char *argline) {
-	//LinkGene parameter holders
+InnovLinkGene::InnovLinkGene(const char *argline) {
+	//InnovLinkGene parameter holders
 	int trait_id;
 	int inodenum;
 	int onodenum;
@@ -97,7 +97,7 @@ LinkGene::LinkGene(const char *argline) {
     _trait_id = trait_id;
 }
 
-LinkGene::LinkGene(const LinkGene& gene)
+InnovLinkGene::InnovLinkGene(const InnovLinkGene& gene)
 {
 	innovation_num = gene.innovation_num;
 	mutation_num = gene.mutation_num;
@@ -111,11 +111,11 @@ LinkGene::LinkGene(const LinkGene& gene)
     _trait_id = gene._trait_id;
 }
 
-LinkGene::~LinkGene() {
+InnovLinkGene::~InnovLinkGene() {
 }
 
 
-void LinkGene::print_to_file(std::ostream &outFile) {
+void InnovLinkGene::print_to_file(std::ostream &outFile) {
 	outFile<<"gene ";
 
 	//Start off with the trait number for this gene

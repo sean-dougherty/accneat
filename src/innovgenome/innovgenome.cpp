@@ -15,6 +15,9 @@
 */
 #include "innovgenome.h"
 
+#include "protoinnovlinkgene.h"
+#include "netnodelookup.h"
+#include "recurrencychecker.h"
 #include "util.h"
 #include <assert.h>
 #include <algorithm>
@@ -24,102 +27,6 @@
 
 using namespace NEAT;
 using namespace std;
-
-class RecurrencyChecker {
-private:
-    size_t nnodes;
-    LinkGene **links;
-    size_t nlinks;
-
-    static bool cmp_sort(const LinkGene *x, const LinkGene *y) {
-        return x->out_node_id() < y->out_node_id();
-    }
-
-    static bool cmp_find(const LinkGene *x, int node_id) {
-        return x->out_node_id() < node_id;
-    }
-
-    bool find(int node_id, LinkGene ***curr) {
-        if(*curr == nullptr) {
-            auto it = std::lower_bound(links, links + nlinks, node_id, cmp_find);
-            if(it == links + nlinks) return false;
-            if((*it)->out_node_id() != node_id) return false;
-
-            *curr = it;
-            return true;
-        } else {
-            (*curr)++;
-            if(*curr >= (links + nlinks)) return false;
-            if((**curr)->out_node_id() != node_id) return false;
-            return true;
-        }
-    }
-
-    // This checks a POTENTIAL link between a potential in_node and potential out_node to see if it must be recurrent 
-    bool is_recur(int in_id, int out_id, int &count, int thresh) {
-        ++count;  //Count the node as visited
-        if(count > thresh) {
-            return false;  //Short out the whole thing- loop detected
-        }
-
-        if (in_id==out_id) return true;
-        else {
-            LinkGene **gene = nullptr;
-            while( find(in_id, &gene) ) {
-                //But skip links that are already recurrent
-                //(We want to check back through the forward flow of signals only
-                if(!(*gene)->is_recurrent()) {
-                    if( is_recur((*gene)->in_node_id(), out_id, count, thresh) )
-                        return true;
-                }
-            }
-            return false;
-        }
-    }
-
-public:
-    RecurrencyChecker(size_t nnodes_,
-                      vector<LinkGene> &genome_links,
-                      LinkGene **buf_links) {
-        nnodes = nnodes_;
-        links = buf_links;
-
-        nlinks = 0;
-        for(size_t i = 0; i < genome_links.size(); i++) {
-            LinkGene *g = &genome_links[i];
-            if(g->enable) {
-                links[nlinks++] = g;
-            }
-        }
-        std::sort(links, links + nlinks, cmp_sort);
-    }
-
-    bool is_recur(int in_node_id, int out_node_id) {
-        //These are used to avoid getting stuck in an infinite loop checking
-        //for recursion
-        //Note that we check for recursion to control the frequency of
-        //adding recurrent links rather than to prevent any paricular
-        //kind of error
-        int thresh=nnodes*nnodes;
-        int count = 0;
-
-        if(is_recur(in_node_id, out_node_id, count, thresh)) {
-            return true;
-        }
-
-        //ADDED: CONSIDER connections out of outputs recurrent
-        //todo: this was fixed to use place instead of type,
-        //      but not clear if this logic is desirable. Shouldn't it
-        //      just be checking if the output node is OUTPUT?
-        /*
-          if (((in_node->place)==OUTPUT)||
-          ((out_node->place)==OUTPUT))
-          return true;
-        */
-        return false;
-    }
-    
-};
 
 void InnovGenome::reset() {
     traits.clear();
@@ -157,21 +64,21 @@ InnovGenome::InnovGenome(rng_t rng_,
         int node_id = 1;
 
         //Bias node
-        add_node(nodes, NodeGene(SENSOR, node_id++, BIAS));
+        add_node(nodes, InnovNodeGene(SENSOR, node_id++, BIAS));
 
         //Sensor nodes
         for(size_t i = 0; i < ninputs; i++) {
-            add_node(nodes, NodeGene(SENSOR, node_id++, INPUT));
+            add_node(nodes, InnovNodeGene(SENSOR, node_id++, INPUT));
         }
 
         //Output nodes
         for(size_t i = 0; i < noutputs; i++) {
-            add_node(nodes, NodeGene(NEURON, node_id++, OUTPUT));
+            add_node(nodes, InnovNodeGene(NEURON, node_id++, OUTPUT));
         }
 
         //Hidden nodes
         for(size_t i = 0; i < nhidden; i++) {
-            add_node(nodes, NodeGene(NEURON, node_id++, HIDDEN));
+            add_node(nodes, InnovNodeGene(NEURON, node_id++, HIDDEN));
         }
     }
 
@@ -186,46 +93,46 @@ InnovGenome::InnovGenome(rng_t rng_,
 
     //Create links from Bias to all hidden
     for(size_t i = 0; i < nhidden; i++) {
-        add_link( links, LinkGene(rng.element(traits).trait_id,
-                                  rng.prob(),
-                                  node_id_bias,
-                                  i + node_id_hidden,
-                                  false,
-                                  innov++,
-                                  0.0) );
+        add_link( links, InnovLinkGene(rng.element(traits).trait_id,
+                                       rng.prob(),
+                                       node_id_bias,
+                                       i + node_id_hidden,
+                                       false,
+                                       innov++,
+                                       0.0) );
     }
 
     //Create links from all inputs to all hidden
     for(size_t i = 0; i < ninputs; i++) {
         for(size_t j = 0; j < nhidden; j++) {
-            add_link( links, LinkGene(rng.element(traits).trait_id,
-                                      rng.prob(),
-                                      i + node_id_input,
-                                      j + node_id_hidden,
-                                      false,
-                                      innov++,
-                                      0.0));
+            add_link( links, InnovLinkGene(rng.element(traits).trait_id,
+                                           rng.prob(),
+                                           i + node_id_input,
+                                           j + node_id_hidden,
+                                           false,
+                                           innov++,
+                                           0.0));
         }
     }
 
     //Create links from all hidden to all output
     for(size_t i = 0; i < nhidden; i++) {
         for(size_t j = 0; j < noutputs; j++) {
-            add_link( links, LinkGene(rng.element(traits).trait_id,
-                                      rng.prob(),
-                                      i + node_id_hidden,
-                                      j + node_id_output,
-                                      false,
-                                      innov++,
-                                      0.0));
+            add_link( links, InnovLinkGene(rng.element(traits).trait_id,
+                                           rng.prob(),
+                                           i + node_id_hidden,
+                                           j + node_id_output,
+                                           false,
+                                           innov++,
+                                           0.0));
         }
     }
 }
 
 InnovGenome::InnovGenome(int id,
                          const vector<Trait> &t,
-                         const vector<NodeGene> &n,
-                         const vector<LinkGene> &g)
+                         const vector<InnovNodeGene> &n,
+                         const vector<InnovLinkGene> &g)
     : node_lookup(nodes) {
 	genome_id=id;
 	traits=t;
@@ -251,22 +158,22 @@ void InnovGenome::verify() {
     return;
 #else
 
-	//Check for NodeGenes being out of order
+	//Check for InnovNodeGenes being out of order
     for(size_t i = 1, n = nodes.size(); i < n; i++) {
         assert( nodes[i-1].node_id < nodes[i].node_id );
     }
 
     {
         //Check links reference valid nodes.
-        for(LinkGene &gene: links) {
+        for(InnovLinkGene &gene: links) {
             assert( get_node(gene.in_node_id()) );
             assert( get_node(gene.out_node_id()) );
         }
     }
 
 	//Make sure there are no duplicate genes
-	for(LinkGene &gene: links) {
-		for(LinkGene &gene2: links) {
+	for(InnovLinkGene &gene: links) {
+		for(InnovLinkGene &gene2: links) {
             if(&gene != &gene2) {
                 assert( (gene.is_recurrent() != gene2.is_recurrent())
                         || (gene2.in_node_id() != gene.in_node_id())
@@ -297,104 +204,6 @@ void InnovGenome::print(std::ostream &out) {
         g.print_to_file(out);
 
     out << "genomeend " << genome_id << std::endl;
-}
-
-void InnovGenome::load_from_file(int id, std::istream &iFile) {
-	char curword[128];  //max word size of 128 characters
-	char curline[1024]; //max line size of 1024 characters
-	char delimiters[] = " \n";
-
-	int done=0;
-
-	//int pause;
-
-	genome_id=id;
-
-	iFile.getline(curline, sizeof(curline));
-	int wordcount = NEAT::getUnitCount(curline, delimiters);
-	int curwordnum = 0;
-
-	//Loop until file is finished, parsing each line
-	while (!done) {
-
-        //std::cout << curline << std::endl;
-
-		if (curwordnum > wordcount || wordcount == 0) {
-			iFile.getline(curline, sizeof(curline));
-			wordcount = NEAT::getUnitCount(curline, delimiters);
-			curwordnum = 0;
-		}
-        
-        std::stringstream ss(curline);
-		//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
-        ss >> curword;
-
-		//printf(curword);
-		//printf(" test\n");
-		//Check for end of InnovGenome
-		if (strcmp(curword,"genomeend")==0) {
-			//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
-            ss >> curword;
-			int idcheck = atoi(curword);
-			//iFile>>idcheck;
-			if (idcheck!=genome_id) printf("ERROR: id mismatch in genome");
-			done=1;
-		}
-
-		//Ignore genomestart if it hasn't been gobbled yet
-		else if (strcmp(curword,"genomestart")==0) {
-			++curwordnum;
-			//cout<<"genomestart"<<endl;
-		}
-
-		//Ignore comments surrounded by - they get printed to screen
-		else if (strcmp(curword,"/*")==0) {
-			//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
-            ss >> curword;
-			while (strcmp(curword,"*/")!=0) {
-				//cout<<curword<<" ";
-				//strcpy(curword, NEAT::getUnit(curline, curwordnum++, delimiters));
-                ss >> curword;
-			}
-			//cout<<endl;
-		}
-
-		//Read in a trait
-		else if (strcmp(curword,"trait")==0) {
-			Trait *newtrait;
-
-			char argline[1024];
-			//strcpy(argline, NEAT::getUnits(curline, curwordnum, wordcount, delimiters));
-
-			curwordnum = wordcount + 1;
-
-            ss.getline(argline, 1024);
-			//Allocate the new trait
-			newtrait=new Trait(argline);
-
-			//Add trait to vector of traits
-			traits.push_back(newtrait);
-		}
-
-		//Read in a node
-		else if (strcmp(curword,"node")==0) {
-			char argline[1024];
-			curwordnum = wordcount + 1;
-            
-            ss.getline(argline, 1024);
-			nodes.emplace_back(argline);
-		}
-
-		//Read in a LinkGene
-		else if (strcmp(curword,"gene")==0) {
-			char argline[1024];
-			curwordnum = wordcount + 1;
-
-            ss.getline(argline, 1024);
-			links.emplace_back(argline);
-		}
-
-	}
 }
 
 int InnovGenome::get_last_node_id() {
@@ -464,7 +273,7 @@ void InnovGenome::mutate_random_trait() {
 void InnovGenome::mutate_link_trait(int times) {
     for(int i = 0; i < times; i++) {
         int trait_id = 1 + rng.index(traits);
-        LinkGene &gene = rng.element(links);
+        InnovLinkGene &gene = rng.element(links);
         
         if(!gene.frozen) {
             gene.set_trait_id(trait_id);
@@ -475,7 +284,7 @@ void InnovGenome::mutate_link_trait(int times) {
 void InnovGenome::mutate_node_trait(int times) {
     for(int i = 0; i < times; i++) {
         int trait_id = 1 + rng.index(traits);
-        NodeGene &node = rng.element(nodes);
+        InnovNodeGene &node = rng.element(nodes);
 
         if(!node.frozen) {
             node.set_trait_id(trait_id);
@@ -488,7 +297,7 @@ void InnovGenome::mutate_node_trait(int times) {
 }
 
 void InnovGenome::mutate_link_weights(real_t power,real_t rate,mutator mut_type) {
-	//Go through all the LinkGenes and perturb their link's weights
+	//Go through all the InnovLinkGenes and perturb their link's weights
 
 	real_t num = 0.0; //counts gene placement
 	real_t gene_total = (real_t)links.size();
@@ -501,7 +310,7 @@ void InnovGenome::mutate_link_weights(real_t power,real_t rate,mutator mut_type)
 	bool severe = rng.prob() > 0.5;  //Once in a while really shake things up
 
 	//Loop on all links  (ORIGINAL METHOD)
-	for(LinkGene &gene: links) {
+	for(InnovLinkGene &gene: links) {
 
 		//The following if determines the probabilities of doing cold gaussian
 		//mutation, meaning the probability of replacing a link weight with
@@ -562,7 +371,7 @@ void InnovGenome::mutate_link_weights(real_t power,real_t rate,mutator mut_type)
 
 void InnovGenome::mutate_toggle_enable(int times) {
     for(int i = 0; i < times; i++) {
-        LinkGene &gene = rng.element(links);
+        InnovLinkGene &gene = rng.element(links);
 
         if(!gene.enable) {
             gene.enable = true;
@@ -570,7 +379,7 @@ void InnovGenome::mutate_toggle_enable(int times) {
 			//We need to make sure that another gene connects out of the in-node
 			//Because if not a section of network will break off and become isolated
             bool found = false;
-            for(LinkGene &checkgene: links) {
+            for(InnovLinkGene &checkgene: links) {
                 if( (checkgene.in_node_id() == gene.in_node_id())
                     && checkgene.enable
                     && (checkgene.innovation_num != gene.innovation_num) ) {
@@ -588,7 +397,7 @@ void InnovGenome::mutate_toggle_enable(int times) {
 
 void InnovGenome::mutate_gene_reenable() {
 	//Search for a disabled gene
-    for(LinkGene &g: links) {
+    for(InnovLinkGene &g: links) {
         if(!g.enable) {
             g.enable = true;
             break;
@@ -597,10 +406,10 @@ void InnovGenome::mutate_gene_reenable() {
 }
 
 bool InnovGenome::mutate_add_node(CreateInnovationFunc create_innov) {
-    LinkGene *splitlink = nullptr;
+    InnovLinkGene *splitlink = nullptr;
     {
         for(int i = 0; !splitlink && i < 20; i++) {
-            LinkGene &g = rng.element(links);
+            InnovLinkGene &g = rng.element(links);
             //If either the link is disabled, or it has a bias input, try again
             if( g.enable && get_node(g.in_node_id())->place != BIAS ) {
                 splitlink = &g;
@@ -619,23 +428,23 @@ bool InnovGenome::mutate_add_node(CreateInnovationFunc create_innov) {
 
     auto innov_apply = [this, splitlink] (const Innovation *innov) {
 
-        NodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
+        InnovNodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
 
-        LinkGene newlink1(splitlink->trait_id(),
-                          1.0,
-                          innov->id.node_in_id,
-                          innov->newnode_id,
-                          splitlink->is_recurrent(),
-                          innov->innovation_num1,
-                          0);
+        InnovLinkGene newlink1(splitlink->trait_id(),
+                               1.0,
+                               innov->id.node_in_id,
+                               innov->newnode_id,
+                               splitlink->is_recurrent(),
+                               innov->innovation_num1,
+                               0);
 
-        LinkGene newlink2(splitlink->trait_id(),
-                          splitlink->weight(),
-                          innov->newnode_id,
-                          innov->id.node_out_id,
-                          false,
-                          innov->innovation_num2,
-                          0);    
+        InnovLinkGene newlink2(splitlink->trait_id(),
+                               splitlink->weight(),
+                               innov->newnode_id,
+                               innov->id.node_out_id,
+                               false,
+                               innov->innovation_num2,
+                               0);    
 
         // If deletion of links is permitted, delete it.
         if(NEAT::mutate_delete_link_prob > 0.0) {
@@ -668,14 +477,14 @@ void InnovGenome::mutate_delete_node() {
     }
 
     size_t node_index = rng.index(nodes, first_non_io);
-    NodeGene node = nodes[node_index];
+    InnovNodeGene node = nodes[node_index];
     assert(node.place == HIDDEN);
 
     nodes.erase(nodes.begin() + node_index);
 
     //todo: we should have a way to look up links by in/out id
     auto it_end = std::remove_if(links.begin(), links.end(),
-                                 [&node] (const LinkGene &link) {
+                                 [&node] (const InnovLinkGene &link) {
                                      return link.in_node_id() == node.node_id
                                      || link.out_node_id() == node.node_id;
                                  });
@@ -688,7 +497,7 @@ void InnovGenome::mutate_delete_link() {
         return;
 
     size_t link_index = rng.index(links);
-    LinkGene link = links[link_index];
+    InnovLinkGene link = links[link_index];
     links.erase(links.begin() + link_index);
 
     delete_if_orphaned_hidden_node(link.in_node_id());
@@ -697,11 +506,11 @@ void InnovGenome::mutate_delete_link() {
 
 bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
                                   int tries) {
-    LinkGene *recur_checker_buf[links.size()];
+    InnovLinkGene *recur_checker_buf[links.size()];
     RecurrencyChecker recur_checker(nodes.size(), links, recur_checker_buf);
 
-	NodeGene *in_node = nullptr; //Pointers to the nodes
-	NodeGene *out_node = nullptr; //Pointers to the nodes
+	InnovNodeGene *in_node = nullptr; //Pointers to the nodes
+	InnovNodeGene *out_node = nullptr; //Pointers to the nodes
 
 	//Decide whether to make this recurrent
 	bool do_recur = rng.prob() < NEAT::recur_only_prob;
@@ -736,7 +545,7 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
                 out_node = &rng.element(nodes, first_nonsensor);
             }
 
-            LinkGene *existing_link = find_link(in_node->node_id, out_node->node_id, do_recur);
+            InnovLinkGene *existing_link = find_link(in_node->node_id, out_node->node_id, do_recur);
             if(existing_link != nullptr) {
                 if( NEAT::mutate_add_link_reenables ) {
                     existing_link->enable = true;
@@ -772,13 +581,13 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
 
         auto innov_apply = [this] (const Innovation *innov) {
 
-            LinkGene newlink(innov->parms.new_trait_id,
-                             innov->parms.new_weight,
-                             innov->id.node_in_id,
-                             innov->id.node_out_id,
-                             innov->id.recur_flag,
-                             innov->innovation_num1,
-                             innov->parms.new_weight);
+            InnovLinkGene newlink(innov->parms.new_trait_id,
+                                  innov->parms.new_weight,
+                                  innov->id.node_in_id,
+                                  innov->id.node_out_id,
+                                  innov->id.recur_flag,
+                                  innov->innovation_num1,
+                                  innov->parms.new_weight);
 
             add_link(this->links, newlink);
         };
@@ -789,12 +598,12 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
     return true;
 }
 
-void InnovGenome::add_link(vector<LinkGene> &llist, const LinkGene &l) {
+void InnovGenome::add_link(vector<InnovLinkGene> &llist, const InnovLinkGene &l) {
     auto it = std::upper_bound(llist.begin(), llist.end(), l, linklist_cmp);
     llist.insert(it, l);
 }
 
-void InnovGenome::add_node(vector<NodeGene> &nlist, const NodeGene &n) {
+void InnovGenome::add_node(vector<InnovNodeGene> &nlist, const InnovNodeGene &n) {
     auto it = std::upper_bound(nlist.begin(), nlist.end(), n, nodelist_cmp);
     nlist.insert(it, n);
 }
@@ -838,32 +647,32 @@ void InnovGenome::mate_multipoint(InnovGenome *genome1,
                                   real_t fitness1,
                                   real_t fitness2) {
     rng_t &rng = offspring->rng;
-    vector<LinkGene> &links1 = genome1->links;
-    vector<LinkGene> &links2 = genome2->links;
+    vector<InnovLinkGene> &links1 = genome1->links;
+    vector<InnovLinkGene> &links2 = genome2->links;
 
-	//The baby InnovGenome will contain these new Traits, NodeGenes, and LinkGenes
+	//The baby InnovGenome will contain these new Traits, InnovNodeGenes, and InnovLinkGenes
     offspring->reset();
 	vector<Trait> &newtraits = offspring->traits;
-	vector<NodeGene> &newnodes = offspring->nodes;   
-	vector<LinkGene> &newlinks = offspring->links;    
+	vector<InnovNodeGene> &newnodes = offspring->nodes;   
+	vector<InnovLinkGene> &newlinks = offspring->links;    
 
-	vector<LinkGene>::iterator curgene2;  //Checks for link duplication
+	vector<InnovLinkGene>::iterator curgene2;  //Checks for link duplication
 
 	//iterators for moving through the two parents' traits
 	vector<Trait*>::iterator p1trait;
 	vector<Trait*>::iterator p2trait;
 
 	//iterators for moving through the two parents' links
-	vector<LinkGene>::iterator p1gene;
-	vector<LinkGene>::iterator p2gene;
+	vector<InnovLinkGene>::iterator p1gene;
+	vector<InnovLinkGene>::iterator p2gene;
 	real_t p1innov;  //Innovation numbers for links inside parents' InnovGenomes
 	real_t p2innov;
-	vector<NodeGene>::iterator curnode;  //For checking if NodeGenes exist already 
+	vector<InnovNodeGene>::iterator curnode;  //For checking if InnovNodeGenes exist already 
 
 	bool disable;  //Set to true if we want to disabled a chosen gene
 
 	disable=false;
-	LinkGene newgene;
+	InnovLinkGene newgene;
 
 	bool p1better; //Tells if the first genome (this one) has better fitness or not
 
@@ -891,7 +700,7 @@ void InnovGenome::mate_multipoint(InnovGenome *genome1,
 		p1better=false;
 
 	//Make sure all sensors and outputs are included
-    for(NodeGene &node: genome1->nodes) {
+    for(InnovNodeGene &node: genome1->nodes) {
 		if( (node.place == INPUT)
             || (node.place == BIAS)
             || (node.place == OUTPUT)) {
@@ -901,11 +710,11 @@ void InnovGenome::mate_multipoint(InnovGenome *genome1,
         }
     }
 
-	//Now move through the LinkGenes of each parent until both genomes end
+	//Now move through the InnovLinkGenes of each parent until both genomes end
 	p1gene = links1.begin();
 	p2gene = links2.begin();
 	while( !((p1gene==links1.end()) && (p2gene==(links2).end())) ) {
-        ProtoLinkGene protogene;
+        ProtoInnovLinkGene protogene;
 
         skip=false;  //Default to not skipping a chosen gene
 
@@ -969,12 +778,12 @@ void InnovGenome::mate_multipoint(InnovGenome *genome1,
 
         if (!skip) {
             //Now add the gene to the baby
-            NodeGene new_inode;
-            NodeGene new_onode;
+            InnovNodeGene new_inode;
+            InnovNodeGene new_onode;
 
             //Next check for the nodes, add them if not in the baby InnovGenome already
-            NodeGene *inode = protogene.in();
-            NodeGene *onode = protogene.out();
+            InnovNodeGene *inode = protogene.in();
+            InnovNodeGene *onode = protogene.out();
 
             //Check for inode in the newnodes list
             if (inode->node_id<onode->node_id) {
@@ -1047,13 +856,13 @@ void InnovGenome::mate_multipoint(InnovGenome *genome1,
 
                 }
 
-            } //End NodeGene checking section- NodeGenes are now in new InnovGenome
+            } //End InnovNodeGene checking section- InnovNodeGenes are now in new InnovGenome
 
-            //Add the LinkGene
-            newgene = LinkGene(protogene.gene(),
-                               protogene.gene()->trait_id(),
-                               new_inode.node_id,
-                               new_onode.node_id);
+            //Add the InnovLinkGene
+            newgene = InnovLinkGene(protogene.gene(),
+                                    protogene.gene()->trait_id(),
+                                    new_inode.node_id,
+                                    new_onode.node_id);
             if (disable) {
                 newgene.enable=false;
                 disable=false;
@@ -1071,27 +880,27 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
                                       real_t fitness1,
                                       real_t fitness2) {
     rng_t &rng = offspring->rng;
-    vector<LinkGene> &links1 = genome1->links;
-    vector<LinkGene> &links2 = genome2->links;
+    vector<InnovLinkGene> &links1 = genome1->links;
+    vector<InnovLinkGene> &links2 = genome2->links;
 
-	//The baby InnovGenome will contain these new Traits, NodeGenes, and LinkGenes
+	//The baby InnovGenome will contain these new Traits, InnovNodeGenes, and InnovLinkGenes
     offspring->reset();
 	vector<Trait> &newtraits = offspring->traits;
-	vector<NodeGene> &newnodes = offspring->nodes;
-	vector<LinkGene> &newlinks = offspring->links;
+	vector<InnovNodeGene> &newnodes = offspring->nodes;
+	vector<InnovLinkGene> &newlinks = offspring->links;
 
-	vector<LinkGene>::iterator curgene2; //Checking for link duplication
+	vector<InnovLinkGene>::iterator curgene2; //Checking for link duplication
 
 	//iterators for moving through the two parents' links
-	vector<LinkGene>::iterator p1gene;
-	vector<LinkGene>::iterator p2gene;
+	vector<InnovLinkGene>::iterator p1gene;
+	vector<InnovLinkGene>::iterator p2gene;
 	real_t p1innov;  //Innovation numbers for links inside parents' InnovGenomes
 	real_t p2innov;
-	vector<NodeGene>::iterator curnode;  //For checking if NodeGenes exist already 
+	vector<InnovNodeGene>::iterator curnode;  //For checking if InnovNodeGenes exist already 
 
-	//This LinkGene is used to hold the average of the two links to be averaged
-	LinkGene avgene(0,0,0,0,0,0,0);
-	LinkGene newgene;
+	//This InnovLinkGene is used to hold the average of the two links to be averaged
+	InnovLinkGene avgene(0,0,0,0,0,0,0);
+	InnovLinkGene newgene;
 
 	bool skip;
 
@@ -1105,7 +914,7 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
 	}
 
 	//NEW 3/17/03 Make sure all sensors and outputs are included
-    for(NodeGene &node: genome1->nodes) {
+    for(InnovNodeGene &node: genome1->nodes) {
 		if (((node.place)==INPUT)||
 			((node.place)==OUTPUT)||
 			((node.place)==BIAS)) {
@@ -1128,11 +937,11 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
 		p1better=false;
 
 
-	//Now move through the LinkGenes of each parent until both genomes end
+	//Now move through the InnovLinkGenes of each parent until both genomes end
 	p1gene=links1.begin();
 	p2gene=links2.begin();
 	while(!((p1gene==links1.end()) && (p2gene==(links2).end()))) {
-        ProtoLinkGene protogene;
+        ProtoInnovLinkGene protogene;
 
         avgene.enable=true;  //Default to enabled
 
@@ -1231,12 +1040,12 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
             //Now add the chosengene to the baby
 
             //Next check for the nodes, add them if not in the baby InnovGenome already
-            NodeGene *inode = protogene.in();
-            NodeGene *onode = protogene.out();
+            InnovNodeGene *inode = protogene.in();
+            InnovNodeGene *onode = protogene.out();
 
             //Check for inode in the newnodes list
-            NodeGene new_inode;
-            NodeGene new_onode;
+            InnovNodeGene new_inode;
+            InnovNodeGene new_onode;
             if (inode->node_id<onode->node_id) {
 
                 //Checking for inode's existence
@@ -1303,13 +1112,13 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
 
                 }
 
-            } //End NodeGene checking section- NodeGenes are now in new InnovGenome
+            } //End InnovNodeGene checking section- InnovNodeGenes are now in new InnovGenome
 
-            //Add the LinkGene
-            newgene = LinkGene(protogene.gene(),
-                               protogene.gene()->trait_id(),
-                               new_inode.node_id,
-                               new_onode.node_id);
+            //Add the InnovLinkGene
+            newgene = InnovLinkGene(protogene.gene(),
+                                    protogene.gene()->trait_id(),
+                                    new_inode.node_id,
+                                    new_onode.node_id);
 
             newlinks.push_back(newgene);
 
@@ -1319,8 +1128,8 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
 }
 
 real_t InnovGenome::compatibility(InnovGenome *g) {
-    vector<LinkGene> &links1 = this->links;
-    vector<LinkGene> &links2 = g->links;
+    vector<InnovLinkGene> &links1 = this->links;
+    vector<InnovLinkGene> &links2 = g->links;
 
 
 	//Innovation numbers
@@ -1336,10 +1145,10 @@ real_t InnovGenome::compatibility(InnovGenome *g) {
 	real_t mut_diff_total=0.0;
 	real_t num_matching=0.0;  //Used to normalize mutation_num differences
 
-	//Now move through the LinkGenes of each potential parent 
+	//Now move through the InnovLinkGenes of each potential parent 
 	//until both InnovGenomes end
-	vector<LinkGene>::iterator p1gene = links1.begin();
-	vector<LinkGene>::iterator p2gene = links2.begin();
+	vector<InnovLinkGene>::iterator p1gene = links1.begin();
+	vector<InnovLinkGene>::iterator p2gene = links2.begin();
 
 	while(!((p1gene==links1.end())&&
             (p2gene==links2.end()))) {
@@ -1379,7 +1188,7 @@ real_t InnovGenome::compatibility(InnovGenome *g) {
 
     //Return the compatibility number using compatibility formula
     //Note that mut_diff_total/num_matching gives the AVERAGE
-    //difference between mutation_nums for any two matching LinkGenes
+    //difference between mutation_nums for any two matching InnovLinkGenes
     //in the InnovGenome
 
     //Normalizing for genome size
@@ -1422,22 +1231,12 @@ real_t InnovGenome::trait_compare(Trait *t1,Trait *t2) {
 
 }
 
-int InnovGenome::extrons() {
-	int total=0;
-
-    for(LinkGene &g: links) {
-		if (!g.enable) ++total;
-	}
-
-	return total;
-}
-
 void InnovGenome::randomize_traits() {
-    for(NodeGene &node: nodes) {
+    for(InnovNodeGene &node: nodes) {
 		node.set_trait_id(1 + rng.index(traits));
 	}
 
-    for(LinkGene &gene: links) {
+    for(InnovLinkGene &gene: links) {
 		gene.set_trait_id(1 + rng.index(traits));
 	}
 }
@@ -1448,11 +1247,11 @@ inline Trait &get_trait(vector<Trait> &traits, int trait_id) {
     return t;
 }
 
-Trait &InnovGenome::get_trait(const NodeGene &node) {
+Trait &InnovGenome::get_trait(const InnovNodeGene &node) {
     return ::get_trait(traits, node.get_trait_id());
 }
 
-Trait &InnovGenome::get_trait(const LinkGene &gene) {
+Trait &InnovGenome::get_trait(const InnovLinkGene &gene) {
     return ::get_trait(traits, gene.trait_id());
 }
 
@@ -1464,35 +1263,14 @@ void InnovGenome::init_phenotype(Network &net) {
     vector<NNode> &netnodes = net.nodes;
 
 	//Create the nodes
-	for(NodeGene &node: nodes) {
-        netnodes.emplace_back(node);
+	for(InnovNodeGene &node: nodes) {
+        netnodes.emplace_back(node.node_id, node.type, node.place);
 	}
 
-    class NetNodeLookup {
-        std::vector<NNode> &nodes;
-
-        static bool cmp(const NNode &node, int node_id) {
-            return node.node_id < node_id;
-        }
-    public:
-        // Must be sorted by node_id in ascending order
-        NetNodeLookup(std::vector<NNode> &nodes_)
-            : nodes(nodes_) {
-        }
-
-        node_index_t find(int node_id) {
-            auto it = std::lower_bound(nodes.begin(), nodes.end(), node_id, cmp);
-            assert(it != nodes.end());
-
-            node_index_t i = it - nodes.begin();
-            assert(nodes[i].node_id == node_id);
-
-            return i;
-        }
-    } node_lookup(netnodes);
+    NetNodeLookup node_lookup(netnodes);
 
 	//Create the links by iterating through the genes
-    for(LinkGene &gene: links) {
+    for(InnovLinkGene &gene: links) {
 		//Only create the link if the gene is enabled
 		if(gene.enable) {
             node_index_t inode = node_lookup.find(gene.in_node_id());
@@ -1516,8 +1294,8 @@ void InnovGenome::init_phenotype(Network &net) {
     net.init(maxweight);
 }
 
-LinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {
-    for(LinkGene &g: links) {
+InnovLinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {
+    for(InnovLinkGene &g: links) {
         if( (g.in_node_id() == in_node_id)
             && (g.out_node_id() == out_node_id)
             && (g.is_recurrent() == is_recurrent) ) {
@@ -1529,17 +1307,17 @@ LinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurr
     return nullptr;
 }
 
-NodeGene *InnovGenome::get_node(int id) {
+InnovNodeGene *InnovGenome::get_node(int id) {
     return node_lookup.find(id);
 }
 
 void InnovGenome::delete_if_orphaned_hidden_node(int node_id) {
-    NodeGene *node = get_node(node_id);
+    InnovNodeGene *node = get_node(node_id);
     if(node->place != HIDDEN)
         return;
 
     bool found_link;
-    for(LinkGene &link: links) {
+    for(InnovLinkGene &link: links) {
         if(link.in_node_id() == node_id || link.out_node_id() == node_id) {
             found_link = true;
             break;
@@ -1553,9 +1331,9 @@ void InnovGenome::delete_if_orphaned_hidden_node(int node_id) {
     }
 }
 
-void InnovGenome::delete_link(LinkGene *link) {
+void InnovGenome::delete_link(InnovLinkGene *link) {
     auto iterator = find_if(links.begin(), links.end(),
-                            [link](const LinkGene &l) {
+                            [link](const InnovLinkGene &l) {
                                 return l.innovation_num == link->innovation_num;
                             });
     assert(iterator != links.end());

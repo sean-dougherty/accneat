@@ -20,7 +20,6 @@
 #include <algorithm>
 #include <vector>
 #include "neat.h"
-#include "nodegene.h"
 #include "trait.h"
 #include "link.h"
 
@@ -38,7 +37,9 @@ namespace NEAT {
 		nodeplace place;
 
         NNode() {}
-        NNode(NodeGene &gene);
+        NNode(int node_id_,
+              nodetype type_,
+              nodeplace place_);
 		~NNode();
 
         void flush();
