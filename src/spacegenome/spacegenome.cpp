@@ -297,6 +297,8 @@ void SpaceGenome::mutate_add_link() {
     for(int attempt = 0; (in_node == nullptr) && attempt < 20; attempt++) {
         //Find the first non-sensor so that the to-node won't look at sensors as
         //possible destinations
+        
+        //todo: nodelookup could do this with a binary search.
         int first_nonsensor = 0;
         for(; is_input(nodes[first_nonsensor].type); first_nonsensor++) {
         }
@@ -319,7 +321,7 @@ void SpaceGenome::mutate_add_link() {
                 || (dist < closest_dist)
                 || ((dist == closest_dist) && rng.boolean()) ) {
 
-                if( find_link(in_node->location, node->location) == nullptr ) {
+                if( find_link(out_node->location, node->location) == nullptr ) {
                     in_node = node;
                     closest_dist = dist;
                 }
@@ -579,8 +581,10 @@ SpaceLinkGene *SpaceGenome::find_link(const NodeLocation &in_node_loc,
         return nullptr;
 
     SpaceLinkGene *result = &(*it);
-    assert(result->in_node_loc == in_node_loc);
-    assert(result->out_node_loc == out_node_loc);
+    if( (result->in_node_loc != in_node_loc)
+        || (result->out_node_loc == out_node_loc) ) {
+        return nullptr;
+    }
     return result;
 }
 

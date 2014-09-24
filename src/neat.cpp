@@ -21,6 +21,13 @@
 
 using NEAT::real_t;
 
+const std::vector<NEAT::nodetype> NEAT::nodetypes = {
+    NEAT::nodetype::BIAS,
+    NEAT::nodetype::SENSOR,
+    NEAT::nodetype::OUTPUT,
+    NEAT::nodetype::HIDDEN
+};
+
 NEAT::PopulationType NEAT::population_type = PopulationType::SPECIES;
 NEAT::GenomeType NEAT::genome_type = GenomeType::INNOV;
 real_t NEAT::trait_param_mut_prob = 0.5;

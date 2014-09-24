@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <vector>
 
 namespace NEAT {
     typedef float real_t;
@@ -32,6 +33,8 @@ namespace NEAT {
 		OUTPUT = 2,
 		HIDDEN = 3
 	};
+
+    extern const std::vector<nodetype> nodetypes;
 
     inline bool is_input(nodetype type) {
         return (type == nodetype::BIAS) || (type == nodetype::SENSOR);

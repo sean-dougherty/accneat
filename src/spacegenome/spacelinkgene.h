@@ -37,7 +37,7 @@ namespace NEAT {
         bool operator<(const SpaceLinkGene &other) const {
             if(in_node_loc < other.in_node_loc)
                 return true;
-            if(out_node_loc < other.out_node_loc)
+            if((in_node_loc == other.in_node_loc) && (out_node_loc < other.out_node_loc))
                 return true;
             return false;
         }

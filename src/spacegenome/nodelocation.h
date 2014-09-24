@@ -23,12 +23,6 @@ namespace NEAT {
 
         bool operator==(const NodeLocation &other) const {
             return (x == other.x) && (y == other.y);
-            if(x < other.x)
-                return true;
-            if( (x == other.x) && (y < other.y) )
-                return true;
-
-            return false;
         }
 
         bool operator!=(const NodeLocation &other) const {

@@ -45,7 +45,7 @@ int main(int argc, char *argv[]) {
 
     if(genome_type == "i") {
         NEAT::genome_type = NEAT::GenomeType::INNOV;
-    } else if(pop_type == "s") {
+    } else if(genome_type == "s") {
         NEAT::genome_type = NEAT::GenomeType::SPACE;
     } else {
         panic();

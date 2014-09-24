@@ -17,19 +17,24 @@ namespace NEAT {
         SpaceNodeGene() {}
 		SpaceNodeGene(nodetype type_,
                       NodeLocation location_)
-            : type(type_)
+            : trait_id(1)
+            , type(type_)
             , location(location_) {
         }
 
         bool operator<(const SpaceNodeGene &other) const {
-            return location < other.location;
+            if(type == other.type) {
+                return location < other.location;
+            } else {
+                return type < other.type;
+            }
         }
 
         friend std::ostream &operator<<(std::ostream &out, const SpaceNodeGene &node) {
             return out << "node "
-                       << node.location << " "
                        << node.trait_id << " "
-                       << (int)node.type;
+                       << (int)node.type << " "
+                       << node.location;
         }
 	};
 
