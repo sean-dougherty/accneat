@@ -10,6 +10,7 @@ using namespace std;
 
 //todo: put in env
 #define NUM_GLOBAL_ELITES 5
+#define SEND_GENERATION_ELITES true
 
 static bool cmp_org_desc(const Organism *a, const Organism *b) {
     return a->fitness > b->fitness;
@@ -100,6 +101,9 @@ bool DemesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
         }
     }
 
+#if !SEND_GENERATION_ELITES
+    elites.clear();
+#endif
     for(Organism *elite: global_elites) {
         elites.push_back(elite);
     }
