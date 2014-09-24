@@ -7,7 +7,7 @@ using namespace NEAT;
 using namespace std;
 
 #define DIST_FACT 3 //todo: better name. put in env.
-#define SHUFFLE_CROSSOVER true
+#define SHUFFLE_CROSSOVER false
 
 SpaceGenome::SpaceGenome(rng_t rng_,
                          size_t ntraits,
