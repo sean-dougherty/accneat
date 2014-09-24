@@ -84,6 +84,116 @@ const real_t weight_seq = 4;
 const real_t weight_delay = 25;
 const real_t weight_query = 55;
 
+#define SERIAL_OUT true
+
+#if SERIAL_OUT
+vector<Test> tests = {
+    Test({
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {A}, weight_query}
+        }),        
+    Test({
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {B}, weight_query}
+        }),        
+    Test({
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {A}, weight_query}
+        }),        
+    Test({
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {B}, weight_query}
+        }),        
+    Test({
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {A}, weight_query}
+        }),        
+    Test({
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {A}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {B}, weight_query}
+        }),        
+    Test({
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, A, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {A}, weight_query}
+        }),        
+    Test({
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{S, B, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, _}, {_}, weight_delay},
+            {{_, _, Q, _, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, Q, _}, {B}, weight_query},
+            {{_, _, _, _, _}, {_}, weight_seq},
+            {{_, _, _, _, Q}, {B}, weight_query}
+        })        
+};
+#else
 vector<Test> tests = {
     Test({
             {{S, _, _, A, _}, {_, _, _}, weight_seq},
@@ -158,6 +268,7 @@ vector<Test> tests = {
             {{_, _, Q, _, _}, {B, B, B}, weight_query}
         }),
 };
+#endif
 
 const size_t nsteps = []() {
     size_t n = 0;
