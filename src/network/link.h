@@ -13,16 +13,11 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#ifndef _LINK_H_
-#define _LINK_H_
+#pragma once
 
 #include "neat.h"
-#include "trait.h"
-#include "nnode.h"
 
 namespace NEAT {
-
-	class NNode;
 
     typedef uint16_t node_index_t;
 
@@ -33,10 +28,11 @@ namespace NEAT {
 		real_t weight; // Weight of connection
         node_index_t in_node_index; // NNode inputting into the link
 
-		Link(real_t w,
-             node_index_t inode_index);
+    Link(real_t w,
+         node_index_t inode_index)
+        : weight(w)
+            , in_node_index(inode_index) {
+        }	
 	};
 
 } // namespace NEAT
-
-#endif

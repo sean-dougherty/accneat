@@ -33,18 +33,23 @@ void Network::reset() {
     noutput_nodes = 0;
 }
 
+// Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
 void Network::init(real_t maxweight_) {
     maxweight = maxweight_;
 
     size_t i = 0;
-    for(i = 0; (i < nodes.size()) && is_input(nodes[i].type); i++) {
+
+    for(; (i < nodes.size()) && (nodes[i].type == nodetype::BIAS); i++) {
+    }
+    nbias_nodes = i;
+
+    for(; (i < nodes.size()) && (nodes[i].type == nodetype::SENSOR); i++) {
     }
     ninput_nodes = i;
-    assert(ninput_nodes > 0);
+    nsensor_nodes = ninput_nodes - nbias_nodes;
 
     for(; (i < nodes.size()) && (nodes[i].type == nodetype::OUTPUT); i++) {
     }
-
     noutput_nodes = i - ninput_nodes;
     assert(noutput_nodes > 0);
 
@@ -93,13 +98,13 @@ void Network::activate() {
 
 // Takes an array of sensor values and loads it into SENSOR inputs ONLY
 void Network::load_sensors(const real_t *sensvals) {
-    for(size_t i = 0; i < ninput_nodes; i++) {
-        nodes[i].sensor_load(sensvals[i]);
+    for(size_t i = 0; i < nsensor_nodes; i++) {
+        nodes[i + nbias_nodes].sensor_load(sensvals[i]);
     }
 }
 
 void Network::load_sensors(const std::vector<real_t> &sensvals) {
-    assert(sensvals.size() == ninput_nodes);
+    assert(sensvals.size() == nsensor_nodes);
 
     load_sensors(sensvals.data());
 }

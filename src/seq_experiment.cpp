@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <omp.h>
 
+#include <fstream>
 #include <iostream>
 #include <sstream>
 
@@ -69,10 +70,6 @@ struct Step {
 struct Test {
     vector<Step> steps;
     Test(const vector<Step> &steps_) : steps(steps_) {
-        // Insert 1.0 for bias sensor
-        for(auto &step: steps) {
-            step.input.insert(step.input.begin(), 1.0f);
-        }
     }
 };
 
@@ -207,7 +204,7 @@ void seq_experiment(rng_t &rng, int gens) {
         genome_manager->create_seed_generation(NEAT::pop_size,
                                                rng,
                                                1,
-                                               tests[0].steps[0].input.size() - 1,
+                                               tests[0].steps[0].input.size(),
                                                tests[0].steps[0].output.size(),
                                                3);
 

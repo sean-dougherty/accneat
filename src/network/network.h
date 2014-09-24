@@ -33,6 +33,8 @@ namespace NEAT {
         friend class Organism; // todo: remove friend
 
 		std::vector<NNode> nodes;  // A list of all the nodes
+        size_t nbias_nodes;
+        size_t nsensor_nodes;
         size_t ninput_nodes;
         size_t noutput_nodes;
 
