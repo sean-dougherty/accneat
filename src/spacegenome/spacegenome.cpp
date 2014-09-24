@@ -354,6 +354,13 @@ void SpaceGenome::mate(SpaceGenome *genome1,
     }
 
     mate_singlepoint(genome1, genome2, offspring);
+
+    if( !offspring->rng.under(NEAT::mate_only_prob) ||
+        (genome2->genome_id == genome1->genome_id) ) {
+
+        offspring->mutate();
+    }
+
 }
 
 void SpaceGenome::reset() {
