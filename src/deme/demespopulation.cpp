@@ -9,8 +9,9 @@ using namespace NEAT;
 using namespace std;
 
 //todo: put in env
-#define NUM_GLOBAL_ELITES 5
-#define SEND_GENERATION_ELITES true
+#define NUM_GLOBAL_ELITES 1
+#define SEND_GENERATION_ELITES false
+#define PRINT_ELITES true
 
 static bool cmp_org_desc(const Organism *a, const Organism *b) {
     return a->fitness > b->fitness;
@@ -130,6 +131,14 @@ void DemesPopulation::next_generation() {
     timer.start();
 
     generation++;
+
+#if PRINT_ELITES
+    cout << "--- ELITES: ---" << endl;
+    for(Organism *org: elites) {
+        cout << org->population_index << ": " << org->fitness << endl;
+    }
+    cout << "---------------" << endl;
+#endif
 
     for(Deme &deme: demes) {
         deme.next_generation(elites, genome_manager);
