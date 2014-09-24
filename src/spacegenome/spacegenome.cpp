@@ -40,12 +40,12 @@ SpaceGenome::SpaceGenome(rng_t rng_,
 
         //Bias node
         index_bias = nodes.size();
-        add_node(SpaceNodeGene(SENSOR, BIAS, {x, y--}));
+        add_node(SpaceNodeGene(nodetype::BIAS, {x, y--}));
 
         //Sensor nodes
         index_inputs = nodes.size();
         for(size_t i = 0; i < ninputs; i++) {
-            add_node(SpaceNodeGene(SENSOR, INPUT, {x, y--}));
+            add_node(SpaceNodeGene(nodetype::SENSOR, {x, y--}));
         }
 
         x = DIST_FACT;
@@ -53,7 +53,7 @@ SpaceGenome::SpaceGenome(rng_t rng_,
         //Output nodes
         index_outputs = nodes.size();
         for(size_t i = 0; i < noutputs; i++) {
-            add_node(SpaceNodeGene(NEURON, OUTPUT, {x, y--}));
+            add_node(SpaceNodeGene(nodetype::OUTPUT, {x, y--}));
         }
 
         x = 0;
@@ -61,7 +61,7 @@ SpaceGenome::SpaceGenome(rng_t rng_,
         //Hidden nodes
         index_hidden = nodes.size();
         for(size_t i = 0; i < nhidden; i++) {
-            add_node(SpaceNodeGene(NEURON, HIDDEN, {x, y--}));
+            add_node(SpaceNodeGene(nodetype::HIDDEN, {x, y--}));
         }
     }
 
@@ -159,7 +159,7 @@ void SpaceGenome::init_phenotype(Network &net) {
 
 	//Create the nodes
 	for(SpaceNodeGene &node: nodes) {
-        netnodes.emplace_back(node.type, node.place);
+        netnodes.emplace_back(node.type);
 	}
 
 	//Create the links by iterating through the genes
@@ -298,7 +298,7 @@ void SpaceGenome::mutate_add_link() {
         //Find the first non-sensor so that the to-node won't look at sensors as
         //possible destinations
         int first_nonsensor = 0;
-        for(; nodes[first_nonsensor].type == SENSOR; first_nonsensor++) {
+        for(; is_input(nodes[first_nonsensor].type); first_nonsensor++) {
         }
 
         out_node = &rng.element(nodes, first_nonsensor);
@@ -331,7 +331,7 @@ void SpaceGenome::mutate_add_link() {
     if(in_node == nullptr) {
         return;
     }
-    assert( out_node->type != SENSOR );
+    assert( !is_input(out_node->type) );
 
     // Create the gene.
     int trait_id = 1 + rng.index(traits);
@@ -388,7 +388,7 @@ void SpaceGenome::mutate_add_node() {
         for(int i = 0; !splitlink && i < 20; i++) {
             SpaceLinkGene &g = rng.element(links);
             //If link has a bias input, try again
-            if( get_node(g.in_node_loc)->place != BIAS ) {
+            if( get_node(g.in_node_loc)->type != nodetype::BIAS ) {
                 splitlink = &g;
             }
         }
@@ -407,7 +407,7 @@ void SpaceGenome::mutate_add_node() {
         return;
     }
 
-    SpaceNodeGene newnode(NEURON, HIDDEN, newnode_location);
+    SpaceNodeGene newnode(nodetype::HIDDEN, newnode_location);
 
     SpaceLinkGene newlink1(splitlink->trait_id,
                            1.0,
@@ -427,7 +427,7 @@ void SpaceGenome::mutate_add_node() {
 void SpaceGenome::mutate_delete_node() {
     size_t first_non_io;
     for(first_non_io = 0; first_non_io < nodes.size(); first_non_io++) {
-        if( nodes[first_non_io].place == HIDDEN ) {
+        if( nodes[first_non_io].type == nodetype::HIDDEN ) {
             break;
         }
     }
@@ -439,7 +439,7 @@ void SpaceGenome::mutate_delete_node() {
 
     size_t node_index = rng.index(nodes, first_non_io);
     SpaceNodeGene node = nodes[node_index];
-    assert(node.place == HIDDEN);
+    assert(node.type == nodetype::HIDDEN);
 
     nodes.erase(nodes.begin() + node_index);
 
@@ -486,12 +486,11 @@ void SpaceGenome::mate_singlepoint(SpaceGenome *genome1,
 
 	//Make sure all sensors and outputs are included
     for(SpaceNodeGene &node: genome1->nodes) {
-		if( (node.place == INPUT)
-            || (node.place == BIAS)
-            || (node.place == OUTPUT)) {
-
+		if(node.type != nodetype::HIDDEN) {
             //Add the new node
             offspring->add_node(node);
+        } else {
+            break;
         }
     }
 
@@ -541,7 +540,7 @@ void SpaceGenome::mate_singlepoint(SpaceGenome *genome1,
 
 void SpaceGenome::delete_if_orphaned_hidden_node(const NodeLocation &loc) {
     SpaceNodeGene *node = get_node(loc);
-    if(node->place != HIDDEN)
+    if(node->type != nodetype::HIDDEN)
         return;
 
     bool found_link;

@@ -18,10 +18,9 @@
 #include <sstream>
 using namespace NEAT;
 
-InnovNodeGene::InnovNodeGene(nodetype ntype,int nodeid, nodeplace placement) {
+InnovNodeGene::InnovNodeGene(nodetype ntype,int nodeid) {
 	type=ntype; //NEURON or SENSOR type
 	node_id=nodeid;
-	place=placement;
 	frozen=false;
 	trait_id=1;
 }
@@ -31,7 +30,6 @@ InnovNodeGene::InnovNodeGene (const char *argline) {
     int nodety, nodepl;
     ss >> node_id >> trait_id >> nodety >> nodepl;
     type = (nodetype)nodety;
-    place = (nodeplace)nodepl;
 
     if(trait_id == 0)
         trait_id = 1;
@@ -47,6 +45,5 @@ InnovNodeGene::~InnovNodeGene() {
 void InnovNodeGene::print_to_file(std::ostream &outFile) {
     outFile<<"node "<<node_id<<" ";
     outFile<<trait_id<<" ";
-    outFile<<type<<" ";
-    outFile<<place<<std::endl;
+    outFile<<(int)type<<std::endl;
 }

@@ -10,17 +10,14 @@ namespace NEAT {
 	class SpaceNodeGene {
 	public:
 		int trait_id;  // identify the trait derived by this node
-		nodetype type; // type is either NEURON or SENSOR 
-		nodeplace place;  // Used for genetic marking of nodes
+		nodetype type;
         NodeLocation location;
         
         // Construct SpaceNodeGene with invalid state.
         SpaceNodeGene() {}
 		SpaceNodeGene(nodetype type_,
-                      nodeplace place_,
                       NodeLocation location_)
             : type(type_)
-            , place(place_)
             , location(location_) {
         }
 
@@ -32,8 +29,7 @@ namespace NEAT {
             return out << "node "
                        << node.location << " "
                        << node.trait_id << " "
-                       << node.type << " "
-                       << node.place;
+                       << (int)node.type;
         }
 	};
 

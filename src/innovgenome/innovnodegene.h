@@ -26,13 +26,12 @@ namespace NEAT {
 		int trait_id;  // identify the trait derived by this node
 	public:
 		bool frozen; // When frozen, cannot be mutated (meaning its trait pointer is fixed)
-		nodetype type; // type is either NEURON or SENSOR 
+		nodetype type;
 		int node_id;  // A node can be given an identification number for saving in files
-		nodeplace place;  // Used for genetic marking of nodes
 
         // Construct InnovNodeGene with invalid state.
         InnovNodeGene() {}
-		InnovNodeGene(nodetype ntype,int nodeid, nodeplace placement);
+		InnovNodeGene(nodetype ntype,int nodeid);
 		// Construct the node out of a file specification using given list of traits
 		InnovNodeGene (const char *argline);
 
@@ -41,9 +40,7 @@ namespace NEAT {
         inline void set_trait_id(int id) { assert(id > 0); trait_id = id; }
         inline int get_trait_id() const {return trait_id;}
 
-		// Returns the type of the node, NEURON or SENSOR
 		inline const nodetype get_type() const {return type;}
-		// Allows alteration between NEURON and SENSOR.
 		inline void set_type(nodetype t) {type = t;}
 
 		// Print the node to a file

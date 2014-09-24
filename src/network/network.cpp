@@ -37,24 +37,20 @@ void Network::init(real_t maxweight_) {
     maxweight = maxweight_;
 
     size_t i = 0;
-    for(i = 0; (i < nodes.size()) && (nodes[i].type == SENSOR); i++) {
+    for(i = 0; (i < nodes.size()) && is_input(nodes[i].type); i++) {
     }
     ninput_nodes = i;
     assert(ninput_nodes > 0);
 
-    for(; (i < nodes.size()) && (nodes[i].type == NEURON) && (nodes[i].place == OUTPUT); i++) {
+    for(; (i < nodes.size()) && (nodes[i].type == nodetype::OUTPUT); i++) {
     }
 
     noutput_nodes = i - ninput_nodes;
     assert(noutput_nodes > 0);
 
     for(; (i < nodes.size()); i++) {
-        if(nodes[i].type != NEURON) {
-            cerr << "Bad neuron type at " << i << ": " << nodes[i].type << endl;
-            abort();
-        }
-        if(nodes[i].place != HIDDEN) {
-            cerr << "Bad neuron 'place' at " << i << ": " << nodes[i].place << endl;
+        if(nodes[i].type != nodetype::HIDDEN) {
+            cerr << "Bad neuron type at " << i << ": " << (int)nodes[i].type << endl;
             abort();
         }
     }

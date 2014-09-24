@@ -24,17 +24,18 @@
 namespace NEAT {
     typedef float real_t;
 
-	enum nodetype {
-		NEURON = 0,
-		SENSOR = 1
+    // note: you cannot change the ordering of these nodetype values.
+    // e.g. see Network::Network and SpaceGenome::operator<
+	enum class nodetype {
+        BIAS = 0,
+		SENSOR = 1,
+		OUTPUT = 2,
+		HIDDEN = 3
 	};
 
-	enum nodeplace {
-		HIDDEN = 0,
-		INPUT = 1,
-		OUTPUT = 2,
-		BIAS = 3
-	};
+    inline bool is_input(nodetype type) {
+        return (type == nodetype::BIAS) || (type == nodetype::SENSOR);
+    }
 
 	enum functype {
 		SIGMOID = 0

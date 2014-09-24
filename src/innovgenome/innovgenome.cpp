@@ -63,21 +63,21 @@ InnovGenome::InnovGenome(rng_t rng_,
         int node_id = 1;
 
         //Bias node
-        add_node(nodes, InnovNodeGene(SENSOR, node_id++, BIAS));
+        add_node(nodes, InnovNodeGene(nodetype::BIAS, node_id++));
 
         //Sensor nodes
         for(size_t i = 0; i < ninputs; i++) {
-            add_node(nodes, InnovNodeGene(SENSOR, node_id++, INPUT));
+            add_node(nodes, InnovNodeGene(nodetype::SENSOR, node_id++));
         }
 
         //Output nodes
         for(size_t i = 0; i < noutputs; i++) {
-            add_node(nodes, InnovNodeGene(NEURON, node_id++, OUTPUT));
+            add_node(nodes, InnovNodeGene(nodetype::OUTPUT, node_id++));
         }
 
         //Hidden nodes
         for(size_t i = 0; i < nhidden; i++) {
-            add_node(nodes, InnovNodeGene(NEURON, node_id++, HIDDEN));
+            add_node(nodes, InnovNodeGene(nodetype::HIDDEN, node_id++));
         }
     }
 
@@ -399,7 +399,7 @@ bool InnovGenome::mutate_add_node(CreateInnovationFunc create_innov) {
         for(int i = 0; !splitlink && i < 20; i++) {
             InnovLinkGene &g = rng.element(links);
             //If either the link is disabled, or it has a bias input, try again
-            if( g.enable && get_node(g.in_node_id())->place != BIAS ) {
+            if( g.enable && get_node(g.in_node_id())->type != nodetype::BIAS ) {
                 splitlink = &g;
             }
         }
@@ -416,7 +416,7 @@ bool InnovGenome::mutate_add_node(CreateInnovationFunc create_innov) {
 
     auto innov_apply = [this, splitlink] (const Innovation *innov) {
 
-        InnovNodeGene newnode(NEURON, innov->newnode_id, HIDDEN);
+        InnovNodeGene newnode(nodetype::HIDDEN, innov->newnode_id);
 
         InnovLinkGene newlink1(splitlink->trait_id(),
                                1.0,
@@ -454,7 +454,7 @@ bool InnovGenome::mutate_add_node(CreateInnovationFunc create_innov) {
 void InnovGenome::mutate_delete_node() {
     size_t first_non_io;
     for(first_non_io = 0; first_non_io < nodes.size(); first_non_io++) {
-        if( nodes[first_non_io].place == HIDDEN ) {
+        if( nodes[first_non_io].type == nodetype::HIDDEN ) {
             break;
         }
     }
@@ -466,7 +466,7 @@ void InnovGenome::mutate_delete_node() {
 
     size_t node_index = rng.index(nodes, first_non_io);
     InnovNodeGene node = nodes[node_index];
-    assert(node.place == HIDDEN);
+    assert(node.type == nodetype::HIDDEN);
 
     nodes.erase(nodes.begin() + node_index);
 
@@ -510,7 +510,7 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
         //Find the first non-sensor so that the to-node won't look at sensors as
         //possible destinations
         int first_nonsensor = 0;
-        for(; nodes[first_nonsensor].get_type() == SENSOR; first_nonsensor++) {
+        for(; is_input(nodes[first_nonsensor].get_type()); first_nonsensor++) {
         }
 
         for(int trycount = 0; !found_nodes && (trycount < tries); trycount++) {
@@ -545,7 +545,7 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
             }
         }
 
-        assert( out_node->type != SENSOR );
+        assert( !is_input(out_node->type) );
 
         //Continue only if an open link was found
         if(!found_nodes) {
@@ -689,12 +689,11 @@ void InnovGenome::mate_multipoint(InnovGenome *genome1,
 
 	//Make sure all sensors and outputs are included
     for(InnovNodeGene &node: genome1->nodes) {
-		if( (node.place == INPUT)
-            || (node.place == BIAS)
-            || (node.place == OUTPUT)) {
-
+		if(node.type != nodetype::HIDDEN) {
             //Add the new node
             add_node(newnodes, node);
+        } else {
+            break;
         }
     }
 
@@ -903,11 +902,10 @@ void InnovGenome::mate_multipoint_avg(InnovGenome *genome1,
 
 	//NEW 3/17/03 Make sure all sensors and outputs are included
     for(InnovNodeGene &node: genome1->nodes) {
-		if (((node.place)==INPUT)||
-			((node.place)==OUTPUT)||
-			((node.place)==BIAS)) {
-
+		if(node.type != nodetype::HIDDEN) {
             add_node(newnodes, node);
+        } else {
+            break;
         }
 	}
 
@@ -1252,7 +1250,7 @@ void InnovGenome::init_phenotype(Network &net) {
 
 	//Create the nodes
 	for(InnovNodeGene &node: nodes) {
-        netnodes.emplace_back(node.type, node.place);
+        netnodes.emplace_back(node.type);
 	}
 
 	//Create the links by iterating through the genes
@@ -1305,7 +1303,7 @@ node_index_t InnovGenome::get_node_index(int id) {
 
 void InnovGenome::delete_if_orphaned_hidden_node(int node_id) {
     InnovNodeGene *node = get_node(node_id);
-    if(node->place != HIDDEN)
+    if(node->type != nodetype::HIDDEN)
         return;
 
     bool found_link;

@@ -16,12 +16,10 @@
 #ifndef _NNODE_H_
 #define _NNODE_H_
 
-#include <assert.h>
-#include <algorithm>
-#include <vector>
-#include "neat.h"
-#include "trait.h"
 #include "link.h"
+#include "neat.h"
+#include "util.h"
+#include <vector>
 
 namespace NEAT {
 
@@ -31,30 +29,42 @@ namespace NEAT {
     public:
 		real_t activation;
 		real_t last_activation;
-		nodetype type; // type is either NEURON or SENSOR 
+		nodetype type;
 		std::vector<Link> incoming;
-		nodeplace place;
 
         NNode() {}
-        NNode(nodetype type_,
-              nodeplace place_)
+        NNode(nodetype type_)
             : activation(0)
             , last_activation(0)
-            , type(type_)
-            , place(place_) {
+            , type(type_) {
         }
 
         void flush() {
-            if(type != SENSOR) {
+            switch(type) {
+            case nodetype::BIAS:
+            case nodetype::SENSOR:
+                //no-op
+                break;
+            case nodetype::OUTPUT:
+            case nodetype::HIDDEN:
                 activation = 0.0;
                 last_activation = 0.0;
+                break;
+            default:
+                panic();
             }
         }
 
 		// If the node is a SENSOR, returns true and loads the value
 		void sensor_load(real_t value) {
-            assert(type==SENSOR);
-            last_activation = activation = value;
+            switch(type) {
+            case nodetype::BIAS:
+            case nodetype::SENSOR:
+                last_activation = activation = value;
+                break;
+            default:
+                panic();
+            }
         }
 	};
 
