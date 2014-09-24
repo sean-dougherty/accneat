@@ -16,7 +16,6 @@
 #include "innovgenome.h"
 
 #include "protoinnovlinkgene.h"
-#include "netnodelookup.h"
 #include "recurrencychecker.h"
 #include "util.h"
 #include <assert.h>
@@ -127,17 +126,6 @@ InnovGenome::InnovGenome(rng_t rng_,
                                            0.0));
         }
     }
-}
-
-InnovGenome::InnovGenome(int id,
-                         const vector<Trait> &t,
-                         const vector<InnovNodeGene> &n,
-                         const vector<InnovLinkGene> &g)
-    : node_lookup(nodes) {
-	genome_id=id;
-	traits=t;
-    links = g;
-    nodes = n;
 }
 
 unique_ptr<Genome> InnovGenome::make_default() const {
@@ -1264,17 +1252,15 @@ void InnovGenome::init_phenotype(Network &net) {
 
 	//Create the nodes
 	for(InnovNodeGene &node: nodes) {
-        netnodes.emplace_back(node.node_id, node.type, node.place);
+        netnodes.emplace_back(node.type, node.place);
 	}
-
-    NetNodeLookup node_lookup(netnodes);
 
 	//Create the links by iterating through the genes
     for(InnovLinkGene &gene: links) {
 		//Only create the link if the gene is enabled
 		if(gene.enable) {
-            node_index_t inode = node_lookup.find(gene.in_node_id());
-            node_index_t onode = node_lookup.find(gene.out_node_id());
+            node_index_t inode = get_node_index(gene.in_node_id());
+            node_index_t onode = get_node_index(gene.out_node_id());
 
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
@@ -1309,6 +1295,12 @@ InnovLinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_r
 
 InnovNodeGene *InnovGenome::get_node(int id) {
     return node_lookup.find(id);
+}
+
+node_index_t InnovGenome::get_node_index(int id) {
+    node_index_t i = get_node(id) - nodes.data();
+    assert(nodes[i].node_id == id);
+    return i;
 }
 
 void InnovGenome::delete_if_orphaned_hidden_node(int node_id) {

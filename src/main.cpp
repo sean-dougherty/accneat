@@ -23,14 +23,15 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 5) {
-        cerr << "usage: neat rng_seed pop_type pop_size maxgens" << endl;
+    if (argc != 6) {
+        cerr << "usage: neat rng_seed pop_type genome_type pop_size maxgens" << endl;
         return -1;
     }
 
     int argi = 1;
     int rng_seed = stoi(argv[argi++]);
     string pop_type = argv[argi++];
+    string genome_type = argv[argi++];
     int pop_size = stoi(argv[argi++]);
     int maxgens = stoi(argv[argi++]);
 
@@ -38,6 +39,14 @@ int main(int argc, char *argv[]) {
         NEAT::population_type = NEAT::PopulationType::SPECIES;
     } else if(pop_type == "d") {
         NEAT::population_type = NEAT::PopulationType::DEMES;
+    } else {
+        panic();
+    }
+
+    if(genome_type == "i") {
+        NEAT::genome_type = NEAT::GenomeType::INNOV;
+    } else if(pop_type == "s") {
+        NEAT::genome_type = NEAT::GenomeType::SPACE;
     } else {
         panic();
     }

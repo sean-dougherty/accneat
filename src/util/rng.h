@@ -66,6 +66,11 @@ namespace NEAT {
             return dist(engine) * 2 - 1;
         }
 
+        bool boolean() {
+            std::uniform_int_distribution<int> dist(0, 1);
+            return dist(engine) == 1;
+        }
+
         // value from z distribution
         real_t gauss() {
             std::normal_distribution<real_t> dist;

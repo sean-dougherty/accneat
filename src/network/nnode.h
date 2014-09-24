@@ -33,19 +33,29 @@ namespace NEAT {
 		real_t last_activation;
 		nodetype type; // type is either NEURON or SENSOR 
 		std::vector<Link> incoming;
-		int node_id;
 		nodeplace place;
 
         NNode() {}
-        NNode(int node_id_,
-              nodetype type_,
-              nodeplace place_);
-		~NNode();
+        NNode(nodetype type_,
+              nodeplace place_)
+            : activation(0)
+            , last_activation(0)
+            , type(type_)
+            , place(place_) {
+        }
 
-        void flush();
+        void flush() {
+            if(type != SENSOR) {
+                activation = 0.0;
+                last_activation = 0.0;
+            }
+        }
 
 		// If the node is a SENSOR, returns true and loads the value
-		void sensor_load(real_t);
+		void sensor_load(real_t value) {
+            assert(type==SENSOR);
+            last_activation = activation = value;
+        }
 	};
 
 
