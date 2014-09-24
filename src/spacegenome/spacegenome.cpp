@@ -7,6 +7,7 @@ using namespace NEAT;
 using namespace std;
 
 #define DIST_FACT 3 //todo: better name. put in env.
+#define SHUFFLE_CROSSOVER true
 
 SpaceGenome::SpaceGenome(rng_t rng_,
                          size_t ntraits,
@@ -518,9 +519,10 @@ void SpaceGenome::mate_singlepoint(SpaceGenome *genome1,
     };
 
     auto add_links = [=] (vector<SpaceLinkGene> &source,
+                          unsigned int *index,
                           size_t start, size_t end) {
         for(size_t i = start; i < end; i++) {
-            SpaceLinkGene &link = source[i];
+            SpaceLinkGene &link = source[index[i]];
             add_node(link.in_node_loc);
             add_node(link.out_node_loc);
 
@@ -538,12 +540,27 @@ void SpaceGenome::mate_singlepoint(SpaceGenome *genome1,
         crossover_point = rng.integer( int(0.25 * minlen),
                                        int(0.75 * minlen) );
     }
+
+    unsigned int index1[links1.size()];
+    unsigned int index2[links2.size()];
+    for(size_t i = 0; i < links1.size(); i++) {
+        index1[i] = i;
+    }
+    for(size_t i = 0; i < links2.size(); i++) {
+        index2[i] = i;
+    }
+
+#if SHUFFLE_CROSSOVER
+    shuffle (index1, index1 + links1.size(), std::default_random_engine(rng.integer()));
+    shuffle (index2, index2 + links2.size(), std::default_random_engine(rng.integer()));
+#endif
+
     if(rng.boolean()) {
-        add_links(links1, 0, crossover_point);
-        add_links(links2, crossover_point, links2.size());
+        add_links(links1, index1, 0, crossover_point);
+        add_links(links2, index2, crossover_point, links2.size());
     } else {
-        add_links(links1, crossover_point, links1.size());
-        add_links(links2, 0, crossover_point);
+        add_links(links1, index1, crossover_point, links1.size());
+        add_links(links2, index2, 0, crossover_point);
     }
 }
 

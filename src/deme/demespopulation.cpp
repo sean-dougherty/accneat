@@ -9,8 +9,8 @@ using namespace NEAT;
 using namespace std;
 
 //todo: put in env
-#define NUM_GLOBAL_ELITES 1
-#define SEND_GENERATION_ELITES false
+#define NUM_GLOBAL_ELITES 5
+#define SEND_GENERATION_ELITES true
 #define PRINT_ELITES true
 
 static bool cmp_org_desc(const Organism *a, const Organism *b) {
