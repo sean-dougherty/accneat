@@ -37,10 +37,11 @@ real_t Step::err(Network *net,
 map<string, Experiment *> *Experiment::experiments = nullptr;
 
 Experiment *Experiment::get(const char *name) {
-    if(experiments == nullptr) {
+    if(!experiments) {
         experiments = new map<string, Experiment*>();
     }
-    return experiments->find(name)->second;
+    auto it = experiments->find(name);
+    return it == experiments->end() ? nullptr : it->second;
 }
 
 Experiment::Experiment(const char *name) {
