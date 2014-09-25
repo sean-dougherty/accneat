@@ -16,19 +16,20 @@
 #include <iostream>
 #include <string>
 #include "neat.h"
-#include "seq_experiment.h"
+#include "experiment.h"
 #include "util.h"
 using namespace std;
 
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 6) {
-        cerr << "usage: neat rng_seed pop_type genome_type pop_size maxgens" << endl;
+    if (argc != 7) {
+        cerr << "usage: neat experiment_name rng_seed pop_type genome_type pop_size maxgens" << endl;
         return -1;
     }
 
     int argi = 1;
+    const char *experiment_name = argv[argi++];
     int rng_seed = stoi(argv[argi++]);
     string pop_type = argv[argi++];
     string genome_type = argv[argi++];
@@ -56,7 +57,12 @@ int main(int argc, char *argv[]) {
 
     NEAT::pop_size = pop_size;
 
-    seq_experiment(rng, maxgens);
+    NEAT::Experiment *exp = NEAT::Experiment::get(experiment_name);
+    if(exp == nullptr) {
+        trap("No such experiment: " << experiment_name);
+    }
+    exp->init();
+    exp->run(rng, maxgens);
 
     return(0);
 }
