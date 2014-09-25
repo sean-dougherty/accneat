@@ -7,17 +7,18 @@ function err() {
     exit 1
 }
 
-if [[ $# != 6 ]]; then
-    err "usage: $0 seed poptype genometype maxgens runid comment"
+if [[ $# != 7 ]]; then
+    err "usage: $0 experiment seed poptype genometype maxgens runid comment"
 fi
 
 pop_size=10000
-seed="$1"
-pop_type="$2"
-genome_type="$3"
-maxgens="$4"
-runid="$5"
-comment="$6"
+experiment="$1"
+seed="$2"
+pop_type="$3"
+genome_type="$4"
+maxgens="$5"
+runid="$6"
+comment="$7"
 
 neat_dir=$(readlink -f $(dirname $0)/..)
 runs_dir=$(readlink -f $neat_dir/../runs)
@@ -32,6 +33,7 @@ touch $run_dir/neat_out
 rm -f $neat_dir/out
 ln -s $run_dir/neat_out $neat_dir/out
 
+echo $experiment > $run_dir/experiment_name
 echo $seed > $run_dir/rng_seed
 echo $pop_type > $run_dir/pop_type
 echo $genome_type > $run_dir/genome_type
@@ -62,7 +64,7 @@ hostname > $run_dir/hostname
 
 cd $run_dir
 cp -r $neat_dir/src src
-time $neat_dir/neat $seed $pop_type $genome_type $pop_size $maxgens > neat_out
+time $neat_dir/neat $experiment $seed $pop_type $genome_type $pop_size $maxgens > neat_out
 EOF
 
 qsub $submit_script
