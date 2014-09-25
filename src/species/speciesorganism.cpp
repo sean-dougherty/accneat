@@ -5,7 +5,8 @@
 using namespace NEAT;
 
 SpeciesOrganism::SpeciesOrganism(const Genome &genome) {
-    this->genome = genome.make_clone();
+    this->genome = genome.make_default();
+    *this->genome = genome;
     init(0);
 }
 

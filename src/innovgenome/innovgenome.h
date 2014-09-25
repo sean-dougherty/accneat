@@ -42,7 +42,7 @@ namespace NEAT {
                     size_t nhidden);
 
         virtual std::unique_ptr<Genome> make_default() const override;
-        virtual std::unique_ptr<Genome> make_clone() const override;
+        virtual Genome &operator=(const Genome &other) override;
 
 		//Destructor kills off all lists (including the trait vector)
 		~InnovGenome();
@@ -50,7 +50,7 @@ namespace NEAT {
 		// Dump this genome to specified file
 		virtual void print(std::ostream &out) override;
 
-        void duplicate_into(InnovGenome *offspring);
+        void duplicate_into(InnovGenome *offspring) const;
         InnovGenome &operator=(const InnovGenome &other);
 
 		// For debugging: A number of tests can be run on a genome to check its

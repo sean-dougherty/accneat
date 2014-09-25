@@ -96,7 +96,7 @@ SpaceGenome::SpaceGenome(rng_t rng_,
 
 }
 
-void SpaceGenome::duplicate_into(SpaceGenome *offspring) {
+void SpaceGenome::duplicate_into(SpaceGenome *offspring) const {
     offspring->traits = traits;
     offspring->links = links;
     offspring->nodes = nodes;
@@ -115,10 +115,9 @@ unique_ptr<Genome> SpaceGenome::make_default() const {
     return unique_ptr<Genome>(new SpaceGenome());
 }
 
-unique_ptr<Genome> SpaceGenome::make_clone() const {
-    SpaceGenome *g = new SpaceGenome();
-    *g = *this;
-    return unique_ptr<Genome>(g);
+Genome &SpaceGenome::operator=(const Genome &other) {
+    dynamic_cast<const SpaceGenome &>(other).duplicate_into(this);
+    return *this;
 }
 
 void SpaceGenome::print(std::ostream &out) {

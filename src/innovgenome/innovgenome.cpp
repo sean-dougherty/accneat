@@ -132,10 +132,9 @@ unique_ptr<Genome> InnovGenome::make_default() const {
     return unique_ptr<Genome>(new InnovGenome());
 }
 
-unique_ptr<Genome> InnovGenome::make_clone() const {
-    InnovGenome *g = new InnovGenome();
-    *g = *this;
-    return unique_ptr<Genome>(g);
+Genome &InnovGenome::operator=(const Genome &other) {
+    dynamic_cast<const InnovGenome &>(other).duplicate_into(this);
+    return *this;
 }
 
 InnovGenome::~InnovGenome() {
@@ -202,7 +201,7 @@ real_t InnovGenome::get_last_gene_innovnum() {
     return links.back().innovation_num + 1;
 }
 
-void InnovGenome::duplicate_into(InnovGenome *offspring) {
+void InnovGenome::duplicate_into(InnovGenome *offspring) const {
     offspring->traits = traits;
     offspring->links = links;
     offspring->nodes = nodes;

@@ -24,11 +24,11 @@ namespace NEAT {
                     size_t noutputs,
                     size_t nhidden);
 
-        void duplicate_into(SpaceGenome *offspring);
+        void duplicate_into(SpaceGenome *offspring) const;
         SpaceGenome &operator=(const SpaceGenome &other);
 
         virtual std::unique_ptr<Genome> make_default() const override;
-        virtual std::unique_ptr<Genome> make_clone() const override;
+        virtual Genome &operator=(const Genome &other) override;
 
 		// Dump this genome to specified file
 		virtual void print(std::ostream &out) override;

@@ -26,7 +26,7 @@ namespace NEAT {
 		int genome_id;
 
         virtual std::unique_ptr<Genome> make_default() const = 0;
-        virtual std::unique_ptr<Genome> make_clone() const = 0;
+        virtual Genome &operator=(const Genome &other) = 0;
 
         virtual void init_phenotype(class Network &net) = 0;
 

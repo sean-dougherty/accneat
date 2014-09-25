@@ -26,7 +26,8 @@ Organism::Organism(const Organism &other) {
 }
 
 Organism::Organism(const Genome &genome) {
-    this->genome = genome.make_clone();
+    this->genome = genome.make_default();
+    *this->genome = genome;
 
     //Note: We're in the base class constructor, so a derived class' init() won't
     //      be called. The derived class' constructor must also call init().
