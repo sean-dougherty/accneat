@@ -1,0 +1,13 @@
+--------------------------------------------------------------------------------
+(3 1-bit elements) sequential input, sequential output with three distinct query signals
+
+[serial-out/init]
+
+NOTE: reported nnodes and nlinks are wrong for s1 & s2!!!
+s1:
+        fittest [8467]: fitness=1, error=0, nnodes=10, nlinks=21
+        epoch: n=23990, recent=0.712335, mean=0.777441, min=0.148005, max=2.60327, total=18650.8
+
+s2:
+        fittest [386]: fitness=1, error=0, nnodes=10, nlinks=21
+        epoch: n=10704, recent=2.79821, mean=0.716417, min=0.144769, max=3.83406, total=7668.53
