@@ -1,6 +1,5 @@
 /neat
-/gen_*
-/gens_*
+/experiment_*
 /G*
 /*out*
 /obj
