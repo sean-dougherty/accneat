@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
 
 namespace NEAT {
 
@@ -22,3 +23,5 @@ namespace NEAT {
         return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
     }
 }
+
+void mkdir(const std::string &path);

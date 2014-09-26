@@ -24,6 +24,9 @@ namespace NEAT {
     public:
         rng_t rng;
 		int genome_id;
+        
+        virtual ~Genome() {}
+
 
         virtual std::unique_ptr<Genome> make_default() const = 0;
         virtual Genome &operator=(const Genome &other) = 0;

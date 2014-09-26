@@ -23,18 +23,21 @@ using namespace std;
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 7) {
-        cerr << "usage: neat experiment_name rng_seed pop_type genome_type pop_size maxgens" << endl;
+    if (argc != 8) {
+        cerr << "usage: neat experiment_name experiment_count rng_seed pop_type genome_type pop_size maxgens" << endl;
         return -1;
     }
 
     int argi = 1;
     const char *experiment_name = argv[argi++];
+    int experiment_count = stoi(argv[argi++]);
     int rng_seed = stoi(argv[argi++]);
     string pop_type = argv[argi++];
     string genome_type = argv[argi++];
     int pop_size = stoi(argv[argi++]);
     int maxgens = stoi(argv[argi++]);
+
+    NEAT::num_runs = experiment_count;
 
     if(pop_type == "s") {
         NEAT::population_type = NEAT::PopulationType::SPECIES;

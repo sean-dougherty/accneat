@@ -40,11 +40,13 @@ namespace NEAT {
 
         Organism(const Organism &other);
         Organism(const Genome &genome);
-		~Organism();
+		virtual ~Organism();
 
         virtual void init(int gen);
 
         Organism &operator=(const Organism &other);
+
+        virtual void write(std::ostream &out) const;
 
     protected:
         Organism() {}

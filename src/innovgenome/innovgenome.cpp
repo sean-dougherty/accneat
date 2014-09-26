@@ -133,8 +133,7 @@ unique_ptr<Genome> InnovGenome::make_default() const {
 }
 
 Genome &InnovGenome::operator=(const Genome &other) {
-    dynamic_cast<const InnovGenome &>(other).duplicate_into(this);
-    return *this;
+    return *this = dynamic_cast<const InnovGenome &>(other);
 }
 
 InnovGenome::~InnovGenome() {

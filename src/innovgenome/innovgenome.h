@@ -45,7 +45,7 @@ namespace NEAT {
         virtual Genome &operator=(const Genome &other) override;
 
 		//Destructor kills off all lists (including the trait vector)
-		~InnovGenome();
+		virtual ~InnovGenome();
 
 		// Dump this genome to specified file
 		virtual void print(std::ostream &out) override;

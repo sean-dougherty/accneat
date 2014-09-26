@@ -24,6 +24,8 @@ namespace NEAT {
                     size_t noutputs,
                     size_t nhidden);
 
+        virtual ~SpaceGenome() {}
+
         void duplicate_into(SpaceGenome *offspring) const;
         SpaceGenome &operator=(const SpaceGenome &other);
 

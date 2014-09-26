@@ -159,6 +159,7 @@ void PopulationInnovations::apply() {
         auto &inds = id2inds[master.id];
 
         Innovation *innov;
+
         switch(master.id.innovation_type) {
         case NEWNODE: {
             innov = new Innovation(master.id,
@@ -182,5 +183,7 @@ void PopulationInnovations::apply() {
         for(IndividualInnovation &ind: inds) {
             ind.apply(innov);
         }
+
+        delete innov;
     }
 }

@@ -18,7 +18,7 @@
 #include "species.h"
 
 using namespace NEAT;
-using std::vector;
+using namespace std;
 
 Organism::Organism(const Organism &other) {
     this->genome = other.genome->make_default();
@@ -46,6 +46,13 @@ void Organism::init(int gen) {
 Organism &Organism::operator=(const Organism &other) {
     other.copy_into(*this);
     return *this;
+}
+
+void Organism::write(std::ostream &out) const {
+    out << "/* Organism #" << population_index << " "
+        << "Fitness: " << fitness << " "
+        << "Error: " << error << " */" << endl;
+    genome->print(out);
 }
 
 void Organism::copy_into(Organism &dst) const {

@@ -116,8 +116,7 @@ unique_ptr<Genome> SpaceGenome::make_default() const {
 }
 
 Genome &SpaceGenome::operator=(const Genome &other) {
-    dynamic_cast<const SpaceGenome &>(other).duplicate_into(this);
-    return *this;
+    return *this = dynamic_cast<const SpaceGenome &>(other);
 }
 
 void SpaceGenome::print(std::ostream &out) {

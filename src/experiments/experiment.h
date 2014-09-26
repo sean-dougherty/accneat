@@ -30,6 +30,8 @@ namespace NEAT {
         static std::map<std::string, Experiment*> *experiments;
 
     public:
+        virtual ~Experiment();
+
         void init();
         void run(class rng_t &rng, int gens);
 
@@ -42,15 +44,18 @@ namespace NEAT {
     private:
         Experiment() {}
         real_t score(real_t errorsum);
-        void print(class Population *pop, int gen);
+        void print(class Population *pop,
+                   int experiment_num,
+                   int generation);
         void evaluate(class Population *pop);
         void evaluate_org(class Organism &org);
 
+        const char *name;
         std::vector<Test> tests;
         size_t nsteps;
         size_t nouts;
         real_t max_err;
-        float *details_act;
-        float *details_err;
+        float *details_act = nullptr;
+        float *details_err = nullptr;
     };
 }

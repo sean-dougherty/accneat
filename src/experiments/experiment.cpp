@@ -10,6 +10,20 @@ using namespace std;
 
 #define NACTIVATES_PER_INPUT 10
 
+static string get_dir_path(int experiment_num) {
+    char buf[1024];
+    sprintf(buf, "./experiment_%d", experiment_num);
+    return buf;
+}
+
+static string get_fittest_path(int experiment_num, int generation) {
+    char buf[1024];
+    sprintf(buf, "%s/fittest_%d",
+            get_dir_path(experiment_num).c_str(),
+            generation);
+    return buf;
+}
+
 real_t Step::err(Network *net,
                  float **details_act,
                  float **details_err) {
@@ -45,10 +59,23 @@ Experiment *Experiment::get(const char *name) {
 }
 
 Experiment::Experiment(const char *name) {
+    this->name = name;
     if(get(name) != nullptr) {
         trap("Experiment already registered: " << name);
     }
     experiments->insert(make_pair(name, this));
+}
+
+Experiment::~Experiment() {
+    experiments->erase(name);
+    if(experiments->size() == 0) {
+        delete experiments;
+        experiments = nullptr;
+    }
+    if(details_act) {
+        delete [] details_act;
+        delete [] details_err;
+    }
 }
 
 real_t Experiment::score(real_t errorsum) {
@@ -56,11 +83,9 @@ real_t Experiment::score(real_t errorsum) {
     return x * x;
 };
 
-void Experiment::print(Population *pop, int gen) {
-    char filename[1024];
-    sprintf(filename, "gen_%d", gen);
-    ofstream out(filename);
-    pop->write(out);
+void Experiment::print(Population *pop, int experiment_num, int geneneration) {
+    ofstream out(get_fittest_path(experiment_num, geneneration));
+    pop->get_fittest().write(out);
 }
 
 void Experiment::init() {
@@ -116,26 +141,30 @@ void Experiment::init() {
 }
 
 void Experiment::run(rng_t &rng, int gens) {
-    GenomeManager *genome_manager = GenomeManager::create();
-    vector<unique_ptr<Genome>> genomes = 
-        genome_manager->create_seed_generation(NEAT::pop_size,
-                                               rng,
-                                               1,
-                                               tests[0].steps[0].input.size(),
-                                               tests[0].steps[0].output.size(),
-                                               3);
             
-
     int nsuccesses = 0;
 
-    for(int expcount = 0; expcount < NEAT::num_runs; expcount++) {
+    for(int expcount = 1; expcount <= NEAT::num_runs; expcount++) {
+        mkdir( get_dir_path(expcount) );
+
+        //Create a unique rng sequence for this experiment
+        rng_t rng_exp(rng.integer());
+
+        GenomeManager *genome_manager = GenomeManager::create();
+        vector<unique_ptr<Genome>> genomes = 
+            genome_manager->create_seed_generation(NEAT::pop_size,
+                                                   rng_exp,
+                                                   1,
+                                                   tests[0].steps[0].input.size(),
+                                                   tests[0].steps[0].output.size(),
+                                                   3);
         //Spawn the Population
-        Population *pop = Population::create(rng, genome_manager, genomes);
+        Population *pop = Population::create(rng_exp, genome_manager, genomes);
       
         bool success = false;
         int gen;
         for(gen = 1; !success && (gen <= gens); gen++) {
-            cout << "Epoch " << gen << endl;	
+            cout << "Epoch " << gen << " . Experiment " << expcount << "/" << NEAT::num_runs << endl;	
 
             static Timer timer("epoch");
             timer.start();
@@ -156,12 +185,13 @@ void Experiment::run(rng_t &rng, int gens) {
 
             //Don't print on success because we'll exit the loop and print then.
             if(!success && (gen % NEAT::print_every == 0))
-                print(pop, gen);
+                print(pop, expcount, gen);
         }
 
-        print(pop, gen - 1);
+        print(pop, expcount, gen - 1);
 
         delete pop;
+        delete genome_manager;
     }
 
     cout << "Failures: " << (NEAT::num_runs - nsuccesses) << " out of " << NEAT::num_runs << " runs" << endl;
