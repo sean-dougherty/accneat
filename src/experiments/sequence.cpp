@@ -21,17 +21,6 @@ static void init_env() {
         NEAT::compat_threshold = 10.0;
 }
 
-const float S = 1.0; // Signal
-const float Q = 1.0; // Query
-const float _ = 0.0; // Null
-
-const float A = 0.0;
-const float B = 1.0;
-
-const real_t weight_seq = 4;
-const real_t weight_delay = 25;
-const real_t weight_query = 55;
-
 class SequentialInputExperiment : public Experiment {
 public:
     SequentialInputExperiment()
@@ -43,6 +32,17 @@ public:
     }
 
     virtual vector<Test> create_tests() override {
+        const float A = 0.0;
+        const float B = 1.0;
+
+        const float S = 1.0; // Signal
+        const float Q = 1.0; // Query
+        const float _ = 0.0; // Null
+
+        const real_t weight_seq = 4;
+        const real_t weight_delay = 25;
+        const real_t weight_query = 55;
+
         return {
             {{
                     {{S, _, _, A, _}, {_, _, _}, weight_seq},
@@ -131,6 +131,17 @@ public:
     }
 
     virtual vector<Test> create_tests() override {
+        const float A = 0.0;
+        const float B = 1.0;
+
+        const float S = 1.0; // Signal
+        const float Q = 1.0; // Query
+        const float _ = 0.0; // Null
+
+        const real_t weight_seq = 4;
+        const real_t weight_delay = 25;
+        const real_t weight_query = 55;
+
         return {
             {{
                     {{S, A, _, _, _}, {_}, weight_seq},
@@ -239,3 +250,94 @@ public:
         };
     }
 } seq_output;
+
+class SequentialAbcExperiment : public Experiment {
+public:
+    SequentialAbcExperiment()
+        : Experiment("seq-abc") {
+    }
+
+    virtual void init_env() override {
+        ::init_env();
+    }
+
+    virtual vector<Test> create_tests() override {
+        const float A = 0.0;
+        const float B = 0.5;
+        const float C = 1.0;
+
+        const float S = 1.0; // Signal
+        const float Q = 1.0; // Query
+        const float _ = 0.0; // Null
+
+        const real_t weight_seq = 4;
+        const real_t weight_delay = 25;
+        const real_t weight_query = 55;
+
+        return {
+            {{
+                    {{S, _, A}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, A}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {A, A}, weight_query}
+            }},
+            {{
+                    {{S, _, A}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, B}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {A, B}, weight_query}
+            }},
+            {{
+                    {{S, _, A}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, C}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {A, C}, weight_query}
+            }},
+            {{
+                    {{S, _, B}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, A}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {B, A}, weight_query}
+            }},
+            {{
+                    {{S, _, B}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, B}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {B, B}, weight_query}
+            }},
+            {{
+                    {{S, _, B}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, C}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {B, C}, weight_query}
+            }},
+            {{
+                    {{S, _, C}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, A}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {C, A}, weight_query}
+            }},
+            {{
+                    {{S, _, C}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, B}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {C, B}, weight_query}
+            }},
+            {{
+                    {{S, _, C}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_seq},
+                    {{S, _, C}, {_, _}, weight_seq},
+                    {{_, _, _}, {_, _}, weight_delay},
+                    {{_, Q, _}, {C, C}, weight_query}
+            }},
+        };
+    }
+} seq_abc;

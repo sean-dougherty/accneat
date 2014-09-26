@@ -25,6 +25,7 @@ namespace NEAT {
     class Experiment {
     public:
         static Experiment *get(const char *name);
+        static std::vector<std::string> get_names();
 
     private:
         static std::map<std::string, Experiment*> *experiments;

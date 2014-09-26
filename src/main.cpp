@@ -25,6 +25,11 @@ int main(int argc, char *argv[]) {
 
     if (argc != 8) {
         cerr << "usage: neat experiment_name experiment_count rng_seed pop_type genome_type pop_size maxgens" << endl;
+        cerr << endl;
+        cerr << "experiment names:" << endl;
+        for(auto name: NEAT::Experiment::get_names()) {
+            cerr << "  " << name << endl;
+        }
         return -1;
     }
 

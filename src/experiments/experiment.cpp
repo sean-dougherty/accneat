@@ -58,6 +58,16 @@ Experiment *Experiment::get(const char *name) {
     return it == experiments->end() ? nullptr : it->second;
 }
 
+vector<string> Experiment::get_names() {
+    vector<string> result;
+    if(experiments) {
+        for(auto &kv: *experiments) {
+            result.push_back(kv.first);
+        }
+    }
+    return result;
+}
+
 Experiment::Experiment(const char *name) {
     this->name = name;
     if(get(name) != nullptr) {
@@ -157,7 +167,7 @@ void Experiment::run(rng_t &rng, int gens) {
                                                    1,
                                                    tests[0].steps[0].input.size(),
                                                    tests[0].steps[0].output.size(),
-                                                   3);
+                                                   tests[0].steps[0].input.size());
         //Spawn the Population
         Population *pop = Population::create(rng_exp, genome_manager, genomes);
       
