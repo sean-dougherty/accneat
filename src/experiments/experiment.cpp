@@ -166,6 +166,23 @@ void Experiment::init() {
 
     details_act = new float[NEAT::pop_size * nouts];
     details_err = new float[NEAT::pop_size * nouts];
+
+    cout << "=================" << endl;
+    cout << "===== TESTS =====" << endl;
+    cout << "=================" << endl;
+    for(Test &t: tests) {
+        for(Step s: t.steps) {
+            for(real_t i: s.input) {
+                printf("%1.3f ", i);
+            }
+            printf("| ");
+            for(real_t o: s.output) {
+                printf("%1.3f ", o);
+            }
+            printf("\n");
+        }
+        printf("---\n");
+    }
 }
 
 void Experiment::run(rng_t &rng, int gens) {
