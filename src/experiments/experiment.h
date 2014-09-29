@@ -38,7 +38,7 @@ namespace NEAT {
 
     protected:
         Experiment(const char *name);
-        virtual void init_env() {}
+        virtual void init_env();
         virtual std::vector<Test> create_tests() = 0;
         virtual bool is_success(class Organism *org);
 
