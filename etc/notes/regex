@@ -1,6 +1,8 @@
 --------------------------------------------------------------------------------
 1-bit regex: a+b+a+
 
+[regex/aba]
+
 s1:
     fittest [270]: fitness=1, error=0, nnodes=8, nlinks=22
     epoch: n=67, recent=0.39322, mean=0.543574, min=0.244265, max=0.725351, total=36.4195
@@ -33,6 +35,8 @@ s2x9:
 --------------------------------------------------------------------------------
 2-bit regex: a+b+a+
 
+[regex/aba-2bit_1x5]
+
 s1x5:
     fittest [380]: fitness=1, error=0, nnodes=11, nlinks=32
     epoch: n=77, recent=0.956475, mean=0.667708, min=0.316088, max=0.956475, total=51.4136
@@ -48,3 +52,13 @@ s1x5:
     
     fittest [4074]: fitness=1, error=0, nnodes=10, nlinks=29
     epoch: n=461, recent=0.422181, mean=0.763671, min=0.305695, max=1.16815, total=352.052
+
+--------------------------------------------------------------------------------
+[ad][bc][ad][bc]
+
+[regex/XYXY]
+
+s1:
+    fittest [525]: fitness=1, error=0, nnodes=12, nlinks=38
+    epoch: n=819, recent=6.57516, mean=7.78461, min=4.20439, max=10.8307, total=6375.59
+    
