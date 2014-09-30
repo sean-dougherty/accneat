@@ -18,10 +18,12 @@ public:
         // S -> bSb
         // S -> \0
         vector<string> sentences;
-        for(size_t i = 1; i <= 6; i++) {
+        for(size_t i = 14; i <= 14; i += 2) {
             append(sentences, permute_repeat("ab", i));
         }
 
+        size_t ngrammatical = 0;
+        size_t nungrammatical = 0;
         vector<bool> is_grammatical;
         for(string &s: sentences) {
             size_t n = s.size();
@@ -34,6 +36,34 @@ public:
                 }
                 is_grammatical.push_back(mirrored);
             }
+
+            if(is_grammatical.back()) {
+                ngrammatical++;
+            } else {
+                nungrammatical++;
+            }
+        }
+
+        rng_t rng;
+        while( sentences.size() > 32 ) {
+            int i = rng.integer(0, sentences.size() - 1);
+            if(!is_grammatical[i]) {
+                if( nungrammatical >= ngrammatical ) {
+                    sentences.erase( sentences.begin() + i );
+                    is_grammatical.erase( is_grammatical.begin() + i );
+                    nungrammatical--;
+                }
+            } else {
+                if( ngrammatical >= nungrammatical ) {
+                    sentences.erase( sentences.begin() + i );
+                    is_grammatical.erase( is_grammatical.begin() + i );
+                    ngrammatical--;
+                }
+            }
+        }
+
+        for(size_t i = 0; i < sentences.size(); i++) {
+            cout << sentences[i] << ": " << is_grammatical[i] << endl;
         }
 
         return ::create_tests(sentences, is_grammatical);
