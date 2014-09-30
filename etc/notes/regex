@@ -1,0 +1,32 @@
+********************************************************************************
+1-bit regex: a+b+a+
+
+s1:
+    fittest [270]: fitness=1, error=0, nnodes=8, nlinks=22
+    epoch: n=67, recent=0.39322, mean=0.543574, min=0.244265, max=0.725351, total=36.4195
+
+s2x9:
+    fittest [8259]: fitness=1, error=0, nnodes=9, nlinks=30
+    epoch: n=63, recent=0.54509, mean=0.603712, min=0.245934, max=0.809257, total=38.0339
+    
+    fittest [318]: fitness=1, error=0, nnodes=10, nlinks=32
+    epoch: n=201, recent=0.660141, mean=0.607996, min=0.245934, max=0.8459, total=122.207
+    
+    fittest [656]: fitness=1, error=0, nnodes=9, nlinks=35
+    epoch: n=310, recent=0.942023, mean=0.645902, min=0.245406, max=0.942023, total=200.229
+    
+    fittest [2415]: fitness=1, error=0, nnodes=8, nlinks=25
+    epoch: n=364, recent=0.759718, mean=0.634159, min=0.245406, max=0.942023, total=230.834
+    
+    fittest [8994]: fitness=1, error=0, nnodes=14, nlinks=54
+    epoch: n=524, recent=0.657586, mean=0.672106, min=0.245406, max=1.21438, total=352.184
+    
+    fittest [5395]: fitness=1, error=0, nnodes=9, nlinks=26
+    epoch: n=597, recent=0.775573, mean=0.663276, min=0.245406, max=1.21438, total=395.976
+    
+    fittest [4420]: fitness=1, error=0, nnodes=9, nlinks=26
+    epoch: n=662, recent=0.746569, mean=0.654577, min=0.245406, max=1.21438, total=433.33
+    
+    fittest [8274]: fitness=1, error=0, nnodes=9, nlinks=34
+    epoch: n=783, recent=0.569365, mean=0.652793, min=0.245406, max=1.21438, total=511.137
+    
