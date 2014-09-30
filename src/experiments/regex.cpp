@@ -7,9 +7,11 @@ using namespace NEAT;
 using namespace std;
 
 static vector<Test> create_tests_1bit(const char *grammar,
-                                      const vector<const char *> &sentences);
+                                      const vector<string> &sentences);
 static vector<Test> create_tests_2bit(const char *grammar,
-                                      const vector<const char *> &sentences);
+                                      const vector<string> &sentences);
+static vector<string> permute_repeat(const string &letters,
+                                     size_t len);
 
 static class Regex_aba : public Experiment {
 public:
@@ -19,7 +21,7 @@ public:
     virtual vector<Test> create_tests() override {
         const char *grammar = "a+b+a+";
 
-        vector<const char *> sentences = {
+        vector<string> sentences = {
             "aaa",
             "aabb",
             "bbaa",
@@ -47,7 +49,7 @@ public:
     virtual vector<Test> create_tests() override {
         const char *grammar = "a+b+a+";
 
-        vector<const char *> sentences = {
+        vector<string> sentences = {
             "aaa",
             "aabb",
             "bbaa",
@@ -67,8 +69,22 @@ public:
     }
 } regex_aba_2bit;
 
+static class Regex_XYXY : public Experiment {
+public:
+    Regex_XYXY() : Experiment("regex-XYXY") {
+    }
+
+    virtual vector<Test> create_tests() override {
+        const char *grammar = "[ad][bc][ad][bc]";
+
+        vector<string> sentences = permute_repeat("abcd", 4);
+
+        return ::create_tests_2bit(grammar, sentences);
+    }
+} regex_XYXY;
+
 static vector<Test> create_tests_1bit(const char *grammar,
-                                      const vector<const char *> &sentences) {
+                                      const vector<string> &sentences) {
     const real_t A = 0.0;
     const real_t B = 1.0;
 
@@ -82,20 +98,11 @@ static vector<Test> create_tests_1bit(const char *grammar,
 
     regex regex_grammar{grammar};
         
-    assert( sentences.size() % 2 == 0 );
-    size_t ngrammatical = 0;
-    for(const char *sentence: sentences) {
-        if( regex_match(sentence, regex_grammar) )
-            ngrammatical++;
-    }
-    assert( ngrammatical == sentences.size() / 2 );
-
     vector<Test> tests;
-
-    for(const char *sentence: sentences) {
+    for(const string &sentence: sentences) {
         vector<Step> steps;
 
-        for(size_t i = 0, n = strlen(sentence); i < n; i++) {
+        for(size_t i = 0, n = sentence.size(); i < n; i++) {
             real_t x;
 
             switch(sentence[i]) {
@@ -128,7 +135,7 @@ static vector<Test> create_tests_1bit(const char *grammar,
 }
 
 static vector<Test> create_tests_2bit(const char *grammar,
-                                      const vector<const char *> &sentences) {
+                                      const vector<string> &sentences) {
     const real_t A[] = {0.0, 0.0};
     const real_t B[] = {0.0, 1.0};
     const real_t C[] = {1.0, 0.0};
@@ -140,24 +147,25 @@ static vector<Test> create_tests_2bit(const char *grammar,
 
     const real_t weight_seq = 0;
     const real_t weight_delay = 0;
-    const real_t weight_query = 1;
 
     regex regex_grammar{grammar};
-        
-    assert( sentences.size() % 2 == 0 );
-    size_t ngrammatical = 0;
-    for(const char *sentence: sentences) {
-        if( regex_match(sentence, regex_grammar) )
-            ngrammatical++;
+
+    size_t ncorrect = 0;
+    for(const string &sentence: sentences) {
+        if(regex_match(sentence, regex_grammar)) {
+            ncorrect++;
+        }
     }
-    assert( ngrammatical == sentences.size() / 2 );
+    cout << "ncorrect = " << ncorrect << " / " << sentences.size() << endl;
 
+    const real_t weight_query_correct = 1.0 / ncorrect;
+    const real_t weight_query_incorrect = 1.0 / (sentences.size() - ncorrect);
+        
     vector<Test> tests;
-
-    for(const char *sentence: sentences) {
+    for(const string &sentence: sentences) {
         vector<Step> steps;
 
-        for(size_t i = 0, n = strlen(sentence); i < n; i++) {
+        for(size_t i = 0, n = sentence.size(); i < n; i++) {
             const real_t *X;
 
             switch(sentence[i]) {
@@ -188,12 +196,42 @@ static vector<Test> create_tests_2bit(const char *grammar,
         }
             
         // End of sentence
-        real_t g = regex_match(sentence, regex_grammar) ? 1.0 : 0.0;
-
-        steps.push_back({{_, _, _, Q}, {g}, weight_query});
+        if( regex_match(sentence, regex_grammar) ) {
+            steps.push_back({{_, _, _, Q}, {1.0}, weight_query_correct});
+        } else {
+            steps.push_back({{_, _, _, Q}, {0.0}, weight_query_incorrect});
+        }
 
         tests.push_back({steps});
     }
 
     return tests;
+}
+
+vector<string> permute_repeat(const string &letters,
+                              size_t len) {
+    vector<string> result;
+    string buf;
+    
+    struct local {
+        static void __permute(const string &letters,
+                              size_t depth,
+                              size_t len,
+                              vector<string> &result,
+                              string &buf) {
+            if(depth == len) {
+                result.push_back(buf);
+            } else {
+                for (size_t i = 0; i < letters.size(); ++i) {
+                    buf.append(letters, i, 1);
+                    __permute(letters, depth+1, len, result, buf);
+                    buf.erase(buf.size() - 1);
+                }
+            }
+        }
+    };
+
+    local::__permute(letters, 0, len, result, buf);
+    
+    return result;
 }

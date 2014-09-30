@@ -179,6 +179,7 @@ void Experiment::init() {
             for(real_t o: s.output) {
                 printf("%1.3f ", o);
             }
+            printf(" ; weight=%f", s.weight);
             printf("\n");
         }
         printf("---\n");
@@ -251,6 +252,7 @@ void Experiment::evaluate(Population *pop) {
     Organism &fittest = pop->get_fittest();
 
     if(new_fittest) {
+/*
         float *fittest_act = details_act + fittest.population_index * nouts;
         float *fittest_err = details_err + fittest.population_index * nouts;
         
@@ -263,8 +265,8 @@ void Experiment::evaluate(Population *pop) {
             }
             printf("---\n");
         }
+*/
     }
-
     Genome::Stats gstats = fittest.genome->get_stats();
     cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << gstats.nnodes << ", nlinks=" << gstats.nlinks << endl;
 }
