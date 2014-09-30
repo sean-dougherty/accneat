@@ -14,3 +14,31 @@ void mkdir(const string &path) {
         exit(1);
     }
 }
+
+vector<string> permute_repeat(const string &letters,
+                              size_t len) {
+    vector<string> result;
+    string buf;
+    
+    struct local {
+        static void __permute(const string &letters,
+                              size_t depth,
+                              size_t len,
+                              vector<string> &result,
+                              string &buf) {
+            if(depth == len) {
+                result.push_back(buf);
+            } else {
+                for (size_t i = 0; i < letters.size(); ++i) {
+                    buf.append(letters, i, 1);
+                    __permute(letters, depth+1, len, result, buf);
+                    buf.erase(buf.size() - 1);
+                }
+            }
+        }
+    };
+
+    local::__permute(letters, 0, len, result, buf);
+    
+    return result;
+}

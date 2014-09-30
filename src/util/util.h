@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace NEAT {
 
@@ -24,4 +25,12 @@ namespace NEAT {
     }
 }
 
+template<typename T>
+void append(T &a, const T& b) {
+    a.insert(a.end(), b.begin(), b.end());
+}
+
 void mkdir(const std::string &path);
+
+// e.g. ("ab", 3) --> {"aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"}
+std::vector<std::string> permute_repeat(const std::string &letters, size_t len);

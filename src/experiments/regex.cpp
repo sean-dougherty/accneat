@@ -1,5 +1,6 @@
 #include "experiment.h"
 
+#include "util.h"
 #include <assert.h>
 #include <regex>
 
@@ -10,8 +11,6 @@ static vector<Test> create_tests_1bit(const char *grammar,
                                       const vector<string> &sentences);
 static vector<Test> create_tests_2bit(const char *grammar,
                                       const vector<string> &sentences);
-static vector<string> permute_repeat(const string &letters,
-                                     size_t len);
 
 static class Regex_aba : public Experiment {
 public:
@@ -206,32 +205,4 @@ static vector<Test> create_tests_2bit(const char *grammar,
     }
 
     return tests;
-}
-
-vector<string> permute_repeat(const string &letters,
-                              size_t len) {
-    vector<string> result;
-    string buf;
-    
-    struct local {
-        static void __permute(const string &letters,
-                              size_t depth,
-                              size_t len,
-                              vector<string> &result,
-                              string &buf) {
-            if(depth == len) {
-                result.push_back(buf);
-            } else {
-                for (size_t i = 0; i < letters.size(); ++i) {
-                    buf.append(letters, i, 1);
-                    __permute(letters, depth+1, len, result, buf);
-                    buf.erase(buf.size() - 1);
-                }
-            }
-        }
-    };
-
-    local::__permute(letters, 0, len, result, buf);
-    
-    return result;
 }
