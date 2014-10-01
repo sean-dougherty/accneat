@@ -87,9 +87,13 @@ if $opt_create; then
         echo $DEFAULT_CMD > "$gold/cmd"
     fi
     rm -rf $gold/experiment_*
+    rm -rf $gold/src
 else
     if [ ! -f "$gold/cmd" ]; then
         err "Gold command file doesn't exist: $gold/cmd.\nDid you mean to use -c?"
+    fi
+    if [ -z $(ls $gold/experiment_* 2>/dev/null) ]; then
+        err "Experiment dirs missing in $gold.\nDid you mean to use -c?"
     fi
 fi
 
@@ -108,8 +112,9 @@ else
     if $opt_create; then
         echo "CREATING GOLD EXPERIMENTS"
         mv experiment_* $gold
+        cp -r src $gold
     else
         files=$(find experiment_* -type f | sort)
-        (rc=0; for x in $files; do diff -q $x $gold/$x || rc=1; done; exit $rc) && echo "DIFF OK"
+        (rc=0; for x in $files; do diff -q $x $gold/$x || rc=1; done; exit $rc) && echo "RESULTS MATCH GOLD"
     fi
 fi
