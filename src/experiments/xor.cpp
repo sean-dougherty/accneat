@@ -9,6 +9,10 @@ public:
         : Experiment("xor") {
     }
 
+    virtual void init_env() override {
+        // use legacy defaults
+    }
+
     virtual vector<Test> create_tests() override {
         const real_t T = 1.0;
         const real_t F = 0.0;
