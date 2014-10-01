@@ -18,7 +18,8 @@ public:
         // S -> bSb
         // S -> \0
         vector<string> sentences;
-        append(sentences, permute_repeat("ab", 6));
+        append(sentences, permute_repeat("ab", 2));
+        append(sentences, permute_repeat("ab", 4));
 
         vector<bool> is_grammatical;
         for(string &s: sentences) {

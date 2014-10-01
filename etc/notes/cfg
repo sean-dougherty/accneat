@@ -33,3 +33,14 @@ grammar: S -> aSa | bSb | \0; 6 elements, all sequences
 [cfg/XSX-6el]
 
 s1:
+        fittest [484]: fitness=0.868868, error=0.135738, nnodes=15, nlinks=86
+        epoch: n=13928, recent=3.56809, mean=3.52016, min=1.31716, max=7.60274, total=49028.8
+
+--------------------------------------------------------------------------------
+grammar: S -> aSa | bSb | \0; 2-4 elements, all sequences
+
+[cfg/XSX-2-4el]
+
+s1:
+        fittest [2568]: fitness=1, error=0, nnodes=14, nlinks=71
+        epoch: n=2289, recent=0.65301, mean=0.887304, min=0.273543, max=1.70913, total=2031.04
