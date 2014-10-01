@@ -10,7 +10,7 @@ public:
     }
 
     virtual void init_env() override {
-        // use legacy defaults
+        compat_threshold = 10.0;
     }
 
     virtual vector<Test> create_tests() override {
