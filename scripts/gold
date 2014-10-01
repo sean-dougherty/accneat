@@ -1,0 +1,115 @@
+#!/bin/bash
+
+function usage() {
+################################################################################
+            cat <<EOF
+usage: $(basename $0) [OPTION]... [GOLD_DIR]
+
+DESCRIPTION
+
+  Intended for regression testing. Executes the command contained in
+GOLD_DIR/cmd. If not executed via gdb or valgrind, results of run compared to
+those contained in GOLD_DIR. If no GOLD_DIR is specified, the default is:
+  
+    $DEFAULT_GOLD
+  
+If GOLD_DIR/cmd doesn't exist and -c is specified, the default command used is:
+  
+    $DEFAULT_CMD
+  
+OPTIONS
+
+  -c   Create GOLD_DIR. If it doesn't exist or doesn't contain a cmd file,
+     create it if necessary and populate with default cmd. If it does exist,
+     delete any prior output it contains.
+
+  -s   Single-threaded.
+  -g   Execute via gdb.
+  -v   Execute via valgrind. Output written to screen and ./valgrind.out.
+  -h   Show this message.
+EOF
+################################################################################
+            exit 1
+}
+
+set -e
+
+cd $(dirname $0)/..
+
+DEFAULT_GOLD=$(pwd)/gold/default
+DEFAULT_CMD='./neat xor 2 1 s i 1000 50'
+
+function err() {
+    echo -e "$@" 1>&2 ;
+    echo "Use -h for usage."
+    exit 1
+}
+
+opt_create=false
+opt_gdb=false
+opt_valgrind=false
+
+while getopts "csgvh" opt; do
+    case $opt in
+        c)
+            opt_create=true
+            ;;
+        s)
+            export OMP_NUM_THREADS=1
+            ;;
+        g)
+            opt_gdb=true
+            ;;
+        v)
+            opt_valgrind=true
+            ;;
+        h)
+            usage
+            ;;
+        *)
+            echo "Use -h for usage message" 1>&2
+            exit 1
+            ;;
+    esac
+done
+
+shift $((OPTIND-1))
+
+if [[ $# > 1 ]]; then
+    err "Too many arguments."
+fi
+gold=${1-$DEFAULT_GOLD}
+
+if $opt_create; then
+    mkdir -p "$gold"
+    if [ ! -f "$gold/cmd" ]; then
+        echo "Creating default cmd: $DEFAULT_CMD"
+        echo $DEFAULT_CMD > "$gold/cmd"
+    fi
+    rm -rf $gold/experiment_*
+else
+    if [ ! -f "$gold/cmd" ]; then
+        err "Gold command file doesn't exist: $gold/cmd.\nDid you mean to use -c?"
+    fi
+fi
+
+make
+rm -rf experiment_*
+
+cmd=$(cat $gold/cmd)
+
+if $opt_gdb; then
+    gdb --args $cmd
+elif $opt_valgrind; then
+    valgrind $cmd 2>&1 | tee valgrind.out
+else
+    time $cmd
+
+    if $opt_create; then
+        echo "CREATING GOLD EXPERIMENTS"
+        mv experiment_* $gold
+    else
+        files=$(find experiment_* -type f | sort)
+        (rc=0; for x in $files; do diff -q $x $gold/$x || rc=1; done; exit $rc) && echo "DIFF OK"
+    fi
+fi
