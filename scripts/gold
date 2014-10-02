@@ -92,7 +92,7 @@ else
     if [ ! -f "$gold/cmd" ]; then
         err "Gold command file doesn't exist: $gold/cmd.\nDid you mean to use -c?"
     fi
-    if [ -z $(ls $gold/experiment_* 2>/dev/null) ]; then
+    if [ -z "$(ls $gold/experiment_* 2>/dev/null)" ]; then
         err "Experiment dirs missing in $gold.\nDid you mean to use -c?"
     fi
 fi
@@ -107,12 +107,13 @@ if $opt_gdb; then
 elif $opt_valgrind; then
     valgrind $cmd 2>&1 | tee valgrind.out
 else
-    time $cmd
+    time $cmd | tee out
 
     if $opt_create; then
         echo "CREATING GOLD EXPERIMENTS"
         mv experiment_* $gold
         cp -r src $gold
+        cp out $gold
     else
         files=$(find experiment_* -type f | sort)
         (rc=0; for x in $files; do diff -q $x $gold/$x || rc=1; done; exit $rc) && echo "RESULTS MATCH GOLD"
