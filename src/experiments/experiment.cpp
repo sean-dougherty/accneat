@@ -29,10 +29,18 @@ static string get_fittest_path(int experiment_num, int generation) {
     return buf;
 }
 
-const char *str(Test::Type t) {
+static const char *str(Test::Type t) {
     switch(t) {
     case Test::Training: return "Training";
     case Test::Fittest: return "Fittest";
+    default: panic();
+    }
+}
+
+static const char *str(Step::ErrType t) {
+    switch(t) {
+    case Step::Err_Delta: return "delta";
+    case Step::Err_Binary: return "binary";
     default: panic();
     }
 }
@@ -42,28 +50,51 @@ const char *str(Test::Type t) {
 //--- CLASS Step
 //---
 //------------------------------
-Step::Step(const std::vector<real_t> &input_,
-           const std::vector<real_t> &output_,
-           real_t weight_)
+Step::Step(const vector<real_t> &input_,
+           const vector<real_t> &output_,
+           real_t weight_,
+           ErrType err_type_)
     : input(input_)
     , output(output_)
-    , weight(weight_) {
+    , weight(weight_)
+    , err_type(err_type_) {
+
+    if(err_type == Err_Binary) {
+        for(auto x: output) {
+            assert(x == 0.0 || x == 1.0);
+        }
+    }
 }
 
 real_t Step::err(Network *net) const {
-    real_t result = 0.0;
+    switch(err_type) {
+    case Err_Delta: {
+        real_t result = 0.0;
 
-    for(size_t i = 0; i < output.size(); i++) {
-        real_t err = abs(net->get_output(i) - output[i]);
-
-        if(err < 0.05) {
-            err = 0.0;
+        for(size_t i = 0; i < output.size(); i++) {
+            real_t err = abs(net->get_output(i) - output[i]);
+            if(err < 0.05) {
+                err = 0.0;
+            }
+            result += err;
         }
 
-        result += err;
-    }
+        return result * weight;
+    } break;
+    case Err_Binary: {
+        size_t result = 0;
 
-    return result * weight;
+        for(size_t i = 0; i < output.size(); i++) {
+            if( int(net->get_output(i) + 0.5) != int(output[i]) ) {
+                result++;
+            }
+        }
+
+        return real_t(result) * weight;
+    } break;
+    default:
+        panic();
+    }
 }
 
 //------------------------------
@@ -99,6 +130,57 @@ TestBattery::EvalResult TestBattery::evaluate(Organism &org) const {
     result.error = errorsum;
 
     return result;
+}
+
+void TestBattery::show_report(Organism &org, bool detailed) {
+    if(detailed) {
+        impl();
+    } else {
+        Network *net = &org.net;
+
+        vector<string> errant, perfect;
+        for(auto &test: tests) {
+            bool failed = false;
+            for(auto &step: test.steps) {
+                net->load_sensors(step.input);
+                for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
+                    net->activate();
+                }
+                if( step.err( net ) != 0) {
+                    failed = true;
+                    break;
+                }
+            }
+            net->flush();
+            if(failed) {
+                errant.push_back(test.name);
+            } else {
+                perfect.push_back(test.name);
+            }
+        }
+
+        cout << str(tests.front().type) << ": ";
+
+        if(tests.front().name == "") {
+            cout << "perfect=" << (100 * real_t(perfect.size())/tests.size()) << "%" << endl;
+        } else {
+            cout << "perfect={";
+            for(size_t i = 0; i < perfect.size(); i++) {
+                if(i != 0) cout << ",";
+                cout << perfect[i];
+            }
+            cout << "} ";
+
+            cout << "errant={";
+            for(size_t i = 0; i < errant.size(); i++) {
+                if(i != 0) cout << ",";
+                cout << errant[i];
+            }
+            cout << "} ";
+
+            cout << endl;
+        }
+    }
 }
 
 //------------------------------
@@ -206,6 +288,7 @@ void Experiment::init() {
         cout << "---" << endl;
 
         for(Test &t: kv.second.tests) {
+            printf("~~~ %s\n", t.name.c_str());
             for(Step s: t.steps) {
                 for(real_t i: s.input) {
                     printf("%1.3f ", i);
@@ -215,9 +298,9 @@ void Experiment::init() {
                     printf("%1.3f ", o);
                 }
                 printf(" ; weight=%f", s.weight);
+                printf(", err_type=%s", str(s.err_type));
                 printf("\n");
             }
-            printf("~~~.\n");
         }
     }
 }
@@ -295,6 +378,10 @@ void Experiment::evaluate(Population *pop) {
     Organism &fittest = pop->get_fittest();
 
     if(new_fittest) {
+        batteries[Test::Training].show_report(fittest);
+        if(batteries.find(Test::Fittest) != batteries.end()) {
+            batteries[Test::Fittest].show_report(fittest);
+        }
     }
 
     Genome::Stats gstats = fittest.genome->get_stats();

@@ -3,19 +3,27 @@
 #include "util.h"
 
 #include <map>
+#include <string>
 #include <vector>
 
 
 namespace NEAT {
 
     struct Step {
+        enum ErrType {
+            Err_Delta,
+            Err_Binary
+        };
+
         std::vector<real_t> input;
         std::vector<real_t> output;
         real_t weight;
+        ErrType err_type;
 
         Step(const std::vector<real_t> &input_,
              const std::vector<real_t> &output_,
-             real_t weight_ = 1.0);
+             real_t weight_ = 1.0,
+             ErrType err_type_ = Err_Delta);
 
         real_t err(class Network *net) const;
     };
@@ -26,12 +34,18 @@ namespace NEAT {
             Fittest
         };
 
+        std::string name;
         std::vector<Step> steps;
-        bool is_training;
         Type type;
 
+    Test(const std::string &name_,
+             const std::vector<Step> &steps_,
+             Type type_ = Training)
+        : name(name_), steps(steps_), type(type_) {
+        }
+
         Test(const std::vector<Step> &steps_, Type type_ = Training)
-        : steps(steps_), type(type_) {
+        : Test("", steps_, type_) {
         }
     };
 
@@ -47,6 +61,8 @@ namespace NEAT {
         };
         
         EvalResult evaluate(class Organism &org) const;
+
+        void show_report(class Organism &org, bool detailed = false);
     };
 
     class Experiment {

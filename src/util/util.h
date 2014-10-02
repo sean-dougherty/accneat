@@ -26,8 +26,23 @@ namespace NEAT {
 }
 
 template<typename T>
-void append(T &a, const T& b) {
+void append(std::vector<T> &a, const std::vector<T> &b) {
     a.insert(a.end(), b.begin(), b.end());
+}
+
+template<typename T>
+void append(std::vector<T> &vec, const T &val, size_t n = 1) {
+    for(size_t i = 0; i < n; i++) {
+        vec.push_back(val);
+    }
+}
+
+template<typename T>
+std::vector<T> concat(const std::vector<T> &a, const std::vector<T> &b) {
+    std::vector<T> c;
+    append(c, a);
+    append(c, b);
+    return c;
 }
 
 void mkdir(const std::string &path);
