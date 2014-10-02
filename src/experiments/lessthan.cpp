@@ -1,7 +1,11 @@
 #include "experiment.h"
 
+#include <assert.h>
+
 using namespace NEAT;
 using namespace std;
+
+static Test create_test(string sym_order);
 
 class LessThanExperiment : public Experiment {
 public:
@@ -10,135 +14,48 @@ public:
     }
 
     virtual vector<Test> create_tests() override {
-#define __ 0.0, 0.0
-#define _0 0.0, 0.0
-#define _1 0.0, 1.0
-#define _2 1.0, 0.0
-#define _3 1.0, 1.0
-
-#define _ 0.0
-#define X 1.0
-#define Y 1.0
-#define Q 1.0
-#define T 1.0
-#define F 0.0
-
-        const real_t weight_prob = 0.0;
-        const real_t weight_query = 1.0;
-
         return {
-            {{
-                    {{X, _, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {T}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {T}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {T}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {T}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {T}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {T}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _0}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _1}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _2}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query},
-            }},
-            {{
-                    {{X, _, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, Y, _, _3}, {_}, weight_prob},
-                    {{_, _, _, __}, {_}, weight_prob},
-                    {{_, _, Q, __}, {F}, weight_query}
-            }}
+            create_test("abc")
         };
     }
 } lessthan;
+
+static Test create_test(string sym_order) {
+    static map<char, array<real_t, 2>> sym_encoding {
+        {'a', {0.0, 1.0}},
+        {'b', {1.0, 0.0}},
+        {'c', {1.0, 1.0}}
+    };
+    const real_t weight_query = 1.0;
+
+    assert(sym_order.size() == 3);
+
+    map<char, size_t> sym_val;
+    for(char sym: sym_order) {
+        assert(sym >= 'a' && sym <= 'c');
+        size_t val = sym_val.size();
+        sym_val[sym] = val;
+    }
+
+    vector<Step> steps;
+    for(char x_sym = 'a'; x_sym <= 'c'; x_sym++) {
+        for(char y_sym = 'a'; y_sym <= 'c'; y_sym++) {
+            if(x_sym == y_sym) {
+                continue;
+            }
+
+            auto x_enc = sym_encoding[x_sym];
+            size_t x_val = sym_val[x_sym];
+            auto y_enc = sym_encoding[y_sym];
+            size_t y_val = sym_val[y_sym];
+
+            steps.push_back({
+                {x_enc[0], x_enc[1], y_enc[0], y_enc[1]},
+                {x_val < y_val ? real_t(1.0) : real_t(0.0)},
+                weight_query
+            });
+        }
+    }
+
+    return {steps};
+}
