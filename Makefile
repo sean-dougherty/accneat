@@ -5,7 +5,7 @@ DEPENDS=${OBJECTS:%.o=%.d}
 
 #PROFILE=-pg
 OPENMP=-fopenmp
-OPT=-O3
+OPT=-O2
 
 ./neat: ${OBJECTS}
 	g++ ${PROFILE} ${OBJECTS} -lgomp -o $@
@@ -17,6 +17,6 @@ clean:
 
 obj/%.o: src/%.cpp Makefile
 	@mkdir -p $(shell dirname $@)
-	g++ -Wall ${PROFILE} ${INCLUDES} -MMD ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3 $< -o $@
+	g++ -Wall -Werror ${PROFILE} ${INCLUDES} -MMD ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3 $< -o $@
 
 -include ${DEPENDS}

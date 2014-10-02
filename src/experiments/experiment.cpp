@@ -10,6 +10,11 @@ using namespace std;
 
 #define NACTIVATES_PER_INPUT 10
 
+//------------------------------
+//---
+//--- UTIL
+//---
+//------------------------------
 static string get_dir_path(int experiment_num) {
     char buf[1024];
     sprintf(buf, "./experiment_%d", experiment_num);
@@ -24,9 +29,28 @@ static string get_fittest_path(int experiment_num, int generation) {
     return buf;
 }
 
-real_t Step::err(Network *net,
-                 float **details_act,
-                 float **details_err) {
+const char *str(Test::Type t) {
+    switch(t) {
+    case Test::Training: return "Training";
+    case Test::Fittest: return "Fittest";
+    default: panic();
+    }
+}
+
+//------------------------------
+//---
+//--- CLASS Step
+//---
+//------------------------------
+Step::Step(const std::vector<real_t> &input_,
+           const std::vector<real_t> &output_,
+           real_t weight_)
+    : input(input_)
+    , output(output_)
+    , weight(weight_) {
+}
+
+real_t Step::err(Network *net) const {
     real_t result = 0.0;
 
     for(size_t i = 0; i < output.size(); i++) {
@@ -37,17 +61,51 @@ real_t Step::err(Network *net,
         }
 
         result += err;
-
-        **details_act = net->get_output(i);
-        **details_err = err;
-
-        (*details_act)++;
-        (*details_err)++;
     }
 
     return result * weight;
 }
 
+//------------------------------
+//---
+//--- CLASS TestBattery
+//---
+//------------------------------
+void TestBattery::add(const Test &test) {
+    for(auto &step: test.steps) {
+        max_err += step.weight * step.output.size();
+    }
+    tests.push_back(test);
+}
+
+TestBattery::EvalResult TestBattery::evaluate(Organism &org) const {
+    Network *net = &org.net;
+    real_t errorsum = 0.0;
+
+    for(auto &test: tests) {
+        for(auto &step: test.steps) {
+            net->load_sensors(step.input);
+            for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
+                net->activate();
+            }
+            errorsum += step.err( net );
+        }
+
+        net->flush();
+    }
+
+    EvalResult result;
+    result.fitness = 1.0 - errorsum/max_err;
+    result.error = errorsum;
+
+    return result;
+}
+
+//------------------------------
+//---
+//--- CLASS Experiment
+//---
+//------------------------------
 map<string, Experiment *> *Experiment::experiments = nullptr;
 
 Experiment *Experiment::get(const char *name) {
@@ -82,10 +140,6 @@ Experiment::~Experiment() {
         delete experiments;
         experiments = nullptr;
     }
-    if(details_act) {
-        delete [] details_act;
-        delete [] details_err;
-    }
 }
 
 void Experiment::init_env() {
@@ -106,11 +160,6 @@ void Experiment::init_env() {
         NEAT::compat_threshold = 10.0;
 }
 
-real_t Experiment::score(real_t errorsum) {
-    real_t x = 1.0 - errorsum/max_err;
-    return x * x;
-};
-
 void Experiment::print(Population *pop, int experiment_num, int geneneration) {
     ofstream out(get_fittest_path(experiment_num, geneneration));
     pop->get_fittest().write(out);
@@ -118,17 +167,18 @@ void Experiment::print(Population *pop, int experiment_num, int geneneration) {
 
 void Experiment::init() {
     init_env();
-    tests = create_tests();
 
-    // Validate tests
+    vector<Test> tests = create_tests();
+
+    //Validate tests
     {
         assert(tests.size() > 0);
         assert(tests[0].steps.size() > 0);
 
-        size_t ninputs = tests[0].steps[0].input.size();
+        ninputs = tests[0].steps[0].input.size();
         assert(ninputs > 0);
 
-        size_t noutputs = tests[0].steps[0].output.size();
+        noutputs = tests[0].steps[0].output.size();
         assert(noutputs > 0);
 
         for(size_t i = 1; i < tests.size(); i++) {
@@ -141,48 +191,34 @@ void Experiment::init() {
         }
     }
 
-    // Determine total number of steps
-    {
-        size_t n = 0;
-        for(auto &test: tests) {
-            n += test.steps.size();
-        }
-        nsteps = n;
+    //Organize tests into batteries.
+    for(Test &test: tests) {
+        batteries[test.type].add(test);
     }
+    assert(batteries.find(Test::Training) != batteries.end());
 
-    // Determine total number of outputs
-    nouts = nsteps * tests[0].steps[0].output.size();
+    cout << "=====================" << endl;
+    cout << "===== BATTERIES =====" << endl;
+    cout << "=====================" << endl;
+    for(auto &kv: batteries) {
+        cout << "---" << endl;
+        cout << "---" << str(kv.first) << endl;
+        cout << "---" << endl;
 
-    // Determine maximum error value
-    {
-        real_t total = 0.0;
-        for(auto &t: tests) {
-            for(auto &s: t.steps) {
-                total += s.weight * s.output.size();
+        for(Test &t: kv.second.tests) {
+            for(Step s: t.steps) {
+                for(real_t i: s.input) {
+                    printf("%1.3f ", i);
+                }
+                printf("| ");
+                for(real_t o: s.output) {
+                    printf("%1.3f ", o);
+                }
+                printf(" ; weight=%f", s.weight);
+                printf("\n");
             }
+            printf("~~~.\n");
         }
-        max_err = total;
-    }
-
-    details_act = new float[NEAT::pop_size * nouts];
-    details_err = new float[NEAT::pop_size * nouts];
-
-    cout << "=================" << endl;
-    cout << "===== TESTS =====" << endl;
-    cout << "=================" << endl;
-    for(Test &t: tests) {
-        for(Step s: t.steps) {
-            for(real_t i: s.input) {
-                printf("%1.3f ", i);
-            }
-            printf("| ");
-            for(real_t o: s.output) {
-                printf("%1.3f ", o);
-            }
-            printf(" ; weight=%f", s.weight);
-            printf("\n");
-        }
-        printf("---\n");
     }
 }
 
@@ -201,9 +237,9 @@ void Experiment::run(rng_t &rng, int gens) {
             genome_manager->create_seed_generation(NEAT::pop_size,
                                                    rng_exp,
                                                    1,
-                                                   tests[0].steps[0].input.size(),
-                                                   tests[0].steps[0].output.size(),
-                                                   tests[0].steps[0].input.size());
+                                                   ninputs,
+                                                   noutputs,
+                                                   ninputs);
         //Spawn the Population
         Population *pop = Population::create(rng_exp, genome_manager, genomes);
       
@@ -248,47 +284,25 @@ bool Experiment::is_success(Organism *org) {
 }
 
 void Experiment::evaluate(Population *pop) {
-    bool new_fittest = pop->evaluate([this](Organism &org) {evaluate_org(org);});
+    TestBattery &battery = batteries[Test::Training];
+    auto eval = [=] (Organism &org) {
+        TestBattery::EvalResult result = battery.evaluate(org);
+        org.fitness = result.fitness;
+        org.error = result.error;
+    };
+
+    bool new_fittest = pop->evaluate(eval);
     Organism &fittest = pop->get_fittest();
 
     if(new_fittest) {
-/*
-        float *fittest_act = details_act + fittest.population_index * nouts;
-        float *fittest_err = details_err + fittest.population_index * nouts;
-        
-        for(auto &test: tests) {
-            for(auto &step: test.steps) {
-                for(size_t i = 0; i < step.output.size(); i++) {
-                    printf("%f (%f) ", *fittest_act++, *fittest_err++);
-                }
-                printf("\n");
-            }
-            printf("---\n");
-        }
-*/
     }
+
     Genome::Stats gstats = fittest.genome->get_stats();
-    cout << "fittest [" << fittest.population_index << "]: fitness=" << fittest.fitness << ", error=" << fittest.error << ", nnodes=" << gstats.nnodes << ", nlinks=" << gstats.nlinks << endl;
+    cout << "fittest [" << fittest.population_index << "]"
+         << ": fitness=" << fittest.fitness
+         << ", error=" << fittest.error
+         << ", nnodes=" << gstats.nnodes
+         << ", nlinks=" << gstats.nlinks
+         << endl;
 }
 
-void Experiment::evaluate_org(Organism &org) {
-    float *details_act = this->details_act + org.population_index * nouts;
-    float *details_err = this->details_err + org.population_index * nouts;
-    Network *net = &org.net;
-    real_t errorsum = 0.0;
-
-    for(auto &test: tests) {
-        for(auto &step: test.steps) {
-            net->load_sensors(step.input);
-            for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
-                net->activate();
-            }
-            errorsum += step.err( net, &details_act, &details_err );
-        }
-
-        net->flush();
-    }
- 
-    org.fitness = score(errorsum);
-    org.error = errorsum;
-}
