@@ -164,14 +164,14 @@ void TestBattery::show_report(Organism &org, bool detailed) {
         if(tests.front().name == "") {
             cout << "perfect=" << (100 * real_t(perfect.size())/tests.size()) << "%" << endl;
         } else {
-            cout << "perfect={";
+            cout << "perfect[" << perfect.size() << "]={";
             for(size_t i = 0; i < perfect.size(); i++) {
                 if(i != 0) cout << ",";
                 cout << perfect[i];
             }
             cout << "} ";
 
-            cout << "errant={";
+            cout << "errant[" << errant.size() << "]={";
             for(size_t i = 0; i < errant.size(); i++) {
                 if(i != 0) cout << ",";
                 cout << errant[i];

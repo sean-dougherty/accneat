@@ -110,19 +110,22 @@ struct FooExperiment : public Experiment {
     }
 
     virtual vector<Test> create_tests() override {
-        string syms = "abcdef";
-        vector<string> all_sequences = permute_repeat(syms, 2);
+        string syms = "abcdefgh";
+        vector<string> all_sequences = permute_repeat(syms, 4);
         vector<string> training;
+        vector<string> fittest;
         rng_t rng;
 
         for(string seq: all_sequences) {
-            if(rng.under(0.33)) {
+            if(rng.under(0.01)) {
                 training.push_back(seq);
+            } else if(rng.under(0.03)) {
+                fittest.push_back(seq);
             }
         }
 
         return concat(create_parallel_output_tests(syms, training, Test::Training),
-                      create_parallel_output_tests(syms, all_sequences, Test::Fittest));
+                      create_parallel_output_tests(syms, fittest, Test::Fittest));
     }
 } foo;
 
