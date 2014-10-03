@@ -6,6 +6,22 @@
 using namespace NEAT;
 using namespace std;
 
+InnovGenomeManager::InnovGenomeManager() {
+    if(NEAT::search_type == GeneticSearchType::PHASED) {
+        search_phase = COMPLEXIFY;
+        search_phase_start = 1;
+    } else {
+        search_phase = UNDEFINED;
+        search_phase_start = -1;
+
+        if(NEAT::search_type == NEAT::GeneticSearchType::BLENDED) {
+            NEAT::mutate_delete_node_prob *= 0.1;
+            NEAT::mutate_delete_link_prob *= 0.1;
+        }
+    }
+    generation = 1;
+}
+
 InnovGenomeManager::~InnovGenomeManager() {
 }
 
@@ -66,25 +82,36 @@ void InnovGenomeManager::mate(Genome &genome1,
                               real_t fitness1,
                               real_t fitness2) {
 
-    InnovGenome::mate(to_innov(genome1),
-                      to_innov(genome2),
-                      to_innov(offspring),
-                      fitness1,
-                      fitness2);        
-
-    //Determine whether to mutate the baby's InnovGenome
-    //This is done randomly or if the genome1 and genome2 are the same organism
-    if( !offspring.rng.under(NEAT::mate_only_prob) ||
-        (genome2.genome_id == genome1.genome_id) ||
-        (to_innov(genome2)->compatibility(to_innov(genome1)) == 0.0) ) {
-
+    if(!is_mate_allowed()) {
+        if(fitness1 > fitness2) {
+            clone(genome1, offspring);
+        } else {
+            clone(genome2, offspring);
+        }
         mutate(offspring, MUTATE_OP_ANY);
+    } else {
+        InnovGenome::mate(to_innov(genome1),
+                          to_innov(genome2),
+                          to_innov(offspring),
+                          fitness1,
+                          fitness2);
+
+        //Determine whether to mutate the baby's InnovGenome
+        //This is done randomly or if the genome1 and genome2 are the same organism
+        if( !offspring.rng.under(NEAT::mate_only_prob) ||
+            (genome2.genome_id == genome1.genome_id) ||
+            (to_innov(genome2)->compatibility(to_innov(genome1)) == 0.0) ) {
+
+            mutate(offspring, MUTATE_OP_ANY);
+        }
     }
 }
 
 void InnovGenomeManager::mutate(Genome &genome_,
                                 MutationOperation op) {
     InnovGenome *genome = to_innov(genome_);
+    bool allow_del = is_delete_allowed();
+    bool allow_add = is_add_allowed();
 
     switch(op) {
     case MUTATE_OP_WEIGHTS:
@@ -92,23 +119,30 @@ void InnovGenomeManager::mutate(Genome &genome_,
                                     1.0,
                                     GAUSSIAN);
         break;
-    case MUTATE_OP_STRUCTURE:
-        //todo: other operations as well?
-        genome->mutate_add_link(create_innov_func(genome_),
-                                NEAT::newlink_tries);
-        break;
+    case MUTATE_OP_STRUCTURE: {
+        if(!allow_add && !allow_del) {
+            mutate(genome_, MUTATE_OP_WEIGHTS);
+        } else {
+            if(!allow_del || genome_.rng.boolean()) {
+                genome->mutate_add_link(create_innov_func(genome_),
+                                        NEAT::newlink_tries);
+            } else {
+                genome->mutate_delete_link();
+            }
+        }
+    } break;
     case MUTATE_OP_ANY: {
         rng_t &rng = genome->rng;
         rng_t::prob_switch_t op = rng.prob_switch();
 
-        if( op.prob_case(NEAT::mutate_add_node_prob) ) {
+        if( allow_add && op.prob_case(NEAT::mutate_add_node_prob) ) {
             genome->mutate_add_node(create_innov_func(genome_));
-        } else if( op.prob_case(NEAT::mutate_add_link_prob) ) {
+        } else if( allow_add && op.prob_case(NEAT::mutate_add_link_prob) ) {
             genome->mutate_add_link(create_innov_func(genome_),
                                     NEAT::newlink_tries);
-        } else if( op.prob_case(NEAT::mutate_delete_link_prob) ) {
+        } else if( allow_del && op.prob_case(NEAT::mutate_delete_link_prob) ) {
             genome->mutate_delete_link();
-        } else if( op.prob_case(NEAT::mutate_delete_node_prob) ) {
+        } else if( allow_del && op.prob_case(NEAT::mutate_delete_node_prob) ) {
             genome->mutate_delete_node();
         } else {
             //Only do other mutations when not doing sturctural mutations
@@ -126,11 +160,14 @@ void InnovGenomeManager::mutate(Genome &genome_,
                                             1.0,
                                             GAUSSIAN);
             }
-            if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
-                genome->mutate_toggle_enable(1);
-            }
-            if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
-                genome->mutate_gene_reenable(); 
+
+            if(NEAT::search_type == GeneticSearchType::COMPLEXIFY) {
+                if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
+                    genome->mutate_toggle_enable(1);
+                }
+                if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
+                    genome->mutate_gene_reenable(); 
+                }
             }
         }
     } break;
@@ -141,6 +178,29 @@ void InnovGenomeManager::mutate(Genome &genome_,
 
 void InnovGenomeManager::finalize_generation() {
     innovations.apply();
+
+    generation++;
+    if(NEAT::search_type == GeneticSearchType::PHASED) {
+        int phase_duration = generation - search_phase_start;
+        switch(search_phase) {
+        case COMPLEXIFY:
+            if(phase_duration >= 100) {
+                cout << "phase PRUNE @ gen " << generation << endl;
+                search_phase_start = generation;
+                search_phase = PRUNE;
+            }
+            break;
+        case PRUNE:
+            if(phase_duration >= 30) {
+                cout << "phase COMPLEXIFY @ gen " << generation << endl;
+                search_phase_start = generation;
+                search_phase = COMPLEXIFY;
+            }
+            break;
+        default:
+            panic();
+        }
+    }
 }
 
 CreateInnovationFunc InnovGenomeManager::create_innov_func(Genome &g) {
@@ -149,4 +209,41 @@ CreateInnovationFunc InnovGenomeManager::create_innov_func(Genome &g) {
                        IndividualInnovation::ApplyFunc apply) {
         innovations.add(IndividualInnovation(g.genome_id, id, parms, apply));
     };
+}
+
+bool InnovGenomeManager::is_mate_allowed() {
+    switch(NEAT::search_type) {
+    case GeneticSearchType::PHASED:
+        return search_phase == COMPLEXIFY;
+    case GeneticSearchType::BLENDED:
+    case GeneticSearchType::COMPLEXIFY:
+        return true;
+    default:
+        panic();
+    }
+}
+
+bool InnovGenomeManager::is_add_allowed() {
+    switch(NEAT::search_type) {
+    case GeneticSearchType::PHASED:
+        return search_phase == COMPLEXIFY;
+    case GeneticSearchType::BLENDED:
+    case GeneticSearchType::COMPLEXIFY:
+        return true;
+    default:
+        panic();
+    }
+}
+
+bool InnovGenomeManager::is_delete_allowed() {
+    switch(NEAT::search_type) {
+    case GeneticSearchType::PHASED:
+        return search_phase == PRUNE;
+    case GeneticSearchType::BLENDED:
+        return true;
+    case GeneticSearchType::COMPLEXIFY:
+        return false;
+    default:
+        panic();
+    }
 }

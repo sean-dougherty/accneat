@@ -319,6 +319,8 @@ void InnovGenome::mutate_link_weights(real_t power,real_t rate,mutator mut_type)
 }
 
 void InnovGenome::mutate_toggle_enable(int times) {
+    assert(NEAT::search_type == GeneticSearchType::COMPLEXIFY);
+
     for(int i = 0; i < times; i++) {
         InnovLinkGene &gene = rng.element(links);
 
@@ -345,6 +347,8 @@ void InnovGenome::mutate_toggle_enable(int times) {
 }
 
 void InnovGenome::mutate_gene_reenable() {
+    assert(NEAT::search_type == GeneticSearchType::COMPLEXIFY);
+
 	//Search for a disabled gene
     for(InnovLinkGene &g: links) {
         if(!g.enable) {
@@ -396,10 +400,10 @@ bool InnovGenome::mutate_add_node(CreateInnovationFunc create_innov) {
                                0);    
 
         // If deletion of links is permitted, delete it.
-        if(NEAT::mutate_delete_link_prob > 0.0) {
-            delete_link(splitlink);
-        } else {
+        if(NEAT::search_type == GeneticSearchType::COMPLEXIFY) {
             splitlink->enable = false;
+        } else {
+            delete_link(splitlink);
         }
 
         add_link(this->links, newlink1);

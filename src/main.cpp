@@ -42,10 +42,8 @@ void usage() {
     cerr << "  -r RNG_seed (default=" << DEFAULT_RNG_SEED << ")" << endl;
     cerr << "  -n population_size (default=" << NEAT::pop_size << ")" << endl;
     cerr << "  -x max_generations (default=" << DEFAULT_MAX_GENS << ")" << endl;
-    cerr << endl;
-    cerr << "ILL-ADVISED OPTIONS" << endl;
-    cerr << "  -p population_type {species, demes} (default=species)" << endl;
-    cerr << "  -g genome_type {innov, space} (default=innov)" << endl;
+    cerr << "  -s search_type {phased, blended, complexify} (default=phased)" << endl;
+
 
     exit(1);
 }
@@ -73,13 +71,26 @@ int main(int argc, char *argv[]) {
     int maxgens = DEFAULT_MAX_GENS;
     {
         int opt;
-        while( (opt = getopt(argc, argv, "c:r:p:g:n:x:")) != -1) {
+        while( (opt = getopt(argc, argv, "c:r:p:g:n:x:s:")) != -1) {
             switch(opt) {
             case 'c':
                 NEAT::num_runs = parse_int("-c", optarg);
                 break;
             case 'r':
                 rng_seed = parse_int("-r", optarg);
+                break;
+            case 'n':
+                NEAT::pop_size = parse_int("-n", optarg);
+                break;
+            case 'x':
+                maxgens = parse_int("-x", optarg);
+                break;
+            case 's':
+                NEAT::search_type = parse_enum<NEAT::GeneticSearchType>("-s", optarg, {
+                        {"phased", NEAT::GeneticSearchType::PHASED},
+                        {"blended", NEAT::GeneticSearchType::BLENDED},
+                        {"complexify", NEAT::GeneticSearchType::COMPLEXIFY}
+                    });
                 break;
             case 'p':
                 NEAT::population_type = parse_enum<NEAT::PopulationType>("-p", optarg, {
@@ -92,12 +103,6 @@ int main(int argc, char *argv[]) {
                         {"innov", NEAT::GenomeType::INNOV},
                         {"space", NEAT::GenomeType::SPACE}
                     });
-                break;
-            case 'n':
-                NEAT::pop_size = parse_int("-n", optarg);
-                break;
-            case 'x':
-                maxgens = parse_int("-x", optarg);
                 break;
             default:
                 error("Invalid option: -" << (char)opt);

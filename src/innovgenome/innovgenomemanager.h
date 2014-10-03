@@ -6,6 +6,8 @@
 namespace NEAT {
 
     class InnovGenomeManager : public GenomeManager {
+        friend class GenomeManager;
+        InnovGenomeManager();
     public:
         virtual ~InnovGenomeManager();
 
@@ -33,10 +35,21 @@ namespace NEAT {
 
         virtual void finalize_generation() override;
 
-        //private: todo: uncomment
+    private:
         CreateInnovationFunc create_innov_func(Genome &g);
+        bool is_mate_allowed();
+        bool is_add_allowed();
+        bool is_delete_allowed();
 
-        PopulationInnovations innovations;        
+        PopulationInnovations innovations;
+
+        int generation;
+        enum SearchPhase {
+            UNDEFINED,
+            COMPLEXIFY,
+            PRUNE
+        } search_phase;
+        int search_phase_start;
     };
 
 }

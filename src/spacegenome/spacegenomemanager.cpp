@@ -19,6 +19,8 @@ vector<unique_ptr<Genome>> SpaceGenomeManager::create_seed_generation(size_t nge
                                                                       size_t ninputs,
                                                                       size_t noutputs,
                                                                       size_t nhidden) {
+    trap("need to implement support for search_type");
+
     SpaceGenome start_genome(rng,
                              ntraits,
                              ninputs,

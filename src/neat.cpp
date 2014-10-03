@@ -28,6 +28,7 @@ const std::vector<NEAT::nodetype> NEAT::nodetypes = {
     NEAT::nodetype::HIDDEN
 };
 
+NEAT::GeneticSearchType NEAT::search_type = GeneticSearchType::COMPLEXIFY;
 NEAT::PopulationType NEAT::population_type = PopulationType::SPECIES;
 NEAT::GenomeType NEAT::genome_type = GenomeType::INNOV;
 real_t NEAT::trait_param_mut_prob = 0.5;
@@ -49,10 +50,10 @@ real_t NEAT::mutate_node_trait_prob = 0.1;
 real_t NEAT::mutate_link_weights_prob = 0.8;
 real_t NEAT::mutate_toggle_enable_prob = 0.1;
 real_t NEAT::mutate_gene_reenable_prob = 0.05;
-real_t NEAT::mutate_delete_link_prob = 0.0;
 real_t NEAT::mutate_add_node_prob = 0.01;
-real_t NEAT::mutate_delete_node_prob = 0.0;
+real_t NEAT::mutate_delete_node_prob = 0.01;
 real_t NEAT::mutate_add_link_prob = 0.3;
+real_t NEAT::mutate_delete_link_prob = 0.3;
 bool NEAT::mutate_add_link_reenables = false;
 real_t NEAT::interspecies_mate_rate = 0.001; // Prob. of a mate being outside species 
 real_t NEAT::mate_multipoint_prob = 0.6;     

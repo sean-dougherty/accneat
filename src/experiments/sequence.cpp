@@ -9,101 +9,33 @@ using namespace std;
 
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences,
-                                                 Test::Type test_type) {
-    const real_t weight_seq = 5;
-    const real_t weight_query = 50;
+                                                 Test::Type test_type);
 
-    Step::ErrType err_type;
-    switch(test_type) {
-    case Test::Training:
-        err_type = Step::Err_Delta;
-        break;
-    case Test::Fittest:
-        err_type = Step::Err_Binary;
-        break;
+struct Seq1bit2elExperiment : public Experiment {
+    Seq1bit2elExperiment() : Experiment("seq-1bit-2el") {
     }
 
-    assert(syms.size() > 1);
-    assert(sequences.size() > 1);
-    for(size_t i = 1; i < sequences.size(); i++) {
-        assert(sequences[0].size() == sequences[i].size());
+    virtual vector<Test> create_tests() override {
+        string syms = "ab";
+        vector<string> seqs = permute_repeat(syms, 2);
+
+        return concat(create_parallel_output_tests(syms, seqs, Test::Training),
+                      create_parallel_output_tests(syms, seqs, Test::Fittest));
+    }
+} seq_1bit_2el;
+
+struct Seq1bit3elExperiment : public Experiment {
+    Seq1bit3elExperiment() : Experiment("seq-1bit-3el") {
     }
 
-    size_t sequence_len = sequences[0].size();
-    size_t nsyms = syms.size();
-    size_t nbits = ceil(log2(nsyms));
+    virtual vector<Test> create_tests() override {
+        string syms = "ab";
+        vector<string> seqs = permute_repeat(syms, 3);
 
-    map<char, vector<real_t>> sym_encoding;
-    //Create binary encoding for each symbol
-    for(size_t i = 0; i < syms.size(); i++) {
-        char sym = syms[i];
-        assert(sym_encoding.find(sym) == sym_encoding.end());
-        vector<real_t> &encoding = sym_encoding[sym];
-        for(size_t bit = nbits; bit > 0; bit--) {
-            if(i & (1 << (bit-1))) {
-                encoding.push_back(1.0);
-            } else {
-                encoding.push_back(0.0);
-            }
-        }
+        return concat(create_parallel_output_tests(syms, seqs, Test::Training),
+                      create_parallel_output_tests(syms, seqs, Test::Fittest));
     }
-
-    const real_t _ = 0.0;
-    const real_t X = 1.0;
-
-    vector<Test> tests;
-    for(string &sequence: sequences) {
-        vector<Step> steps;
-
-        //Present sequence
-        for(char sym: sequence) {
-            //Create step in which symbol is presented
-            {
-                vector<real_t> input;
-                append(input, X); // Symbol being provided in this step
-                append(input, _); // Not querying
-                append(input, sym_encoding[sym]);
-
-                vector<real_t> output;
-                append(output, _, sequence_len * nbits); // Empty output
-
-                steps.emplace_back(input, output, weight_seq, err_type);
-            }
-            
-            //Create silence
-            {
-                vector<real_t> input;
-                append(input, _); // No symbol this step
-                append(input, _); // Not querying
-                append(input, _, nbits); // Empty symbol
-
-                vector<real_t> output;
-                append(output, _, sequence_len * nbits); // Empty output
-
-                steps.emplace_back(input, output, weight_seq, err_type);
-            }
-        }
-
-        // Query
-        {
-            vector<real_t> input;
-            append(input, _); // No symbol
-            append(input, X); // Querying
-            append(input, _, nbits); // Empty symbol
-            
-            vector<real_t> output;
-            for(char sym: sequence) {
-                append(output, sym_encoding[sym]);
-            }
-
-            steps.emplace_back(input, output, weight_query, err_type);
-        }
-
-        tests.emplace_back(sequence, steps, test_type);
-    }
-
-    return tests;
-}
+} seq_1bit_3el;
 
 struct FooExperiment : public Experiment {
     FooExperiment() : Experiment("foo") {
@@ -585,3 +517,101 @@ public:
 #undef __
     }
 } seq_2bit;
+
+static vector<Test> create_parallel_output_tests(string syms,
+                                                 vector<string> &sequences,
+                                                 Test::Type test_type) {
+    const real_t weight_seq = 5;
+    const real_t weight_query = 50;
+
+    Step::ErrType err_type;
+    switch(test_type) {
+    case Test::Training:
+        err_type = Step::Err_Delta;
+        break;
+    case Test::Fittest:
+        err_type = Step::Err_Binary;
+        break;
+    }
+
+    assert(syms.size() > 1);
+    assert(sequences.size() > 1);
+    for(size_t i = 1; i < sequences.size(); i++) {
+        assert(sequences[0].size() == sequences[i].size());
+    }
+
+    size_t sequence_len = sequences[0].size();
+    size_t nsyms = syms.size();
+    size_t nbits = ceil(log2(nsyms));
+
+    map<char, vector<real_t>> sym_encoding;
+    //Create binary encoding for each symbol
+    for(size_t i = 0; i < syms.size(); i++) {
+        char sym = syms[i];
+        assert(sym_encoding.find(sym) == sym_encoding.end());
+        vector<real_t> &encoding = sym_encoding[sym];
+        for(size_t bit = nbits; bit > 0; bit--) {
+            if(i & (1 << (bit-1))) {
+                encoding.push_back(1.0);
+            } else {
+                encoding.push_back(0.0);
+            }
+        }
+    }
+
+    const real_t _ = 0.0;
+    const real_t X = 1.0;
+
+    vector<Test> tests;
+    for(string &sequence: sequences) {
+        vector<Step> steps;
+
+        //Present sequence
+        for(char sym: sequence) {
+            //Create step in which symbol is presented
+            {
+                vector<real_t> input;
+                append(input, X); // Symbol being provided in this step
+                append(input, _); // Not querying
+                append(input, sym_encoding[sym]);
+
+                vector<real_t> output;
+                append(output, _, sequence_len * nbits); // Empty output
+
+                steps.emplace_back(input, output, weight_seq, err_type);
+            }
+            
+            //Create silence
+            {
+                vector<real_t> input;
+                append(input, _); // No symbol this step
+                append(input, _); // Not querying
+                append(input, _, nbits); // Empty symbol
+
+                vector<real_t> output;
+                append(output, _, sequence_len * nbits); // Empty output
+
+                steps.emplace_back(input, output, weight_seq, err_type);
+            }
+        }
+
+        // Query
+        {
+            vector<real_t> input;
+            append(input, _); // No symbol
+            append(input, X); // Querying
+            append(input, _, nbits); // Empty symbol
+            
+            vector<real_t> output;
+            for(char sym: sequence) {
+                append(output, sym_encoding[sym]);
+            }
+
+            steps.emplace_back(input, output, weight_query, err_type);
+        }
+
+        tests.emplace_back(sequence, steps, test_type);
+    }
+
+    return tests;
+}

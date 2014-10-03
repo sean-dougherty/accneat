@@ -51,6 +51,9 @@ namespace NEAT {
 
 	const int num_trait_params = 8;
 
+    enum class GeneticSearchType {PHASED, BLENDED, COMPLEXIFY};
+    extern GeneticSearchType search_type;
+
     enum class PopulationType {SPECIES, DEMES};
     extern PopulationType population_type;
 
