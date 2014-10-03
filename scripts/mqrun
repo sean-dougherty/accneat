@@ -11,7 +11,7 @@ if [[ $# != 8 ]]; then
     err "usage: $0 experiment experiment_count seed poptype genometype maxgens runid comment"
 fi
 
-pop_size=10000
+pop_size=2000
 experiment="$1"
 experiment_count="$2"
 seed="$3"
