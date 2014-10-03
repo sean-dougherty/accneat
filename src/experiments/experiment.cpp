@@ -1,6 +1,7 @@
 #include "experiment.h"
 #include "network.h"
 #include "population.h"
+#include "stats.h"
 #include "timer.h"
 #include <assert.h>
 #include <fstream>
@@ -308,6 +309,7 @@ void Experiment::init() {
 void Experiment::run(rng_t &rng, int gens) {
             
     int nsuccesses = 0;
+    vector<int> success_generations;
 
     for(int expcount = 1; expcount <= NEAT::num_runs; expcount++) {
         mkdir( get_dir_path(expcount) );
@@ -343,6 +345,7 @@ void Experiment::run(rng_t &rng, int gens) {
             if(is_success(&pop->get_fittest())) {
                 success = true;
                 nsuccesses++;
+                success_generations.push_back(gen);
             }
 
             timer.stop();
@@ -360,6 +363,7 @@ void Experiment::run(rng_t &rng, int gens) {
     }
 
     cout << "Failures: " << (NEAT::num_runs - nsuccesses) << " out of " << NEAT::num_runs << " runs" << endl;
+    cout << "Success generations stats: " << stats(success_generations) << endl;
 }
 
 bool Experiment::is_success(Organism *org) {

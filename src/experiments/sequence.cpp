@@ -110,8 +110,11 @@ struct FooExperiment : public Experiment {
     }
 
     virtual vector<Test> create_tests() override {
-        string syms = "abcdefgh";
-        vector<string> all_sequences = permute_repeat(syms, 4);
+        string syms = "ab";
+        vector<string> all_sequences = permute_repeat(syms, 2);
+
+        return create_parallel_output_tests(syms, all_sequences, Test::Training);
+/*
         vector<string> training;
         vector<string> fittest;
         rng_t rng;
@@ -126,6 +129,7 @@ struct FooExperiment : public Experiment {
 
         return concat(create_parallel_output_tests(syms, training, Test::Training),
                       create_parallel_output_tests(syms, fittest, Test::Fittest));
+*/
     }
 } foo;
 
