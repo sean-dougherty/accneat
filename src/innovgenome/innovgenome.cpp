@@ -215,43 +215,6 @@ InnovGenome &InnovGenome::operator=(const InnovGenome &other) {
     return *this;
 }
 
-void InnovGenome::mutate(CreateInnovationFunc create_innov) {
-    //Do the mutation depending on probabilities of 
-    //various mutations
-    rng_t::prob_switch_t op = rng.prob_switch();
-
-    if( op.prob_case(NEAT::mutate_add_node_prob) ) {
-        mutate_add_node(create_innov);
-    } else if( op.prob_case(NEAT::mutate_add_link_prob) ) {
-        mutate_add_link(create_innov,
-                        NEAT::newlink_tries);
-    } else if( op.prob_case(NEAT::mutate_delete_link_prob) ) {
-        mutate_delete_link();
-    } else if( op.prob_case(NEAT::mutate_delete_node_prob) ) {
-        mutate_delete_node();
-    } else {
-        //Only do other mutations when not doing sturctural mutations
-        if( rng.under(NEAT::mutate_random_trait_prob) ) {
-            mutate_random_trait();
-        }
-        if( rng.under(NEAT::mutate_link_trait_prob) ) {
-            mutate_link_trait(1);
-        }
-        if( rng.under(NEAT::mutate_node_trait_prob) ) {
-            mutate_node_trait(1);
-        }
-        if( rng.under(NEAT::mutate_link_weights_prob) ) {
-            mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
-        }
-        if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
-            mutate_toggle_enable(1);
-        }
-        if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
-            mutate_gene_reenable(); 
-        }
-    }
-}
-
 void InnovGenome::mutate_random_trait() {
     rng.element(traits).mutate(rng);
 }
@@ -594,8 +557,7 @@ void InnovGenome::add_node(vector<InnovNodeGene> &nlist, const InnovNodeGene &n)
     nlist.insert(it, n);
 }
 
-void InnovGenome::mate(CreateInnovationFunc create_innov,
-                       InnovGenome *genome1,
+void InnovGenome::mate(InnovGenome *genome1,
                        InnovGenome *genome2,
                        InnovGenome *offspring,
                        real_t fitness1,
@@ -614,15 +576,6 @@ void InnovGenome::mate(CreateInnovationFunc create_innov,
                                          offspring,
                                          fitness1,
                                          fitness2);
-    }
-
-    //Determine whether to mutate the baby's InnovGenome
-    //This is done randomly or if the genome1 and genome2 are the same organism
-    if( !offspring->rng.under(NEAT::mate_only_prob) ||
-        (genome2->genome_id == genome1->genome_id) ||
-        (genome2->compatibility(genome1) == 0.0) ) {
-
-        offspring->mutate(create_innov);
     }
 }
 

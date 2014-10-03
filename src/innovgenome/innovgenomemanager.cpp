@@ -66,31 +66,74 @@ void InnovGenomeManager::mate(Genome &genome1,
                               real_t fitness1,
                               real_t fitness2) {
 
-    InnovGenome::mate(create_innov_func(offspring),
-                      to_innov(genome1),
+    InnovGenome::mate(to_innov(genome1),
                       to_innov(genome2),
                       to_innov(offspring),
                       fitness1,
                       fitness2);        
-}
- 
 
-void InnovGenomeManager::mutate(Genome &genome,
+    //Determine whether to mutate the baby's InnovGenome
+    //This is done randomly or if the genome1 and genome2 are the same organism
+    if( !offspring.rng.under(NEAT::mate_only_prob) ||
+        (genome2.genome_id == genome1.genome_id) ||
+        (to_innov(genome2)->compatibility(to_innov(genome1)) == 0.0) ) {
+
+        mutate(offspring, MUTATE_OP_ANY);
+    }
+}
+
+void InnovGenomeManager::mutate(Genome &genome_,
                                 MutationOperation op) {
+    InnovGenome *genome = to_innov(genome_);
+
     switch(op) {
     case MUTATE_OP_WEIGHTS:
-        to_innov(genome)->mutate_link_weights(NEAT::weight_mut_power,
-                                              1.0,
-                                              GAUSSIAN);
+        genome->mutate_link_weights(NEAT::weight_mut_power,
+                                    1.0,
+                                    GAUSSIAN);
         break;
     case MUTATE_OP_STRUCTURE:
         //todo: other operations as well?
-        to_innov(genome)->mutate_add_link(create_innov_func(genome),
-                                          NEAT::newlink_tries);
+        genome->mutate_add_link(create_innov_func(genome_),
+                                NEAT::newlink_tries);
         break;
-    case MUTATE_OP_ANY:
-        to_innov(genome)->mutate(create_innov_func(genome));
-        break;
+    case MUTATE_OP_ANY: {
+        rng_t &rng = genome->rng;
+        rng_t::prob_switch_t op = rng.prob_switch();
+
+        if( op.prob_case(NEAT::mutate_add_node_prob) ) {
+            genome->mutate_add_node(create_innov_func(genome_));
+        } else if( op.prob_case(NEAT::mutate_add_link_prob) ) {
+            genome->mutate_add_link(create_innov_func(genome_),
+                                    NEAT::newlink_tries);
+        } else if( op.prob_case(NEAT::mutate_delete_link_prob) ) {
+            genome->mutate_delete_link();
+        } else if( op.prob_case(NEAT::mutate_delete_node_prob) ) {
+            genome->mutate_delete_node();
+        } else {
+            //Only do other mutations when not doing sturctural mutations
+            if( rng.under(NEAT::mutate_random_trait_prob) ) {
+                genome->mutate_random_trait();
+            }
+            if( rng.under(NEAT::mutate_link_trait_prob) ) {
+                genome->mutate_link_trait(1);
+            }
+            if( rng.under(NEAT::mutate_node_trait_prob) ) {
+                genome->mutate_node_trait(1);
+            }
+            if( rng.under(NEAT::mutate_link_weights_prob) ) {
+                genome->mutate_link_weights(NEAT::weight_mut_power,
+                                            1.0,
+                                            GAUSSIAN);
+            }
+            if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
+                genome->mutate_toggle_enable(1);
+            }
+            if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
+                genome->mutate_gene_reenable(); 
+            }
+        }
+    } break;
     default:
         panic();
     }

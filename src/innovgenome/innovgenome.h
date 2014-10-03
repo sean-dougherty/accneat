@@ -62,9 +62,6 @@ namespace NEAT {
 
 		// ******* MUTATORS *******
 
-        //todo: make specific mutators private?
-        void mutate(CreateInnovationFunc create_innov);
-
 		// Perturb params in one trait
 		void mutate_random_trait();
 
@@ -100,8 +97,7 @@ namespace NEAT {
                              int tries); 
 
 		// ****** MATING METHODS ***** 
-		static void mate(CreateInnovationFunc create_innov,
-                         InnovGenome *genome1,
+		static void mate(InnovGenome *genome1,
                          InnovGenome *genome2,
                          InnovGenome *offspring,
                          real_t fitness1,
