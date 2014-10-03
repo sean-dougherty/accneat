@@ -7,19 +7,24 @@ function err() {
     exit 1
 }
 
-if [[ $# != 8 ]]; then
-    err "usage: $0 experiment experiment_count seed poptype genometype maxgens runid comment"
+DEFAULT_OPTS='-c 1 -r 1 -n 10000 -x 10000'
+
+if [[ $# < 3 ]]; then
+    cat 2>&1 <<EOF
+usage: $(basename $0) runid comment experiment_name [neat_opts]...
+
+DEFAULT_OPTS=$DEFAULT_OPTS
+EOF
+exit 1
 fi
 
-pop_size=2000
-experiment="$1"
-experiment_count="$2"
-seed="$3"
-pop_type="$4"
-genome_type="$5"
-maxgens="$6"
-runid="$7"
-comment="$8"
+runid="$1"
+shift
+comment="$1"
+shift
+experiment_name="$1"
+shift
+neat_opts="$@"
 
 neat_dir=$(readlink -f $(dirname $0)/..)
 runs_dir=$(readlink -f $neat_dir/../runs)
@@ -29,17 +34,15 @@ if [[ -e $run_dir ]]; then
     err "Already exists: $run_dir"
 fi
 
+neat_cmd="$neat_dir/neat $DEFAULT_OPTS $neat_opts $experiment_name"
+echo "neat_cmd=$neat_cmd"
+
 mkdir -p $run_dir
 touch $run_dir/neat_out
 rm -f $neat_dir/out
 ln -s $run_dir/neat_out $neat_dir/out
 
-echo $experiment > $run_dir/experiment_name
-echo $experiment_count > $run_dir/experiment_count
-echo $seed > $run_dir/rng_seed
-echo $pop_type > $run_dir/pop_type
-echo $genome_type > $run_dir/genome_type
-echo $maxgens > $run_dir/maxgens
+echo "$neat_cmd" > $run_dir/neat_cmd
 echo "$comment" > $run_dir/comment.txt
 submit_script=$run_dir/pbs_submit.sh
 
@@ -66,7 +69,7 @@ hostname > $run_dir/hostname
 
 cd $run_dir
 cp -r $neat_dir/src src
-time $neat_dir/neat $experiment $experiment_count $seed $pop_type $genome_type $pop_size $maxgens > neat_out
+time $neat_cmd > neat_out
 EOF
 
 qsub $submit_script

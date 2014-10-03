@@ -7,10 +7,11 @@
 
 namespace NEAT {
 
-#define warn(msg) {std::cout << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl;}
-#define trap(msg) {std::cout << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; abort();}
-#define impl() {std::cout << __FILE__ << ":" << __LINE__ << ": IMPLEMENT!" << std::endl; abort();}
-#define panic() {std::cout << __FILE__ << ":" << __LINE__ << ": PANIC!" << std::endl; abort();}
+#define error(msg) {std::cerr << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; exit(1);}
+#define warn(msg) {std::cerr << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl;}
+#define trap(msg) {std::cerr << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; abort();}
+#define impl() {std::cerr << __FILE__ << ":" << __LINE__ << ": IMPLEMENT!" << std::endl; abort();}
+#define panic() {std::cerr << __FILE__ << ":" << __LINE__ << ": PANIC!" << std::endl; abort();}
 
     template<typename Container, typename Predicate>
     void erase_if(Container &cont, Predicate predicate) {

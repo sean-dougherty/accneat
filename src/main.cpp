@@ -15,60 +15,111 @@
 */
 #include <iostream>
 #include <string>
+#include <unistd.h>
 #include "neat.h"
 #include "experiment.h"
 #include "util.h"
 using namespace std;
 
+#define DEFAULT_RNG_SEED 1
+#define DEFAULT_MAX_GENS 10000
+
+void usage() {
+    cerr << "usage: neat [OPTIONS]... experiment_name" << endl;
+    cerr << endl;
+    cerr << "experiment names: ";
+    auto names = NEAT::Experiment::get_names();
+    for(size_t i = 0; i < names.size(); i++) {
+        if(i != 0)
+            cerr << ", ";
+        cerr << names[i];
+    }
+    cerr << endl;
+    cerr << endl;
+
+    cerr << "OPTIONS" << endl;
+    cerr << "  -c num_experiments (default=" << NEAT::num_runs << ")" << endl;
+    cerr << "  -r RNG_seed (default=" << DEFAULT_RNG_SEED << ")" << endl;
+    cerr << "  -n population_size (default=" << NEAT::pop_size << ")" << endl;
+    cerr << "  -x max_generations (default=" << DEFAULT_MAX_GENS << ")" << endl;
+    cerr << endl;
+    cerr << "ILL-ADVISED OPTIONS" << endl;
+    cerr << "  -p population_type {species, demes} (default=species)" << endl;
+    cerr << "  -g genome_type {innov, space} (default=innov)" << endl;
+
+    exit(1);
+}
+
+template<typename T>
+T parse_enum(const char *opt, string str, map<string,T> vals) {
+    auto it = vals.find(str);
+    if(it == vals.end()) {
+        error("Invalid value for " << opt << ": " << str);
+    }
+    return it->second;
+}
+
+int parse_int(const char *opt, const char *str) {
+    try {
+        return stoi(str);
+    } catch(...) {
+        error("Expecting integer argument for " << opt << ", found '" << str << "'.");
+    }
+}
 
 int main(int argc, char *argv[]) {
 
-    if (argc != 8) {
-        cerr << "usage: neat experiment_name experiment_count rng_seed pop_type genome_type pop_size maxgens" << endl;
-        cerr << endl;
-        cerr << "experiment names:" << endl;
-        for(auto name: NEAT::Experiment::get_names()) {
-            cerr << "  " << name << endl;
+    int rng_seed = DEFAULT_RNG_SEED;
+    int maxgens = DEFAULT_MAX_GENS;
+    {
+        int opt;
+        while( (opt = getopt(argc, argv, "c:r:p:g:n:x:")) != -1) {
+            switch(opt) {
+            case 'c':
+                NEAT::num_runs = parse_int("-c", optarg);
+                break;
+            case 'r':
+                rng_seed = parse_int("-r", optarg);
+                break;
+            case 'p':
+                NEAT::population_type = parse_enum<NEAT::PopulationType>("-p", optarg, {
+                        {"species", NEAT::PopulationType::SPECIES},
+                        {"demes", NEAT::PopulationType::DEMES}
+                    });
+                break;
+            case 'g':
+                NEAT::genome_type = parse_enum<NEAT::GenomeType>("-g", optarg, {
+                        {"innov", NEAT::GenomeType::INNOV},
+                        {"space", NEAT::GenomeType::SPACE}
+                    });
+                break;
+            case 'n':
+                NEAT::pop_size = parse_int("-n", optarg);
+                break;
+            case 'x':
+                maxgens = parse_int("-x", optarg);
+                break;
+            default:
+                error("Invalid option: -" << (char)opt);
+            }
         }
-        return -1;
     }
 
-    int argi = 1;
-    const char *experiment_name = argv[argi++];
-    int experiment_count = stoi(argv[argi++]);
-    int rng_seed = stoi(argv[argi++]);
-    string pop_type = argv[argi++];
-    string genome_type = argv[argi++];
-    int pop_size = stoi(argv[argi++]);
-    int maxgens = stoi(argv[argi++]);
-
-    NEAT::num_runs = experiment_count;
-
-    if(pop_type == "s") {
-        NEAT::population_type = NEAT::PopulationType::SPECIES;
-    } else if(pop_type == "d") {
-        NEAT::population_type = NEAT::PopulationType::DEMES;
-    } else {
-        panic();
+    int nargs = argc - optind;
+    if(nargs == 0) {
+        usage();
+    } else if(nargs > 1) {
+        error("Unexpected argument: " << argv[optind+1]);
     }
 
-    if(genome_type == "i") {
-        NEAT::genome_type = NEAT::GenomeType::INNOV;
-    } else if(genome_type == "s") {
-        NEAT::genome_type = NEAT::GenomeType::SPACE;
-    } else {
-        panic();
-    }
-
-    NEAT::rng_t rng;
-    rng.seed(rng_seed);
-
-    NEAT::pop_size = pop_size;
+    const char *experiment_name = argv[optind++];
 
     NEAT::Experiment *exp = NEAT::Experiment::get(experiment_name);
     if(exp == nullptr) {
         trap("No such experiment: " << experiment_name);
     }
+
+    NEAT::rng_t rng{rng_seed};
     exp->init();
     exp->run(rng, maxgens);
 
