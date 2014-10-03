@@ -69,6 +69,8 @@ int main(int argc, char *argv[]) {
 
     int rng_seed = DEFAULT_RNG_SEED;
     int maxgens = DEFAULT_MAX_GENS;
+    NEAT::search_type = NEAT::GeneticSearchType::PHASED;
+
     {
         int opt;
         while( (opt = getopt(argc, argv, "c:r:p:g:n:x:s:")) != -1) {

@@ -9,7 +9,7 @@ function err() {
 
 DEFAULT_OPTS='-c 1 -r 1 -n 10000 -x 10000'
 
-if [[ $# < 3 ]]; then
+if (( $# < 3 )); then
     cat 2>&1 <<EOF
 usage: $(basename $0) runid comment experiment_name [neat_opts]...
 
