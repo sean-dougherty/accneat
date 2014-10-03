@@ -310,6 +310,9 @@ void Experiment::run(rng_t &rng, int gens) {
             
     int nsuccesses = 0;
     vector<int> success_generations;
+    vector<size_t> nnodes;
+    vector<size_t> nlinks;
+    vector<real_t> fitness;
 
     for(int expcount = 1; expcount <= NEAT::num_runs; expcount++) {
         mkdir( get_dir_path(expcount) );
@@ -345,7 +348,6 @@ void Experiment::run(rng_t &rng, int gens) {
             if(is_success(&pop->get_fittest())) {
                 success = true;
                 nsuccesses++;
-                success_generations.push_back(gen);
             }
 
             timer.stop();
@@ -356,6 +358,17 @@ void Experiment::run(rng_t &rng, int gens) {
                 print(pop, expcount, gen);
         }
 
+        if(success) {
+            success_generations.push_back(gen);
+        }
+        {
+            Organism &fittest = pop->get_fittest();
+            Genome::Stats gstats = fittest.genome->get_stats();
+            fitness.push_back(fittest.fitness);
+            nnodes.push_back(gstats.nnodes);
+            nlinks.push_back(gstats.nlinks);
+        }
+
         print(pop, expcount, gen - 1);
 
         delete pop;
@@ -363,7 +376,12 @@ void Experiment::run(rng_t &rng, int gens) {
     }
 
     cout << "Failures: " << (NEAT::num_runs - nsuccesses) << " out of " << NEAT::num_runs << " runs" << endl;
-    cout << "Success generations stats: " << stats(success_generations) << endl;
+    if(success_generations.size() > 0) {
+        cout << "Success generations: " << stats(success_generations) << endl;
+    }
+    cout << "fitness stats: " << stats(fitness) << endl;
+    cout << "nnodes stats: " << stats(nnodes) << endl;
+    cout << "nlinks stats: " << stats(nlinks) << endl;
 }
 
 bool Experiment::is_success(Organism *org) {
