@@ -111,7 +111,7 @@ struct FooExperiment : public Experiment {
 
     virtual vector<Test> create_tests() override {
         string syms = "ab";
-        vector<string> all_sequences = permute_repeat(syms, 2);
+        vector<string> all_sequences = permute_repeat(syms, 3);
 
         return create_parallel_output_tests(syms, all_sequences, Test::Training);
 /*
