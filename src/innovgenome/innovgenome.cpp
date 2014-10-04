@@ -462,7 +462,7 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
 	InnovNodeGene *out_node = nullptr; //Pointers to the nodes
 
 	//Decide whether to make this recurrent
-	bool do_recur = rng.prob() < NEAT::recur_only_prob;
+	bool do_recur = rng.prob() < env->recur_only_prob;
 
     // Try to find nodes for link.
     {
@@ -496,7 +496,7 @@ bool InnovGenome::mutate_add_link(CreateInnovationFunc create_innov,
 
             InnovLinkGene *existing_link = find_link(in_node->node_id, out_node->node_id, do_recur);
             if(existing_link != nullptr) {
-                if( NEAT::mutate_add_link_reenables ) {
+                if( env->mutate_add_link_reenables ) {
                     existing_link->enable = true;
                     return true;
                 }
@@ -564,7 +564,7 @@ void InnovGenome::mate(InnovGenome *genome1,
                        real_t fitness2) {
 
     //Perform mating based on probabilities of differrent mating types
-    if( offspring->rng.prob() < NEAT::mate_multipoint_prob ) { 
+    if( offspring->rng.prob() < env->mate_multipoint_prob ) { 
         InnovGenome::mate_multipoint(genome1,
                                      genome2,
                                      offspring,
@@ -1136,9 +1136,9 @@ real_t InnovGenome::compatibility(InnovGenome *g) {
 
     //Look at disjointedness and excess in the absolute (ignoring size)
 
-    return (NEAT::disjoint_coeff*(num_disjoint/1.0)+
-			NEAT::excess_coeff*(num_excess/1.0)+
-			NEAT::mutdiff_coeff*(mut_diff_total/num_matching));
+    return (env->disjoint_coeff*(num_disjoint/1.0)+
+			env->excess_coeff*(num_excess/1.0)+
+			env->mutdiff_coeff*(mut_diff_total/num_matching));
 }
 
 real_t InnovGenome::trait_compare(Trait *t1,Trait *t2) {

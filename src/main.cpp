@@ -19,6 +19,8 @@
 #include "neat.h"
 #include "experiment.h"
 #include "util.h"
+
+using namespace NEAT;
 using namespace std;
 
 #define DEFAULT_RNG_SEED 1
@@ -28,7 +30,7 @@ void usage() {
     cerr << "usage: neat [OPTIONS]... experiment_name" << endl;
     cerr << endl;
     cerr << "experiment names: ";
-    auto names = NEAT::Experiment::get_names();
+    auto names = Experiment::get_names();
     for(size_t i = 0; i < names.size(); i++) {
         if(i != 0)
             cerr << ", ";
@@ -39,9 +41,9 @@ void usage() {
 
     cerr << "OPTIONS" << endl;
     cerr << "  -f                   Force deletion of any data from previous run." << endl;
-    cerr << "  -c num_experiments   (default=" << NEAT::num_runs << ")" << endl;
+    cerr << "  -c num_experiments   (default=" << env->num_runs << ")" << endl;
     cerr << "  -r RNG_seed          (default=" << DEFAULT_RNG_SEED << ")" << endl;
-    cerr << "  -n population_size   (default=" << NEAT::pop_size << ")" << endl;
+    cerr << "  -n population_size   (default=" << env->pop_size << ")" << endl;
     cerr << "  -x max_generations   (default=" << DEFAULT_MAX_GENS << ")" << endl;
     cerr << "  -s search_type       {phased, blended, complexify} (default=phased)" << endl;
 
@@ -70,7 +72,6 @@ int main(int argc, char *argv[]) {
 
     int rng_seed = DEFAULT_RNG_SEED;
     int maxgens = DEFAULT_MAX_GENS;
-    NEAT::search_type = NEAT::GeneticSearchType::PHASED;
     bool force_delete = false;
 
     {
@@ -81,34 +82,34 @@ int main(int argc, char *argv[]) {
                 force_delete = true;
                 break;
             case 'c':
-                NEAT::num_runs = parse_int("-c", optarg);
+                env->num_runs = parse_int("-c", optarg);
                 break;
             case 'r':
                 rng_seed = parse_int("-r", optarg);
                 break;
             case 'n':
-                NEAT::pop_size = parse_int("-n", optarg);
+                env->pop_size = parse_int("-n", optarg);
                 break;
             case 'x':
                 maxgens = parse_int("-x", optarg);
                 break;
             case 's':
-                NEAT::search_type = parse_enum<NEAT::GeneticSearchType>("-s", optarg, {
-                        {"phased", NEAT::GeneticSearchType::PHASED},
-                        {"blended", NEAT::GeneticSearchType::BLENDED},
-                        {"complexify", NEAT::GeneticSearchType::COMPLEXIFY}
+                env->search_type = parse_enum<GeneticSearchType>("-s", optarg, {
+                        {"phased", GeneticSearchType::PHASED},
+                        {"blended", GeneticSearchType::BLENDED},
+                        {"complexify", GeneticSearchType::COMPLEXIFY}
                     });
                 break;
             case 'p':
-                NEAT::population_type = parse_enum<NEAT::PopulationType>("-p", optarg, {
-                        {"species", NEAT::PopulationType::SPECIES},
-                        {"demes", NEAT::PopulationType::DEMES}
+                env->population_type = parse_enum<PopulationType>("-p", optarg, {
+                        {"species", PopulationType::SPECIES},
+                        {"demes", PopulationType::DEMES}
                     });
                 break;
             case 'g':
-                NEAT::genome_type = parse_enum<NEAT::GenomeType>("-g", optarg, {
-                        {"innov", NEAT::GenomeType::INNOV},
-                        {"space", NEAT::GenomeType::SPACE}
+                env->genome_type = parse_enum<GenomeType>("-g", optarg, {
+                        {"innov", GenomeType::INNOV},
+                        {"space", GenomeType::SPACE}
                     });
                 break;
             default:
@@ -130,19 +131,19 @@ int main(int argc, char *argv[]) {
         error("Already exists: experiment_1.\nMove your experiment directories or use -f to delete them automatically.")
     }
 
-    if(NEAT::search_type == NEAT::GeneticSearchType::BLENDED) {
-        NEAT::mutate_delete_node_prob *= 0.1;
-        NEAT::mutate_delete_link_prob *= 0.1;
+    if(env->search_type == GeneticSearchType::BLENDED) {
+        env->mutate_delete_node_prob *= 0.1;
+        env->mutate_delete_link_prob *= 0.1;
     }
 
     const char *experiment_name = argv[optind++];
 
-    NEAT::Experiment *exp = NEAT::Experiment::get(experiment_name);
+    Experiment *exp = Experiment::get(experiment_name);
     if(exp == nullptr) {
         trap("No such experiment: " << experiment_name);
     }
 
-    NEAT::rng_t rng{rng_seed};
+    rng_t rng{rng_seed};
     exp->init();
     exp->run(rng, maxgens);
 

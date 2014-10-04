@@ -50,12 +50,12 @@ DemesPopulation::DemesPopulation(rng_t rng,
     , genome_manager(genome_manager_) {
 
     size_t pop_size = seeds.size();
-    assert(pop_size % NEAT::deme_count == 0);
+    assert(pop_size % env->deme_count == 0);
 
-    size_t deme_size = pop_size / NEAT::deme_count;
+    size_t deme_size = pop_size / env->deme_count;
 
-    demes.reserve(NEAT::deme_count);
-    for(size_t i = 0; i < (size_t)NEAT::deme_count; i++) {
+    demes.reserve(env->deme_count);
+    for(size_t i = 0; i < (size_t)env->deme_count; i++) {
         rng_t deme_rng;
         deme_rng.seed(rng.integer());
         demes.emplace_back(deme_rng,

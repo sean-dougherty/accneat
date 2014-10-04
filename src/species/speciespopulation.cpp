@@ -151,7 +151,7 @@ void SpeciesPopulation::next_generation() {
 	real_t skim; 
 	int total_expected;  //precision checking
 	int total_organisms = norgs; // todo: get rid of this variable
-    assert(total_organisms == NEAT::pop_size);
+    assert(total_organisms == env->pop_size);
 	int max_expected;
 	Species *best_species = nullptr;
 	int final_expected;
@@ -280,7 +280,7 @@ void SpeciesPopulation::next_generation() {
     }
 
 	//Check for stagnation- if there is stagnation, perform delta-coding
-	if (highest_last_changed >= NEAT::dropoff_age+5) {
+	if (highest_last_changed >= env->dropoff_age+5) {
 		highest_last_changed = 0;
 		half_pop = total_organisms / 2;
 

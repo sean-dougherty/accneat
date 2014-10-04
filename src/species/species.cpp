@@ -97,7 +97,7 @@ void Species::adjust_fitness() {
 
 	int age_debt; 
 
-	age_debt=(age-age_of_last_improvement+1)-NEAT::dropoff_age;
+	age_debt=(age-age_of_last_improvement+1)-env->dropoff_age;
 
 	if (age_debt==0) age_debt=1;
 
@@ -118,7 +118,7 @@ void Species::adjust_fitness() {
 		//Give a fitness boost up to some young age (niching)
 		//The age_significance parameter is a system parameter
 		//  if it is 1, then young species get no fitness boost
-		if (age<=10) ((*curorg)->adjusted_fitness)=((*curorg)->adjusted_fitness)*NEAT::age_significance; 
+		if (age<=10) ((*curorg)->adjusted_fitness)=((*curorg)->adjusted_fitness)*env->age_significance; 
 
 		//Do not allow negative fitness
 		if (((*curorg)->adjusted_fitness)<0.0) (*curorg)->adjusted_fitness=0.0001; 
@@ -142,7 +142,7 @@ void Species::adjust_fitness() {
 
 	//Decide how many get to reproduce based on survival_thresh*pop_size
 	//Adding 1.0 ensures that at least one will survive
-	num_parents=(int) floor((NEAT::survival_thresh*((real_t) organisms.size()))+1.0);
+	num_parents=(int) floor((env->survival_thresh*((real_t) organisms.size()))+1.0);
 	
 	//Mark for death those who are ranked too low to be parents
 	curorg=organisms.begin();
@@ -246,7 +246,7 @@ void Species::reproduce(int ioffspring,
         //Note: Superchamp offspring only occur with stolen babies!
         //      Settings used for published experiments did not use this
         if( ioffspring < (thechamp->super_champ_offspring - 1) ) {
-            if ( (rng.prob() < 0.8)|| (NEAT::mutate_add_link_prob == 0.0)) {
+            if ( (rng.prob() < 0.8)|| (env->mutate_add_link_prob == 0.0)) {
                 genome_manager->mutate(new_genome,
                                        GenomeManager::MUTATE_OP_WEIGHTS);
             } else {
@@ -260,7 +260,7 @@ void Species::reproduce(int ioffspring,
         //Clone the species champion
         genome_manager->clone(*thechamp->genome, new_genome);
 
-    } else if( (rng.prob() < NEAT::mutate_only_prob) || (organisms.size() == 1) ) {
+    } else if( (rng.prob() < env->mutate_only_prob) || (organisms.size() == 1) ) {
 
         //Clone a random parent
         genome_manager->clone(*rng.element(organisms)->genome,
@@ -274,7 +274,7 @@ void Species::reproduce(int ioffspring,
 
         //Choose random dad
         SpeciesOrganism *dad;
-        if ((rng.prob() > NEAT::interspecies_mate_rate)) {
+        if ((rng.prob() > env->interspecies_mate_rate)) {
             //Mate within Species
             dad = rng.element(organisms);
         } else {

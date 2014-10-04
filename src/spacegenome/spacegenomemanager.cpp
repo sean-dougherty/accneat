@@ -30,7 +30,7 @@ vector<unique_ptr<Genome>> SpaceGenomeManager::create_seed_generation(size_t nge
     vector<unique_ptr<Genome>> genomes;
     {
         rng_t _rng = rng;
-        for(int i = 0; i < NEAT::pop_size; i++) {
+        for(int i = 0; i < env->pop_size; i++) {
             SpaceGenome *g = new SpaceGenome();
             start_genome.duplicate_into(g);
             g->rng.seed(_rng.integer());
@@ -73,7 +73,7 @@ void SpaceGenomeManager::mutate(Genome &genome,
                                 MutationOperation op) {
     switch(op) {
     case MUTATE_OP_WEIGHTS:
-        to_space(genome)->mutate_link_weights(NEAT::weight_mut_power,
+        to_space(genome)->mutate_link_weights(env->weight_mut_power,
                                               1.0,
                                               GAUSSIAN);
         break;

@@ -186,27 +186,27 @@ void SpaceGenome::init_phenotype(Network &net) {
 void SpaceGenome::mutate() {
     rng_t::prob_switch_t op = rng.prob_switch();
 
-    if( op.prob_case(NEAT::mutate_add_node_prob) ) {
+    if( op.prob_case(env->mutate_add_node_prob) ) {
         mutate_add_node();
-    } else if( op.prob_case(NEAT::mutate_add_link_prob) ) {
+    } else if( op.prob_case(env->mutate_add_link_prob) ) {
         mutate_add_link();
-    } else if( op.prob_case(NEAT::mutate_delete_link_prob) ) {
+    } else if( op.prob_case(env->mutate_delete_link_prob) ) {
         mutate_delete_link();
-    } else if( op.prob_case(NEAT::mutate_delete_node_prob) ) {
+    } else if( op.prob_case(env->mutate_delete_node_prob) ) {
         mutate_delete_node();
     } else {
         //Only do other mutations when not doing sturctural mutations
-        if( rng.under(NEAT::mutate_random_trait_prob) ) {
+        if( rng.under(env->mutate_random_trait_prob) ) {
             mutate_random_trait();
         }
-        if( rng.under(NEAT::mutate_link_trait_prob) ) {
+        if( rng.under(env->mutate_link_trait_prob) ) {
             mutate_link_trait();
         }
-        if( rng.under(NEAT::mutate_node_trait_prob) ) {
+        if( rng.under(env->mutate_node_trait_prob) ) {
             mutate_node_trait();
         }
-        if( rng.under(NEAT::mutate_link_weights_prob) ) {
-            mutate_link_weights(NEAT::weight_mut_power, 1.0, GAUSSIAN);
+        if( rng.under(env->mutate_link_weights_prob) ) {
+            mutate_link_weights(env->weight_mut_power, 1.0, GAUSSIAN);
         }
     }
 }
@@ -354,7 +354,7 @@ void SpaceGenome::mate(SpaceGenome *genome1,
 
     mate_singlepoint(genome1, genome2, offspring);
 
-    if( !offspring->rng.under(NEAT::mate_only_prob) ||
+    if( !offspring->rng.under(env->mate_only_prob) ||
         (genome2->genome_id == genome1->genome_id) ) {
 
         offspring->mutate();
@@ -803,33 +803,33 @@ void InnovGenome::mutate(CreateInnovationFunc create_innov) {
     //various mutations
     rng_t::prob_switch_t op = rng.prob_switch();
 
-    if( op.prob_case(NEAT::mutate_add_node_prob) ) {
+    if( op.prob_case(env->mutate_add_node_prob) ) {
         mutate_add_node(create_innov);
-    } else if( op.prob_case(NEAT::mutate_add_link_prob) ) {
+    } else if( op.prob_case(env->mutate_add_link_prob) ) {
         mutate_add_link(create_innov,
-                        NEAT::newlink_tries);
-    } else if( op.prob_case(NEAT::mutate_delete_link_prob) ) {
+                        env->newlink_tries);
+    } else if( op.prob_case(env->mutate_delete_link_prob) ) {
         mutate_delete_link();
-    } else if( op.prob_case(NEAT::mutate_delete_node_prob) ) {
+    } else if( op.prob_case(env->mutate_delete_node_prob) ) {
         mutate_delete_node();
     } else {
         //Only do other mutations when not doing sturctural mutations
-        if( rng.under(NEAT::mutate_random_trait_prob) ) {
+        if( rng.under(env->mutate_random_trait_prob) ) {
             mutate_random_trait();
         }
-        if( rng.under(NEAT::mutate_link_trait_prob) ) {
+        if( rng.under(env->mutate_link_trait_prob) ) {
             mutate_link_trait(1);
         }
-        if( rng.under(NEAT::mutate_node_trait_prob) ) {
+        if( rng.under(env->mutate_node_trait_prob) ) {
             mutate_node_trait(1);
         }
-        if( rng.under(NEAT::mutate_link_weights_prob) ) {
-            mutate_link_weights(NEAT::weight_mut_power,1.0,GAUSSIAN);
+        if( rng.under(env->mutate_link_weights_prob) ) {
+            mutate_link_weights(env->weight_mut_power,1.0,GAUSSIAN);
         }
-        if( rng.under(NEAT::mutate_toggle_enable_prob) ) {
+        if( rng.under(env->mutate_toggle_enable_prob) ) {
             mutate_toggle_enable(1);
         }
-        if (rng.under(NEAT::mutate_gene_reenable_prob) ) {
+        if (rng.under(env->mutate_gene_reenable_prob) ) {
             mutate_gene_reenable(); 
         }
     }
@@ -879,7 +879,7 @@ void InnovGenome::mate(CreateInnovationFunc create_innov,
                        real_t fitness2) {
 
     //Perform mating based on probabilities of differrent mating types
-    if( offspring->rng.prob() < NEAT::mate_multipoint_prob ) { 
+    if( offspring->rng.prob() < env->mate_multipoint_prob ) { 
         InnovGenome::mate_multipoint(genome1,
                                      genome2,
                                      offspring,
@@ -895,7 +895,7 @@ void InnovGenome::mate(CreateInnovationFunc create_innov,
 
     //Determine whether to mutate the baby's InnovGenome
     //This is done randomly or if the genome1 and genome2 are the same organism
-    if( !offspring->rng.under(NEAT::mate_only_prob) ||
+    if( !offspring->rng.under(env->mate_only_prob) ||
         (genome2->genome_id == genome1->genome_id) ||
         (genome2->compatibility(genome1) == 0.0) ) {
 
@@ -1229,9 +1229,9 @@ real_t InnovGenome::compatibility(InnovGenome *g) {
 
     //Look at disjointedness and excess in the absolute (ignoring size)
 
-    return (NEAT::disjoint_coeff*(num_disjoint/1.0)+
-			NEAT::excess_coeff*(num_excess/1.0)+
-			NEAT::mutdiff_coeff*(mut_diff_total/num_matching));
+    return (env->disjoint_coeff*(num_disjoint/1.0)+
+			env->excess_coeff*(num_excess/1.0)+
+			env->mutdiff_coeff*(mut_diff_total/num_matching));
 }
 
 real_t InnovGenome::trait_compare(Trait *t1,Trait *t2) {

@@ -28,7 +28,7 @@ namespace NEAT {
 	// ---------------------------------------------  
 	class Organism {
 	public:
-        size_t population_index; //Unique within the population,always in [0, NEAT::pop_size).
+        size_t population_index; //Unique within the population,always in [0, env->pop_size).
                                  //Provides client with convenient storage of associated
                                  //data in an array.
 

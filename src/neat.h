@@ -49,64 +49,64 @@ namespace NEAT {
 		COLDGAUSSIAN = 1
 	};
 
-	const int num_trait_params = 8;
-
     enum class GeneticSearchType {PHASED, BLENDED, COMPLEXIFY};
-    extern GeneticSearchType search_type;
-
     enum class PopulationType {SPECIES, DEMES};
-    extern PopulationType population_type;
-
     enum class GenomeType {INNOV, SPACE};
-    extern GenomeType genome_type;
 
-	extern real_t trait_param_mut_prob;
-	extern real_t trait_mutation_power; // Power of mutation on a signle trait param 
-	extern real_t linktrait_mut_sig;  // Amount that mutation_num changes for a trait change inside a link
-	extern real_t nodetrait_mut_sig; // Amount a mutation_num changes on a link connecting a node that changed its trait 
-	extern real_t weight_mut_power;  // The power of a linkweight mutation 
-	extern real_t recur_prob;        // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
+    struct NeatEnv {
+        GeneticSearchType search_type = GeneticSearchType::PHASED;
+        PopulationType population_type = PopulationType::SPECIES;
+        GenomeType genome_type = GenomeType::INNOV;
 
-	// These 3 global coefficients are used to determine the formula for
-	// computating the compatibility between 2 genomes.  The formula is:
-	// disjoint_coeff*pdg+excess_coeff*peg+mutdiff_coeff*mdmg.
-	// See the compatibility method in the Genome class for more info
-	// They can be thought of as the importance of disjoint Genes,
-	// excess Genes, and parametric difference between Genes of the
-	// same function, respectively. 
-	extern real_t disjoint_coeff;
-	extern real_t excess_coeff;
-	extern real_t mutdiff_coeff;
+        real_t trait_param_mut_prob = 0.5;
+        real_t trait_mutation_power = 1.0; // Power of mutation on a signle trait param 
+        real_t linktrait_mut_sig = 1.0; // Amount that mutation_num changes for a trait change inside a link
+        real_t nodetrait_mut_sig = 0.5; // Amount a mutation_num changes on a link connecting a node that changed its trait 
+        real_t weight_mut_power = 1.8; // The power of a linkweight mutation 
+
+        real_t recur_prob = 0.05; // Prob. that a link mutation which doesn't have to be recurrent will be made recurrent 
+
+        // These 3 global coefficients are used to determine the formula for
+        // computating the compatibility between 2 genomes.  The formula is:
+        // disjoint_coeff*pdg+excess_coeff*peg+mutdiff_coeff*mdmg.
+        // See the compatibility method in the Genome class for more info
+        // They can be thought of as the importance of disjoint Genes,
+        // excess Genes, and parametric difference between Genes of the
+        // same function, respectively. 
+        real_t disjoint_coeff = 1.0;
+        real_t excess_coeff = 1.0;
+        real_t mutdiff_coeff = 3.0;
 
 	// This global tells compatibility threshold under which two Genomes are considered the same species 
-	extern real_t compat_threshold;
+        real_t compat_threshold = 4.0;
 
-	// Globals involved in the epoch cycle - mating, reproduction, etc.. 
-	extern real_t age_significance;          // How much does age matter? 
-	extern real_t survival_thresh;           // Percent of ave fitness for survival 
-	extern real_t mutate_only_prob;          // Prob. of a non-mating reproduction 
-	extern real_t mutate_random_trait_prob;
-	extern real_t mutate_link_trait_prob;
-	extern real_t mutate_node_trait_prob;
-	extern real_t mutate_link_weights_prob;
-	extern real_t mutate_toggle_enable_prob;
-	extern real_t mutate_gene_reenable_prob;
-    extern real_t mutate_delete_link_prob;
-	extern real_t mutate_add_node_prob;
-	extern real_t mutate_delete_node_prob;
-	extern real_t mutate_add_link_prob;
-	extern bool mutate_add_link_reenables;
-	extern real_t interspecies_mate_rate;    // Prob. of a mate being outside species 
-	extern real_t mate_multipoint_prob;     
-	extern real_t mate_only_prob;            // Prob. of mating without mutation 
-	extern real_t recur_only_prob;  // Probability of forcing selection of ONLY links that are naturally recurrent 
-	extern int pop_size;  // Size of population 
-	extern size_t deme_count;  // Number of demes
-	extern int dropoff_age;  // Age where Species starts to be penalized 
-	extern int newlink_tries;  // Number of tries mutate_add_link will attempt to find an open link 
-	extern int print_every; // Tells to print population to file every n generations 
+        real_t age_significance = 1.0; // How much does age matter? 
+        real_t survival_thresh = 0.4; // Percent of ave fitness for survival 
+        real_t mutate_only_prob = 0.25; // Prob. of a non-mating reproduction 
+        real_t mutate_random_trait_prob = 0.1;
+        real_t mutate_link_trait_prob = 0.1;
+        real_t mutate_node_trait_prob = 0.1;
+        real_t mutate_link_weights_prob = 0.8;
+        real_t mutate_toggle_enable_prob = 0.1;
+        real_t mutate_gene_reenable_prob = 0.05;
+        real_t mutate_add_node_prob = 0.01;
+        real_t mutate_delete_node_prob = 0.01;
+        real_t mutate_add_link_prob = 0.3;
+        real_t mutate_delete_link_prob = 0.3;
+        bool mutate_add_link_reenables = false;
+        real_t interspecies_mate_rate = 0.001; // Prob. of a mate being outside species 
+        real_t mate_multipoint_prob = 0.6;     
+        real_t mate_only_prob = 0.2; // Prob. of mating without mutation 
+        real_t recur_only_prob = 0.2;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 
-	extern int num_runs; //number of times to run experiment
+        int pop_size = 1000;  // Size of population 
+        size_t deme_count = 10;
+        int dropoff_age = 15;  // Age where Species starts to be penalized 
+        int newlink_tries = 20;  // Number of tries mutate_add_link will attempt to find an open link 
+        int print_every = 1000; // Tells to print population to file every n generations 
+        int num_runs = 1;
+    };
+    extern NeatEnv *env;
 
 	//extern MRandomR250 NEATRandGen; // Random number generator; can pass seed value as argument
 

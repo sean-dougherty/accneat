@@ -22,6 +22,8 @@
 
 namespace NEAT {
 
+    const int NUM_TRAIT_PARAMS = 8;
+
 	// ------------------------------------------------------------------ 
 	// TRAIT: A Trait is a group of parameters that can be expressed     
 	//        as a group more than one time.  Traits save a genetic      
@@ -37,7 +39,7 @@ namespace NEAT {
 
 	public:
 		int trait_id; // Used in file saving and loading
-		real_t params[NEAT::num_trait_params]; // Keep traits in an array
+		real_t params[NUM_TRAIT_PARAMS]; // Keep traits in an array
 
 		Trait ();
 

@@ -7,7 +7,7 @@
 using namespace NEAT;
 
 GenomeManager *GenomeManager::create() {
-    switch(NEAT::genome_type) {
+    switch(env->genome_type) {
     case GenomeType::INNOV:
         return new InnovGenomeManager();
     case GenomeType::SPACE:

@@ -21,7 +21,7 @@
 using namespace NEAT;
 
 Trait::Trait () {
-	for (int count=0;count<NEAT::num_trait_params;count++)
+	for (int count=0;count<NUM_TRAIT_PARAMS;count++)
 		params[count]=0;
 	trait_id=0;
 }
@@ -39,7 +39,7 @@ Trait::Trait(int id,real_t p1,real_t p2,real_t p3,real_t p4,real_t p5,real_t p6,
 }
 
 Trait::Trait(const Trait& t) {
-	for(int count=0; count < NEAT::num_trait_params; count++)
+	for(int count=0; count < NUM_TRAIT_PARAMS; count++)
 		params[count]=(t.params)[count];
 
 	trait_id = t.trait_id;
@@ -47,7 +47,7 @@ Trait::Trait(const Trait& t) {
 
 
 Trait::Trait(Trait *t) {
-	for(int count=0;count<NEAT::num_trait_params;count++)
+	for(int count=0;count<NUM_TRAIT_PARAMS;count++)
 		params[count]=(t->params)[count];
 
 	trait_id=t->trait_id;
@@ -62,7 +62,7 @@ Trait::Trait(const char *argline) {
 	//char delimiters[] = " \n";
 	//int curwordnum = 0;
 
-	//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
+	//strcpy(curword, env->getUnit(argline, curwordnum++, delimiters));
     
 //	trait_id = atoi(curword);
     ss >> trait_id;
@@ -70,8 +70,8 @@ Trait::Trait(const char *argline) {
     //std::cout << ss.str() << " trait_id: " << trait_id << std::endl;
 
 	//IS THE STOPPING CONDITION CORRECT?  ALERT
-	for(int count=0;count<NEAT::num_trait_params;count++) {
-		//strcpy(curword, NEAT::getUnit(argline, curwordnum++, delimiters));
+	for(int count=0;count<NUM_TRAIT_PARAMS;count++) {
+		//strcpy(curword, env->getUnit(argline, curwordnum++, delimiters));
 		//params[count] = atof(curword);
         ss >> params[count];
 		//iFile>>params[count];
@@ -81,22 +81,22 @@ Trait::Trait(const char *argline) {
 
 Trait::Trait(const Trait &t1, const Trait &t2) {
 	trait_id = t1.trait_id;
-	for(int count=0; count < NEAT::num_trait_params; count++)
+	for(int count=0; count < NUM_TRAIT_PARAMS; count++)
 		params[count] = (t1.params[count] + t2.params[count]) / 2.0;
 }
 
 void Trait::print_to_file(std::ostream &outFile) { 
   outFile<<"trait "<<trait_id<<" ";
-  for(int count=0;count<NEAT::num_trait_params;count++)
+  for(int count=0;count<NUM_TRAIT_PARAMS;count++)
     outFile<<params[count]<<" ";
 
   outFile<<std::endl;
 }
 
 void Trait::mutate(rng_t &rng) {
-	for(int count=0;count<NEAT::num_trait_params;count++) {
-		if (rng.prob()>NEAT::trait_param_mut_prob) {
-			params[count]+=(rng.posneg()*rng.prob())*NEAT::trait_mutation_power;
+	for(int count=0;count<NUM_TRAIT_PARAMS;count++) {
+		if (rng.prob()>env->trait_param_mut_prob) {
+			params[count]+=(rng.posneg()*rng.prob())*env->trait_mutation_power;
 			if (params[count]<0) params[count]=0;
 			if (params[count]>1.0) params[count]=1.0;
 		}

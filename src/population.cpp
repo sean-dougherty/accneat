@@ -26,7 +26,7 @@ Population *Population::create(rng_t rng,
                                GenomeManager *genome_manager,
                                vector<unique_ptr<Genome>> &seeds) {
 
-    switch(NEAT::population_type) {
+    switch(env->population_type) {
     case PopulationType::SPECIES:
         return new SpeciesPopulation(rng, genome_manager, seeds);
     case PopulationType::DEMES:

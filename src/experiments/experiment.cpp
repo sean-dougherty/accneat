@@ -226,7 +226,7 @@ Experiment::~Experiment() {
 }
 
 void Experiment::init_env() {
-    NEAT::compat_threshold = 10.0;
+    env->compat_threshold = 10.0;
 }
 
 void Experiment::print(Population *pop, int experiment_num, int geneneration) {
@@ -300,7 +300,7 @@ void Experiment::run(rng_t &rng, int gens) {
     vector<size_t> nlinks;
     vector<real_t> fitness;
 
-    for(int expcount = 1; expcount <= NEAT::num_runs; expcount++) {
+    for(int expcount = 1; expcount <= env->num_runs; expcount++) {
         mkdir( get_dir_path(expcount) );
 
         //Create a unique rng sequence for this experiment
@@ -308,7 +308,7 @@ void Experiment::run(rng_t &rng, int gens) {
 
         GenomeManager *genome_manager = GenomeManager::create();
         vector<unique_ptr<Genome>> genomes = 
-            genome_manager->create_seed_generation(NEAT::pop_size,
+            genome_manager->create_seed_generation(env->pop_size,
                                                    rng_exp,
                                                    1,
                                                    ninputs,
@@ -320,7 +320,7 @@ void Experiment::run(rng_t &rng, int gens) {
         bool success = false;
         int gen;
         for(gen = 1; !success && (gen <= gens); gen++) {
-            cout << "Epoch " << gen << " . Experiment " << expcount << "/" << NEAT::num_runs << endl;	
+            cout << "Epoch " << gen << " . Experiment " << expcount << "/" << env->num_runs << endl;	
 
             static Timer timer("epoch");
             timer.start();
@@ -340,7 +340,7 @@ void Experiment::run(rng_t &rng, int gens) {
             Timer::report();
 
             //Don't print on success because we'll exit the loop and print then.
-            if(!success && (gen % NEAT::print_every == 0))
+            if(!success && (gen % env->print_every == 0))
                 print(pop, expcount, gen);
         }
 
@@ -361,7 +361,7 @@ void Experiment::run(rng_t &rng, int gens) {
         delete genome_manager;
     }
 
-    cout << "Failures: " << (NEAT::num_runs - nsuccesses) << " out of " << NEAT::num_runs << " runs" << endl;
+    cout << "Failures: " << (env->num_runs - nsuccesses) << " out of " << env->num_runs << " runs" << endl;
     if(success_generations.size() > 0) {
         cout << "Success generations: " << stats(success_generations) << endl;
     }
