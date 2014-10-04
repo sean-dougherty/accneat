@@ -1,0 +1,7 @@
+set -e
+
+for x in gold/*; do
+    gold $x
+done
+
+echo "All gold passed"

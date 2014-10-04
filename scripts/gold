@@ -115,6 +115,22 @@ else
         cp out $gold
     else
         files=$(find experiment_* -type f | sort)
-        (rc=0; for x in $files; do diff -q $x $gold/$x || rc=1; done; exit $rc) && echo "RESULTS MATCH GOLD"
+        if (
+            rc=0
+            for x in $files; do
+                if ! diff -q $x $gold/$x; then
+                    rc=1;
+                fi
+            done;
+            exit $rc
+            );
+        then
+            echo "RESULTS MATCH GOLD ($gold)"
+            exit 0
+        else
+            echo "!!! GOLD FAILURE ($gold) !!!"
+            exit 1
+        fi
+            
     fi
 fi
