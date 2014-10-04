@@ -86,7 +86,8 @@ namespace NEAT {
 		//   Generally, if they fail, they can be called again if desired. 
 
 		// Mutate genome by adding a node respresentation 
-		bool mutate_add_node(CreateInnovationFunc create_innov);
+		bool mutate_add_node(CreateInnovationFunc create_innov,
+                             bool delete_split_link);
 
 		void mutate_delete_node();
 

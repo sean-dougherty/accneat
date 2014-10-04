@@ -131,7 +131,8 @@ void InnovGenomeManager::mutate(Genome &genome_,
         rng_t::prob_switch_t op = rng.prob_switch();
 
         if( allow_add && op.prob_case(NEAT::mutate_add_node_prob) ) {
-            genome->mutate_add_node(create_innov_func(genome_));
+            bool delete_split_link = NEAT::search_type != GeneticSearchType::COMPLEXIFY;
+            genome->mutate_add_node(create_innov_func(genome_), delete_split_link);
         } else if( allow_add && op.prob_case(NEAT::mutate_add_link_prob) ) {
             genome->mutate_add_link(create_innov_func(genome_),
                                     NEAT::newlink_tries);
