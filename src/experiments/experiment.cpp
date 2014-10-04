@@ -226,7 +226,6 @@ Experiment::~Experiment() {
 }
 
 void Experiment::init_env() {
-    env->compat_threshold = 10.0;
 }
 
 void Experiment::print(Population *pop, int experiment_num, int geneneration) {

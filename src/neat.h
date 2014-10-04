@@ -78,7 +78,7 @@ namespace NEAT {
         real_t mutdiff_coeff = 3.0;
 
 	// This global tells compatibility threshold under which two Genomes are considered the same species 
-        real_t compat_threshold = 4.0;
+        real_t compat_threshold = 10.0;
 
         real_t age_significance = 1.0; // How much does age matter? 
         real_t survival_thresh = 0.4; // Percent of ave fitness for survival 
