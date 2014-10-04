@@ -15,6 +15,11 @@ void mkdir(const string &path) {
     }
 }
 
+bool exists(const std::string &path) {
+    struct stat buffer;
+    return (stat (path.c_str(), &buffer) == 0);     
+}
+
 vector<string> permute_repeat(const string &letters,
                               size_t len) {
     vector<string> result;

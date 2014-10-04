@@ -37,7 +37,7 @@ set -e
 cd $(dirname $0)/..
 
 DEFAULT_GOLD=$(pwd)/gold/default
-DEFAULT_CMD='./neat -s complexify -c 2 -n 1000 -x 50 xor'
+DEFAULT_CMD='./neat -f -c 2 -n 1000 -x 50 xor'
 
 function err() {
     echo -e "$@" 1>&2 ;
@@ -98,7 +98,6 @@ else
 fi
 
 make
-rm -rf experiment_*
 
 cmd=$(cat $gold/cmd)
 

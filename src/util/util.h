@@ -13,6 +13,8 @@ namespace NEAT {
 #define impl() {std::cerr << __FILE__ << ":" << __LINE__ << ": IMPLEMENT!" << std::endl; abort();}
 #define panic() {std::cerr << __FILE__ << ":" << __LINE__ << ": PANIC!" << std::endl; abort();}
 
+#define sh(cmd) {int rc = system(cmd); if(rc != 0) error("Failed executing " << cmd);}
+
     template<typename Container, typename Predicate>
     void erase_if(Container &cont, Predicate predicate) {
         auto iterator = std::remove_if(cont.begin(), cont.end(), predicate);
@@ -47,6 +49,7 @@ std::vector<T> concat(const std::vector<T> &a, const std::vector<T> &b) {
 }
 
 void mkdir(const std::string &path);
+bool exists(const std::string &path);
 
 // e.g. ("ab", 3) --> {"aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"}
 std::vector<std::string> permute_repeat(const std::string &letters, size_t len);

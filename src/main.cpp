@@ -38,11 +38,12 @@ void usage() {
     cerr << endl;
 
     cerr << "OPTIONS" << endl;
-    cerr << "  -c num_experiments (default=" << NEAT::num_runs << ")" << endl;
-    cerr << "  -r RNG_seed (default=" << DEFAULT_RNG_SEED << ")" << endl;
-    cerr << "  -n population_size (default=" << NEAT::pop_size << ")" << endl;
-    cerr << "  -x max_generations (default=" << DEFAULT_MAX_GENS << ")" << endl;
-    cerr << "  -s search_type {phased, blended, complexify} (default=phased)" << endl;
+    cerr << "  -f                   Force deletion of any data from previous run." << endl;
+    cerr << "  -c num_experiments   (default=" << NEAT::num_runs << ")" << endl;
+    cerr << "  -r RNG_seed          (default=" << DEFAULT_RNG_SEED << ")" << endl;
+    cerr << "  -n population_size   (default=" << NEAT::pop_size << ")" << endl;
+    cerr << "  -x max_generations   (default=" << DEFAULT_MAX_GENS << ")" << endl;
+    cerr << "  -s search_type       {phased, blended, complexify} (default=phased)" << endl;
 
 
     exit(1);
@@ -70,11 +71,15 @@ int main(int argc, char *argv[]) {
     int rng_seed = DEFAULT_RNG_SEED;
     int maxgens = DEFAULT_MAX_GENS;
     NEAT::search_type = NEAT::GeneticSearchType::PHASED;
+    bool force_delete = false;
 
     {
         int opt;
-        while( (opt = getopt(argc, argv, "c:r:p:g:n:x:s:")) != -1) {
+        while( (opt = getopt(argc, argv, "fc:r:p:g:n:x:s:")) != -1) {
             switch(opt) {
+            case 'f':
+                force_delete = true;
+                break;
             case 'c':
                 NEAT::num_runs = parse_int("-c", optarg);
                 break;
@@ -117,6 +122,12 @@ int main(int argc, char *argv[]) {
         usage();
     } else if(nargs > 1) {
         error("Unexpected argument: " << argv[optind+1]);
+    }
+
+    if(force_delete) {
+        sh("rm -rf experiment_*");
+    } else if(exists("experiment_1")) {
+        error("Already exists: experiment_1.\nMove your experiment directories or use -f to delete them automatically.")
     }
 
     const char *experiment_name = argv[optind++];
