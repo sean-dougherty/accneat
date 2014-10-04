@@ -13,11 +13,6 @@ InnovGenomeManager::InnovGenomeManager() {
     } else {
         search_phase = UNDEFINED;
         search_phase_start = -1;
-
-        if(NEAT::search_type == NEAT::GeneticSearchType::BLENDED) {
-            NEAT::mutate_delete_node_prob *= 0.1;
-            NEAT::mutate_delete_link_prob *= 0.1;
-        }
     }
     generation = 1;
 }

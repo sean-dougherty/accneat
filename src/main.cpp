@@ -130,6 +130,11 @@ int main(int argc, char *argv[]) {
         error("Already exists: experiment_1.\nMove your experiment directories or use -f to delete them automatically.")
     }
 
+    if(NEAT::search_type == NEAT::GeneticSearchType::BLENDED) {
+        NEAT::mutate_delete_node_prob *= 0.1;
+        NEAT::mutate_delete_link_prob *= 0.1;
+    }
+
     const char *experiment_name = argv[optind++];
 
     NEAT::Experiment *exp = NEAT::Experiment::get(experiment_name);
