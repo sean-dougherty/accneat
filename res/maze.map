@@ -1,0 +1,66 @@
+################################################################################
+[glyphs] 
+
+agent = > ^ < v
+food  = f
+wall  = | ~
+
+################################################################################
+[glyphs-attrs]
+
+> dir = right
+^ dir = up
+< dir = left
+v dir = down
+
+################################################################################
+[objects]
+
++ABCDEFGHIJKLMNOPQRSTUVWXYZ
+A                          
+B      ~~~       ~~~       
+C      |f|       |f|        
+D      | |       | |       
+E      | ~~~~~~~~~ |        
+F      | f       f |       
+G      | ~~~~ ~~~~ |       
+H      | |  |f|  | |       
+I      |f|  | |  |f|       
+J      ~~~  | |  ~~~       
+K           | |            
+L           | |            
+M           |>|            
+N           | |            
+O           | |            
+P      ~~~  | |  ~~~       
+Q      |f|  | |  |f|       
+R      | |  |f|  | |       
+S      | ~~~~ ~~~~ |       
+T      | f       f |       
+U      | ~~~~~~~~~ |       
+V      | |       | |       
+W      |f|       |f|       
+X      ~~~       ~~~       
+Y                          
+Z                          
+
+################################################################################
+[objects-attrs]
+
+H,M f seq = l
+R,M f seq = r
+ 
+F,I f seq = ll
+F,Q f seq = lr
+T,I f seq = rr
+T,Q f seq = rl
+ 
+I,H f seq = lll
+C,H f seq = llr
+I,R f seq = lrr
+C,R f seq = lrl
+ 
+Q,H f seq = rrr
+W,H f seq = rrl
+Q,R f seq = rll
+W,R f seq = rlr
