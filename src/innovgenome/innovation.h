@@ -17,9 +17,6 @@
 #define _INNOVATION_H_
 
 #include "neat.h"
-#include <functional>
-#include <map>
-#include <vector>
 
 namespace NEAT {
 

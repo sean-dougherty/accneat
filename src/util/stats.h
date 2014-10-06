@@ -1,9 +1,5 @@
 #pragma once
 
-#include <cmath>
-#include <iostream>
-#include <vector>
-
 namespace NEAT {
     template<typename T, typename U=T>
     U sum(const std::vector<T> &vec) {

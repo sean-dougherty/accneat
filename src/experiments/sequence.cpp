@@ -1,8 +1,7 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "experiment.h"
-
 #include "util.h"
 #include <assert.h>
-#include <cmath>
 
 using namespace NEAT;
 using namespace std;
@@ -64,6 +63,8 @@ struct FooExperiment : public Experiment {
 */
     }
 } foo;
+
+/*
 
 class SequentialInputExperiment : public Experiment {
 public:
@@ -517,6 +518,8 @@ public:
 #undef __
     }
 } seq_2bit;
+
+*/
 
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences,

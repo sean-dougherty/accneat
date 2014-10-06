@@ -1,8 +1,5 @@
 #pragma once
 
-#include <cstdlib>
-#include <vector>
-
 namespace NEAT {
     class Timer {
         static std::vector<Timer *> timers;

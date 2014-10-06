@@ -13,16 +13,12 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "innovgenome.h"
-
 #include "protoinnovlinkgene.h"
 #include "recurrencychecker.h"
 #include "util.h"
 #include <assert.h>
-#include <algorithm>
-#include <iostream>
-#include <cmath>
-#include <sstream>
 
 using namespace NEAT;
 using namespace std;

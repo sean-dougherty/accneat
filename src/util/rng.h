@@ -1,9 +1,6 @@
 #pragma once
 
 #include "neat.h"
-#include <climits>
-#include <random>
-#include <vector>
 
 namespace NEAT {
 

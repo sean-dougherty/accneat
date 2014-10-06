@@ -1,3 +1,4 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "experiment.h"
 
 using namespace NEAT;

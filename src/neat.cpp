@@ -13,11 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "neat.h"
-
-#include <fstream>
-#include <cmath>
-#include <cstring>
 
 using NEAT::real_t;
 

@@ -18,10 +18,6 @@
 #include "genome.h"
 #include "genomemanager.h"
 #include "rng.h"
-#include <cstddef>
-#include <functional>
-#include <iostream>
-#include <memory>
 
 namespace NEAT {
 

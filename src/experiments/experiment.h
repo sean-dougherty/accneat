@@ -2,11 +2,6 @@
 #include "organism.h"
 #include "util.h"
 
-#include <map>
-#include <string>
-#include <vector>
-
-
 namespace NEAT {
 
     struct Step {

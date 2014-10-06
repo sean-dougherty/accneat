@@ -1,8 +1,6 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "rng.h"
-
 #include <assert.h>
-#include <cstdlib>
-#include <iostream>
 
 using namespace NEAT;
 using namespace std;

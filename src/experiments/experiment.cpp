@@ -1,10 +1,10 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "experiment.h"
 #include "network.h"
 #include "population.h"
 #include "stats.h"
 #include "timer.h"
 #include <assert.h>
-#include <fstream>
 
 using namespace NEAT;
 using namespace std;

@@ -20,8 +20,6 @@
 #include "innovnodegene.h"
 #include "innovnodelookup.h"
 #include "innovation.h"
-#include <memory>
-#include <vector>
 
 namespace NEAT {
 

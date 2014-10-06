@@ -16,7 +16,6 @@
 #pragma once
 
 #include "rng.h"
-#include <memory>
 
 namespace NEAT {
 

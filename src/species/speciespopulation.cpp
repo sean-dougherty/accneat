@@ -13,15 +13,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#include "speciespopulation.h"
-
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "organism.h"
 #include "species.h"
+#include "speciespopulation.h"
 #include "timer.h"
 #include "util.h"
-#include <iostream>
-#include <sstream>
-#include <fstream>
 
 #include <assert.h>
 #include <omp.h>

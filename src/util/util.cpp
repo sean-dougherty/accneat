@@ -1,5 +1,5 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "util.h"
-
 #include <sys/types.h>
 #include <sys/stat.h>
 

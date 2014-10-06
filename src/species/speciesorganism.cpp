@@ -1,5 +1,5 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "speciesorganism.h"
-
 #include "species.h"
 
 using namespace NEAT;

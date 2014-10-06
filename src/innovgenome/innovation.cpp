@@ -14,11 +14,9 @@
    limitations under the License.
 */
 
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "innovation.h"
 #include "util.h"
-
-#include <algorithm>
-#include <iostream>
 
 #include <omp.h>
 

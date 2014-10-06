@@ -16,7 +16,6 @@
 #ifndef _TRAIT_H_
 #define _TRAIT_H_
 
-#include <fstream>
 #include "neat.h"
 #include "rng.h"
 

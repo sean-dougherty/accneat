@@ -19,7 +19,6 @@
 #include "link.h"
 #include "neat.h"
 #include "util.h"
-#include <vector>
 
 namespace NEAT {
 

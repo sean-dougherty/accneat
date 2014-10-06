@@ -13,6 +13,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "population.h"
 #include "demespopulation.h"
 #include "speciespopulation.h"

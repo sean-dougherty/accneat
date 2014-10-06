@@ -3,7 +3,6 @@
 #include "organism.h"
 #include "rng.h"
 #include <assert.h>
-#include <vector>
 
 namespace NEAT {
 

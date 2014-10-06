@@ -1,9 +1,8 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "demespopulation.h"
-
 #include "genomemanager.h"
 #include "timer.h"
 #include "util.h"
-#include <algorithm>
 
 using namespace NEAT;
 using namespace std;

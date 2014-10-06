@@ -1,11 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <map>
-#include <memory>
-#include <string>
-#include <vector>
-
 namespace NEAT {
 
 #define error(msg) {std::cerr << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; exit(1);}

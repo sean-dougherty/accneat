@@ -1,10 +1,7 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "timer.h"
-
 #include <assert.h>
 #include <sys/time.h>
-
-#include <algorithm>
-#include <iostream>
 
 using namespace NEAT;
 using namespace std;

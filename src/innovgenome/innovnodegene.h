@@ -16,8 +16,6 @@
 #pragma once
 
 #include <assert.h>
-#include <algorithm>
-#include <vector>
 #include "neat.h"
 
 namespace NEAT {

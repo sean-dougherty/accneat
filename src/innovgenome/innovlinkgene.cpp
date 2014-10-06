@@ -13,10 +13,9 @@
   See the License for the specific language governing permissions and
   limitations under the License.
 */
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "innovlinkgene.h"
 
-#include <iostream>
-#include <sstream>
 using namespace NEAT;
 
 InnovLinkGene::InnovLinkGene(real_t w,

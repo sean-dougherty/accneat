@@ -1,7 +1,6 @@
 #pragma once
 
 #include "innovnodegene.h"
-#include <vector>
 
 namespace NEAT {
 

@@ -16,8 +16,6 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
-#include <algorithm>
-#include <vector>
 #include "neat.h"
 #include "nnode.h"
 

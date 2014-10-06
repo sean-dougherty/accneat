@@ -1,6 +1,6 @@
-#include "innovgenomemanager.h"
-
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "innovgenome.h"
+#include "innovgenomemanager.h"
 #include "util.h"
 
 using namespace NEAT;

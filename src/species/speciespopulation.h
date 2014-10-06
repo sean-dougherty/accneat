@@ -19,7 +19,6 @@
 #include "organismsbuffer.h"
 #include "population.h"
 #include "speciesorganism.h"
-#include <vector>
 
 namespace NEAT {
 

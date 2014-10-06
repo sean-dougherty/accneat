@@ -1,7 +1,6 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "spacegenome.h"
-
 #include "util.h"
-#include <climits>
 
 using namespace NEAT;
 using namespace std;

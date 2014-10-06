@@ -3,7 +3,6 @@
 #include "neat.h"
 #include "nodelocation.h"
 #include <assert.h>
-#include <iostream>
 
 namespace NEAT {
 

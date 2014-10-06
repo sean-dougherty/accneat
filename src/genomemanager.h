@@ -2,8 +2,6 @@
 
 #include "neat.h"
 #include "rng.h"
-#include <memory>
-#include <vector>
 
 namespace NEAT {
 

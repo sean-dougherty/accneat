@@ -1,8 +1,5 @@
 #pragma once
 
-#include <iostream>
-#include <cmath>
-
 namespace NEAT {
 
     class NodeLocation {

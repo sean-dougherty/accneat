@@ -4,7 +4,6 @@
 #include "spacelinkgene.h"
 #include "spacenodegene.h"
 #include "spacenodelookup.h"
-#include <vector>
 
 namespace NEAT {
 

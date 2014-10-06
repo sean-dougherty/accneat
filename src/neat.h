@@ -16,12 +16,6 @@
 #ifndef _NERO_NEAT_H_
 #define _NERO_NEAT_H_
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <vector>
-
 namespace NEAT {
     typedef float real_t;
 

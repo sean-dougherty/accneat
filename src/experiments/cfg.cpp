@@ -1,5 +1,5 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "experiment.h"
-
 #include <assert.h>
 
 using namespace NEAT;

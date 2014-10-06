@@ -1,12 +1,5 @@
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "util.h"
-#include <cctype>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <set>
-#include <sstream>
-#include <string>
-#include <vector>
 
 using namespace std;
 
