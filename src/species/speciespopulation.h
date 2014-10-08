@@ -52,11 +52,6 @@ namespace NEAT {
 		// ******* Member variables used during reproduction *******
 		int last_species;  //The highest species number
 
-		// ******* Fitness Statistics *******
-		real_t mean_fitness;
-		real_t variance;
-		real_t standard_deviation;
-
 		// ******* When do we need to delta code? *******
 		real_t highest_fitness;  //Stagnation detector
 		int highest_last_changed; //If too high, leads to delta coding
