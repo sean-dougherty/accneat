@@ -28,6 +28,11 @@ bool contains(const T &container, const U &value) {
     return container.find(value) != container.end();
 }
 
+template<typename T, typename U>
+void fill(T &container, const U &value) {
+    std::fill(container.begin(), container.end(), value);
+}
+
 template<typename T>
 void append(std::vector<T> &a, const std::vector<T> &b) {
     a.insert(a.end(), b.begin(), b.end());

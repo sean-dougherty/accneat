@@ -20,7 +20,7 @@ namespace NEAT {
              real_t weight_ = 1.0,
              ErrType err_type_ = Err_Delta);
 
-        real_t err(class Network *net) const;
+        real_t evaluate(class Organism &);
     };
 
     struct Test {
@@ -33,20 +33,29 @@ namespace NEAT {
         std::vector<Step> steps;
         Type type;
 
-    Test(const std::string &name_,
+        Test(const std::string &name_,
              const std::vector<Step> &steps_,
-             Type type_ = Training)
-        : name(name_), steps(steps_), type(type_) {
-        }
+             Type type_ = Training);
 
         Test(const std::vector<Step> &steps_, Type type_ = Training)
         : Test("", steps_, type_) {
         }
+
+        void prepare(Organism &org, size_t istep);
+        real_t evaluate(Organism &org, size_t istep);
     };
 
     struct TestBattery {
         std::vector<Test> tests;
         real_t max_err = 0.0;
+        struct TestStep {
+            size_t itest;
+            size_t istep;
+        };
+        std::vector<TestStep> test_steps;
+        std::vector<real_t> population_err;
+
+        TestBattery();
 
         void add(const Test &test);
 
@@ -55,9 +64,13 @@ namespace NEAT {
             real_t error;
         };
         
-        EvalResult evaluate(class Organism &org) const;
+        void reset();
 
-        void show_report(class Organism &org, bool detailed = false);
+        bool prepare_step(class Organism &org, size_t istep);
+        void evaluate_step(class Organism &org, size_t istep);
+        EvalResult get_evaluation(class Organism &org);
+
+        //void show_report(class Organism &org);
     };
 
     class Experiment {

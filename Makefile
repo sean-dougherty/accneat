@@ -3,11 +3,20 @@ INCLUDES=-Iobj $(patsubst %,-I%,$(shell find src -type d))
 OBJECTS=${SOURCES:src/%.cpp=obj/%.o}
 DEPENDS=${OBJECTS:%.o=%.d}
 
-#PROFILE=-pg
-OPENMP=-fopenmp
-OPT=-O2
+DEVMODE=non-empty
 
-CC_FLAGS=-Wall -Werror ${PROFILE} ${INCLUDES} ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3
+ifdef DEVMODE
+	OPT=-O0
+	OPENMP=-fopenmp
+	#PROFILE=-pg
+	MISC_FLAGS=
+else
+	OPT=-O2
+	OPENMP=-fopenmp
+	MISC_FLAGS=-Werror
+endif
+
+CC_FLAGS=-Wall ${MISC_FLAGS} ${PROFILE} ${INCLUDES} ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3
 
 ./neat: ${OBJECTS}
 	g++ ${PROFILE} ${OBJECTS} -lgomp -o $@

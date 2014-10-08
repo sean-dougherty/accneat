@@ -67,7 +67,9 @@ Step::Step(const vector<real_t> &input_,
     }
 }
 
-real_t Step::err(Network *net) const {
+real_t Step::evaluate(Organism &org) {
+    Network *net = &org.net;
+
     switch(err_type) {
     case Err_Delta: {
         real_t result = 0.0;
@@ -100,89 +102,111 @@ real_t Step::err(Network *net) const {
 
 //------------------------------
 //---
+//--- CLASS Test
+//---
+//------------------------------
+Test::Test(const string &name_,
+           const vector<Step> &steps_,
+           Type type_)
+    : name(name_), steps(steps_), type(type_) {
+}
+
+void Test::prepare(Organism &org, size_t istep) {
+    if(istep == 0) {
+        org.net.flush();
+    }
+
+    Step &step = steps[istep];
+    org.net.load_sensors(step.input);
+}
+
+real_t Test::evaluate(Organism &org, size_t istep) {
+    return steps[istep].evaluate(org);
+}
+
+//------------------------------
+//---
 //--- CLASS TestBattery
 //---
 //------------------------------
+TestBattery::TestBattery() {
+    population_err.resize(env->pop_size);
+}
+
 void TestBattery::add(const Test &test) {
     for(auto &step: test.steps) {
         max_err += step.weight * step.output.size();
     }
     tests.push_back(test);
+
+    size_t itest = tests.size() - 1;
+    for(size_t istep = 0; istep < test.steps.size(); istep++) {
+        test_steps.push_back({itest, istep});
+    }
 }
 
-TestBattery::EvalResult TestBattery::evaluate(Organism &org) const {
-    Network *net = &org.net;
-    real_t errorsum = 0.0;
+void TestBattery::reset() {
+    fill(population_err, real_t(0.0));
+}
 
-    for(auto &test: tests) {
-        for(auto &step: test.steps) {
-            net->load_sensors(step.input);
-            for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
-                net->activate();
-            }
-            errorsum += step.err( net );
-        }
+bool TestBattery::prepare_step(Organism &org, size_t istep) {
+    if(istep >= test_steps.size())
+        return false;
 
-        net->flush();
-    }
+    TestStep &step = test_steps[istep];
+    tests[step.itest].prepare(org, step.istep);
 
+    return true;
+}
+
+void TestBattery::evaluate_step(Organism &org, size_t istep) {
+    TestStep &step = test_steps[istep];
+
+    population_err[org.population_index] += tests[step.itest].evaluate(org, step.istep);
+}
+
+TestBattery::EvalResult TestBattery::get_evaluation(Organism &org) {
     EvalResult result;
-    result.fitness = 1.0 - errorsum/max_err;
-    result.error = errorsum;
-
+    result.error = population_err[org.population_index];
+    result.fitness = 1.0 - result.error/max_err;
     return result;
 }
 
-void TestBattery::show_report(Organism &org, bool detailed) {
-    if(detailed) {
-        impl();
-    } else {
-        Network *net = &org.net;
-
-        vector<string> errant, perfect;
-        for(auto &test: tests) {
-            bool failed = false;
-            for(auto &step: test.steps) {
-                net->load_sensors(step.input);
-                for(size_t i = 0; i < NACTIVATES_PER_INPUT; i++) {
-                    net->activate();
-                }
-                if( step.err( net ) != 0) {
-                    failed = true;
-                    break;
-                }
-            }
-            net->flush();
-            if(failed) {
-                errant.push_back(test.name);
-            } else {
-                perfect.push_back(test.name);
-            }
-        }
-
-        cout << str(tests.front().type) << ": ";
-
-        if(tests.front().name == "") {
-            cout << "perfect=" << (100 * real_t(perfect.size())/tests.size()) << "%" << endl;
+/*
+void TestBattery::show_report(Organism &org) {
+    vector<string> errant, perfect;
+    for(auto &test: tests) {
+        test.evaluate(org);
+        if(test.err(org) != 0.0) {
+            errant.push_back(test.name);
         } else {
-            cout << "perfect[" << perfect.size() << "]={";
-            for(size_t i = 0; i < perfect.size(); i++) {
-                if(i != 0) cout << ",";
-                cout << perfect[i];
-            }
-            cout << "} ";
-
-            cout << "errant[" << errant.size() << "]={";
-            for(size_t i = 0; i < errant.size(); i++) {
-                if(i != 0) cout << ",";
-                cout << errant[i];
-            }
-            cout << "} ";
-
-            cout << endl;
+            perfect.push_back(test.name);
         }
     }
+
+    cout << str(tests.front().type) << ": ";
+
+    if(tests.front().name == "") {
+        cout << "perfect=" << (100 * real_t(perfect.size())/tests.size()) << "%" << endl;
+    } else {
+        cout << "perfect[" << perfect.size() << "]={";
+        for(size_t i = 0; i < perfect.size(); i++) {
+            if(i != 0) cout << ",";
+            cout << perfect[i];
+        }
+        cout << "} ";
+
+        cout << "errant[" << errant.size() << "]={";
+        for(size_t i = 0; i < errant.size(); i++) {
+            if(i != 0) cout << ",";
+            cout << errant[i];
+        }
+        cout << "} ";
+
+        cout << endl;
+    }
 }
+*/
 
 //------------------------------
 //---
@@ -375,20 +399,33 @@ bool Experiment::is_success(Organism *org) {
 
 void Experiment::evaluate(Population *pop) {
     TestBattery &battery = batteries[Test::Training];
-    auto eval = [=] (Organism &org) {
-        TestBattery::EvalResult result = battery.evaluate(org);
+    auto eval = [&battery] (Organism &org) {
+
+        for(size_t i = 0; battery.prepare_step(org, i); i++) {
+            for(size_t j = 0; j < NACTIVATES_PER_INPUT; j++) {
+                org.net.activate();
+            }
+            battery.evaluate_step(org, i);
+        }
+
+        TestBattery::EvalResult result = battery.get_evaluation(org);
         org.fitness = result.fitness;
         org.error = result.error;
     };
+
+    battery.reset();
 
     bool new_fittest = pop->evaluate(eval);
     Organism &fittest = pop->get_fittest();
 
     if(new_fittest) {
+/*
+        batteries[Test::Training].reset();
         batteries[Test::Training].show_report(fittest);
         if(batteries.find(Test::Fittest) != batteries.end()) {
             batteries[Test::Fittest].show_report(fittest);
         }
+*/
     }
 
     Genome::Stats gstats = fittest.genome->get_stats();

@@ -3,7 +3,8 @@
 /G*
 /*out*
 /obj
+/bin
 /tmp/
 .#*
-/gold/
+/gold*/
 /src/util/std.h.gch
