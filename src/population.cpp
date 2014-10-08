@@ -15,7 +15,6 @@
 */
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "population.h"
-#include "demespopulation.h"
 #include "speciespopulation.h"
 #include "util.h"
 
@@ -30,8 +29,6 @@ Population *Population::create(rng_t rng,
     switch(env->population_type) {
     case PopulationType::SPECIES:
         return new SpeciesPopulation(rng, genome_manager, seeds);
-    case PopulationType::DEMES:
-        return new DemesPopulation(rng, genome_manager, seeds);
     default:
         panic();
     }

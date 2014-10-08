@@ -99,18 +99,6 @@ int main(int argc, char *argv[]) {
                         {"complexify", GeneticSearchType::COMPLEXIFY}
                     });
                 break;
-            case 'p':
-                env->population_type = parse_enum<PopulationType>("-p", optarg, {
-                        {"species", PopulationType::SPECIES},
-                        {"demes", PopulationType::DEMES}
-                    });
-                break;
-            case 'g':
-                env->genome_type = parse_enum<GenomeType>("-g", optarg, {
-                        {"innov", GenomeType::INNOV},
-                        {"space", GenomeType::SPACE}
-                    });
-                break;
             default:
                 error("Invalid option: -" << (char)opt);
             }

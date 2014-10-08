@@ -19,8 +19,6 @@
 namespace NEAT {
     typedef float real_t;
 
-    // note: you cannot change the ordering of these nodetype values.
-    // e.g. see Network::Network and SpaceGenome::operator<
 	enum class nodetype {
         BIAS = 0,
 		SENSOR = 1,
@@ -44,8 +42,8 @@ namespace NEAT {
 	};
 
     enum class GeneticSearchType {PHASED, BLENDED, COMPLEXIFY};
-    enum class PopulationType {SPECIES, DEMES};
-    enum class GenomeType {INNOV, SPACE};
+    enum class PopulationType {SPECIES};
+    enum class GenomeType {INNOV};
 
     struct NeatEnv {
         GeneticSearchType search_type = GeneticSearchType::PHASED;
@@ -94,7 +92,6 @@ namespace NEAT {
         real_t recur_only_prob = 0.2;  // Probability of forcing selection of ONLY links that are naturally recurrent 
 
         int pop_size = 1000;  // Size of population 
-        size_t deme_count = 10;
         int dropoff_age = 15;  // Age where Species starts to be penalized 
         int newlink_tries = 20;  // Number of tries mutate_add_link will attempt to find an open link 
         int print_every = 1000; // Tells to print population to file every n generations 
