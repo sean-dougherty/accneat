@@ -32,7 +32,6 @@ SpeciesPopulation::SpeciesPopulation(rng_t rng,
     : norgs(seeds.size())
     , generation(0)
     , orgs(rng, seeds, seeds.size())
-    , fittest(*seeds.front())
     , genome_manager(genome_manager_)
     , highest_fitness(0.0)
     , highest_last_changed(0) {
@@ -49,6 +48,19 @@ SpeciesPopulation::~SpeciesPopulation() {
 			delete (*curspec);
 		}
 	}
+}
+
+size_t SpeciesPopulation::size() {
+    return norgs;
+}
+
+Organism *SpeciesPopulation::get(size_t index) {
+    return &orgs.curr()[index];
+}
+
+unique_ptr<Organism> SpeciesPopulation::make_copy(size_t index) {
+    SpeciesOrganism *copy = new SpeciesOrganism( (SpeciesOrganism&)*get(index) );
+    return unique_ptr<Organism>(copy);
 }
 
 void SpeciesPopulation::verify() {
@@ -86,48 +98,6 @@ void SpeciesPopulation::speciate() {
 void SpeciesPopulation::write(std::ostream& out) {
     for(auto &s: species)
         s->print_to_file(out);
-}
-
-bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
-    static Timer timer("evaluate");
-    timer.start();
-
-    size_t nthreads = omp_get_max_threads();
-    SpeciesOrganism *fittest_thread[nthreads];
-
-    for(size_t i = 0; i < nthreads; i++)
-        fittest_thread[i] = nullptr;
-
-#pragma omp parallel for
-    for(size_t i = 0; i < norgs; i++) {
-        SpeciesOrganism &org = orgs.curr()[i];
-        eval_org( org );
-
-        size_t tnum = omp_get_thread_num();
-        if( (fittest_thread[tnum] == nullptr)
-            || (org.eval.fitness > fittest_thread[tnum]->eval.fitness) ) {
-
-            fittest_thread[tnum] = &org;
-        }
-    }
-
-    SpeciesOrganism *best = nullptr;
-    for(size_t i = 0; i < nthreads; i++) {
-        if( !best
-            || (fittest_thread[i] && (fittest_thread[i]->eval.fitness > best->eval.fitness)) ) {
-
-            best = fittest_thread[i];
-        }
-    }
-
-    timer.stop();
-
-    if(best && best->eval.fitness > fittest.eval.fitness) {
-        fittest = *best;
-        return true;
-    } else {
-        return false;
-    }
 }
 
 void SpeciesPopulation::next_generation() {

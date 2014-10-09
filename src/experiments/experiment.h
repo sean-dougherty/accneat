@@ -90,10 +90,10 @@ namespace NEAT {
 
     private:
         Experiment() {}
-        void print(class Population *pop,
+        void print(class OrganismEvaluator *eval,
                    int experiment_num,
                    int generation);
-        void evaluate(class Population *pop);
+        void evaluate(class OrganismEvaluator *eval);
 
         const char *name;
         std::map<Test::Type, TestBattery> batteries;

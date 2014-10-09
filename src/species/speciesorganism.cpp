@@ -4,6 +4,11 @@
 
 using namespace NEAT;
 
+SpeciesOrganism::SpeciesOrganism(const SpeciesOrganism &other) {
+    this->genome = other.genome->make_default();
+    other.copy_into(*this);
+}
+
 SpeciesOrganism::SpeciesOrganism(const Genome &genome) {
     this->genome = genome.make_default();
     *this->genome = genome;

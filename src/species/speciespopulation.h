@@ -30,8 +30,10 @@ namespace NEAT {
                           std::vector<std::unique_ptr<Genome>> &seeds);
 		virtual ~SpeciesPopulation();
 
-        virtual bool evaluate(std::function<void (Organism &org)> eval_org) override;
-        virtual class Organism &get_fittest() override {return fittest;}
+        virtual size_t size() override;
+        virtual class Organism *get(size_t index) override;
+        virtual std::unique_ptr<Organism> make_copy(size_t index) override;
+
 		virtual void next_generation() override;
 		virtual void verify() override;
 
@@ -44,7 +46,6 @@ namespace NEAT {
         size_t norgs;
         int generation;
         OrganismsBuffer<SpeciesOrganism> orgs;
-        SpeciesOrganism fittest;
 
         std::vector<class Species*> species;  // Species in the SpeciesPopulation. Note that the species should comprise all the genomes 
         GenomeManager *genome_manager;

@@ -1,6 +1,7 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "experiment.h"
 #include "network.h"
+#include "organismevaluator.h"
 #include "population.h"
 #include "stats.h"
 #include "timer.h"
@@ -251,9 +252,11 @@ Experiment::~Experiment() {
 void Experiment::init_env() {
 }
 
-void Experiment::print(Population *pop, int experiment_num, int geneneration) {
+void Experiment::print(OrganismEvaluator *eval,
+                       int experiment_num,
+                       int geneneration) {
     ofstream out(get_fittest_path(experiment_num, geneneration));
-    pop->get_fittest().write(out);
+    eval->get_fittest()->write(out);
 }
 
 void Experiment::init() {
@@ -345,6 +348,7 @@ void Experiment::run(rng_t &rng, int gens) {
                                                    ninputs);
         //Spawn the Population
         Population *pop = Population::create(rng_exp, genome_manager, genomes);
+        unique_ptr<OrganismEvaluator> eval = make_unique<OrganismEvaluator>(pop);
       
         bool success = false;
         int gen;
@@ -358,9 +362,9 @@ void Experiment::run(rng_t &rng, int gens) {
                 pop->next_generation();
             }
 
-            evaluate(pop);
+            evaluate(eval.get());
 
-            if(is_success(&pop->get_fittest())) {
+            if(is_success(eval->get_fittest())) {
                 success = true;
                 nsuccesses++;
             }
@@ -370,21 +374,21 @@ void Experiment::run(rng_t &rng, int gens) {
 
             //Don't print on success because we'll exit the loop and print then.
             if(!success && (gen % env->print_every == 0))
-                print(pop, expcount, gen);
+                print(eval.get(), expcount, gen);
         }
 
         if(success) {
             success_generations.push_back(gen);
         }
         {
-            Organism &fittest = pop->get_fittest();
-            Genome::Stats gstats = fittest.genome->get_stats();
-            fitness.push_back(fittest.eval.fitness);
+            Organism *fittest = eval->get_fittest();
+            Genome::Stats gstats = fittest->genome->get_stats();
+            fitness.push_back(fittest->eval.fitness);
             nnodes.push_back(gstats.nnodes);
             nlinks.push_back(gstats.nlinks);
         }
 
-        print(pop, expcount, gen - 1);
+        print(eval.get(), expcount, gen - 1);
 
         delete pop;
         delete genome_manager;
@@ -403,9 +407,9 @@ bool Experiment::is_success(Organism *org) {
     return org->eval.error <= 0.0000001;
 }
 
-void Experiment::evaluate(Population *pop) {
+void Experiment::evaluate(OrganismEvaluator *eval) {
     TestBattery &battery = batteries.find(Test::Training)->second;
-    auto eval = [&battery] (Organism &org) {
+    auto eval_func = [&battery] (Organism &org) {
 
         for(size_t i = 0; battery.prepare_step(org, i); i++) {
             for(size_t j = 0; j < NACTIVATES_PER_INPUT; j++) {
@@ -417,8 +421,8 @@ void Experiment::evaluate(Population *pop) {
         org.eval = battery.get_evaluation(org);
     };
 
-    bool new_fittest = pop->evaluate(eval);
-    Organism &fittest = pop->get_fittest();
+    bool new_fittest = eval->evaluate(eval_func);
+    Organism *fittest = eval->get_fittest();
 
     if(new_fittest) {
 /*
@@ -429,10 +433,10 @@ void Experiment::evaluate(Population *pop) {
 */
     }
 
-    Genome::Stats gstats = fittest.genome->get_stats();
-    cout << "fittest [" << fittest.population_index << "]"
-         << ": fitness=" << fittest.eval.fitness
-         << ", error=" << fittest.eval.error
+    Genome::Stats gstats = fittest->genome->get_stats();
+    cout << "fittest [" << fittest->population_index << "]"
+         << ": fitness=" << fittest->eval.fitness
+         << ", error=" << fittest->eval.error
          << ", nnodes=" << gstats.nnodes
          << ", nlinks=" << gstats.nlinks
          << endl;
