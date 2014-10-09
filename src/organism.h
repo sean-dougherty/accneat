@@ -20,6 +20,13 @@
 
 namespace NEAT {
 
+    struct OrganismEvaluation {
+        real_t fitness = 0.0;
+        real_t error = 0.0;
+        
+        void reset() {fitness = error = 0.0;}
+    };
+
 	// ---------------------------------------------  
 	// ORGANISM CLASS:
 	//   Organisms are Genomes and Networks with fitness
@@ -32,8 +39,7 @@ namespace NEAT {
                                  //Provides client with convenient storage of associated
                                  //data in an array.
 
-		real_t fitness;  //A fitness measure that won't change during adjustments
-		real_t error;  //Used just for reporting purposes
+        OrganismEvaluation eval;
 		Network net;  //The Organism's phenotype
         std::unique_ptr<Genome> genome; //The Organism's genotype
 		int generation;  //Tells which generation this Organism is from

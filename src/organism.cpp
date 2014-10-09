@@ -39,9 +39,8 @@ Organism::~Organism() {
 }
 
 void Organism::init(int gen) {
-	fitness=0.0;
 	generation=gen;
-	error=0;
+    eval.reset();
 }
 
 Organism &Organism::operator=(const Organism &other) {
@@ -51,8 +50,8 @@ Organism &Organism::operator=(const Organism &other) {
 
 void Organism::write(std::ostream &out) const {
     out << "/* Organism #" << population_index << " "
-        << "Fitness: " << fitness << " "
-        << "Error: " << error << " */" << endl;
+        << "Fitness: " << eval.fitness << " "
+        << "Error: " << eval.error << " */" << endl;
     genome->print(out);
 }
 
@@ -60,8 +59,7 @@ void Organism::copy_into(Organism &dst) const {
 #define copy(field) dst.field = this->field;
     
     copy(population_index);
-    copy(fitness);
-    copy(error);
+    copy(eval);
     copy(net);
     *dst.genome = *this->genome;
     copy(generation);

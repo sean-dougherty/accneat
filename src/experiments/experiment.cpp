@@ -129,29 +129,28 @@ real_t Test::evaluate(Organism &org, size_t istep) {
 //--- CLASS TestBattery
 //---
 //------------------------------
-TestBattery::TestBattery() {
+TestBattery::TestBattery(const std::vector<Test> &tests_) : tests(tests_) {
     population_err.resize(env->pop_size);
-}
-
-void TestBattery::add(const Test &test) {
-    for(auto &step: test.steps) {
-        max_err += step.weight * step.output.size();
+    
+    for(size_t itest = 0; itest < tests.size(); itest++) {
+        for(size_t istep = 0; istep < tests[itest].steps.size(); istep++) {
+            test_steps.push_back({itest, istep});
+        }
     }
-    tests.push_back(test);
 
-    size_t itest = tests.size() - 1;
-    for(size_t istep = 0; istep < test.steps.size(); istep++) {
-        test_steps.push_back({itest, istep});
+    max_err = 0.0;
+    for(Test &test: tests) {
+        for(Step &step: test.steps) {
+            max_err += step.weight * step.output.size();
+        }
     }
-}
-
-void TestBattery::reset() {
-    fill(population_err, real_t(0.0));
 }
 
 bool TestBattery::prepare_step(Organism &org, size_t istep) {
     if(istep >= test_steps.size())
         return false;
+    else if(istep == 0)
+        population_err[org.population_index] = 0.0;
 
     TestStep &step = test_steps[istep];
     tests[step.itest].prepare(org, step.istep);
@@ -165,8 +164,8 @@ void TestBattery::evaluate_step(Organism &org, size_t istep) {
     population_err[org.population_index] += tests[step.itest].evaluate(org, step.istep);
 }
 
-TestBattery::EvalResult TestBattery::get_evaluation(Organism &org) {
-    EvalResult result;
+OrganismEvaluation TestBattery::get_evaluation(Organism &org) {
+    OrganismEvaluation result;
     result.error = population_err[org.population_index];
     result.fitness = 1.0 - result.error/max_err;
     return result;
@@ -283,11 +282,18 @@ void Experiment::init() {
         }
     }
 
-    //Organize tests into batteries.
-    for(Test &test: tests) {
-        batteries[test.type].add(test);
+    {
+        map<Test::Type, vector<Test>> testmap;
+        //Organize tests into batteries.
+        for(Test &test: tests) {
+            testmap[test.type].push_back(test);
+        }
+        assert( contains(testmap, Test::Training) );
+
+        for(auto &kv: testmap) {
+            batteries.emplace(kv.first, kv.second);
+        }
     }
-    assert(batteries.find(Test::Training) != batteries.end());
 
     cout << "=====================" << endl;
     cout << "===== BATTERIES =====" << endl;
@@ -373,7 +379,7 @@ void Experiment::run(rng_t &rng, int gens) {
         {
             Organism &fittest = pop->get_fittest();
             Genome::Stats gstats = fittest.genome->get_stats();
-            fitness.push_back(fittest.fitness);
+            fitness.push_back(fittest.eval.fitness);
             nnodes.push_back(gstats.nnodes);
             nlinks.push_back(gstats.nlinks);
         }
@@ -394,11 +400,11 @@ void Experiment::run(rng_t &rng, int gens) {
 }
 
 bool Experiment::is_success(Organism *org) {
-    return org->error <= 0.0000001;
+    return org->eval.error <= 0.0000001;
 }
 
 void Experiment::evaluate(Population *pop) {
-    TestBattery &battery = batteries[Test::Training];
+    TestBattery &battery = batteries.find(Test::Training)->second;
     auto eval = [&battery] (Organism &org) {
 
         for(size_t i = 0; battery.prepare_step(org, i); i++) {
@@ -408,19 +414,14 @@ void Experiment::evaluate(Population *pop) {
             battery.evaluate_step(org, i);
         }
 
-        TestBattery::EvalResult result = battery.get_evaluation(org);
-        org.fitness = result.fitness;
-        org.error = result.error;
+        org.eval = battery.get_evaluation(org);
     };
-
-    battery.reset();
 
     bool new_fittest = pop->evaluate(eval);
     Organism &fittest = pop->get_fittest();
 
     if(new_fittest) {
 /*
-        batteries[Test::Training].reset();
         batteries[Test::Training].show_report(fittest);
         if(batteries.find(Test::Fittest) != batteries.end()) {
             batteries[Test::Fittest].show_report(fittest);
@@ -430,8 +431,8 @@ void Experiment::evaluate(Population *pop) {
 
     Genome::Stats gstats = fittest.genome->get_stats();
     cout << "fittest [" << fittest.population_index << "]"
-         << ": fitness=" << fittest.fitness
-         << ", error=" << fittest.error
+         << ": fitness=" << fittest.eval.fitness
+         << ", error=" << fittest.eval.error
          << ", nnodes=" << gstats.nnodes
          << ", nlinks=" << gstats.nlinks
          << endl;

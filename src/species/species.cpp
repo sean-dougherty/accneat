@@ -79,7 +79,7 @@ bool Species::print_to_file(std::ostream &outFile) {
     //Print all the Organisms' Genomes to the outFile
     for(SpeciesOrganism *org: organisms) {
         //Put the fitness for each organism in a comment
-        outFile<<std::endl<<"/* Organism #"<<org->genome->genome_id<<" Fitness: "<<org->fitness<<" Error: "<<org->error<<" */"<<std::endl;
+        outFile<<std::endl<<"/* Organism #"<<org->genome->genome_id<<" Fitness: "<<org->eval.fitness<<" Error: "<<org->eval.error<<" */"<<std::endl;
 
         org->genome->print(outFile);
     }
@@ -102,7 +102,7 @@ void Species::adjust_fitness() {
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
 
 		//Remember the original fitness before it gets modified
-        (*curorg)->adjusted_fitness = (*curorg)->fitness;
+        (*curorg)->adjusted_fitness = (*curorg)->eval.fitness;
 
 		//Make fitness decrease after a stagnation point dropoff_age
 		//Added an if to keep species pristine until the dropoff point
@@ -132,10 +132,10 @@ void Species::adjust_fitness() {
               });
 
 	//Update age_of_last_improvement here
-	if (((*(organisms.begin()))->fitness)> 
+	if (((*(organisms.begin()))->eval.fitness)> 
 	    max_fitness_ever) {
 	  age_of_last_improvement=age;
-	  max_fitness_ever=((*(organisms.begin()))->fitness);
+	  max_fitness_ever=((*(organisms.begin()))->eval.fitness);
 	}
 
 	//Decide how many get to reproduce based on survival_thresh*pop_size
@@ -162,7 +162,7 @@ real_t Species::compute_average_fitness() {
 	real_t total=0.0;
 
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		total+=(*curorg)->fitness;
+		total+=(*curorg)->eval.fitness;
 	}
 
 	ave_fitness=total/(organisms.size());
@@ -176,8 +176,8 @@ real_t Species::compute_max_fitness() {
 	std::vector<SpeciesOrganism*>::iterator curorg;
 
 	for(curorg=organisms.begin();curorg!=organisms.end();++curorg) {
-		if (((*curorg)->fitness)>max)
-			max=(*curorg)->fitness;
+		if (((*curorg)->eval.fitness)>max)
+			max=(*curorg)->eval.fitness;
 	}
 
 	max_fitness=max;
@@ -282,13 +282,13 @@ void Species::reproduce(int ioffspring,
         genome_manager->mate(*mom->genome,
                              *dad->genome,
                              new_genome,
-                             mom->fitness,
-                             dad->fitness);
+                             mom->eval.fitness,
+                             dad->eval.fitness);
     }
 }
 
 bool NEAT::order_species(Species *x, Species *y) { 
-	return (((*((x->organisms).begin()))->fitness) > ((*((y->organisms).begin()))->fitness));
+	return (((*((x->organisms).begin()))->eval.fitness) > ((*((y->organisms).begin()))->eval.fitness));
 }
 
 bool NEAT::order_new_species(Species *x, Species *y) {

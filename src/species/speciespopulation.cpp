@@ -105,7 +105,7 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
 
         size_t tnum = omp_get_thread_num();
         if( (fittest_thread[tnum] == nullptr)
-            || (org.fitness > fittest_thread[tnum]->fitness) ) {
+            || (org.eval.fitness > fittest_thread[tnum]->eval.fitness) ) {
 
             fittest_thread[tnum] = &org;
         }
@@ -114,7 +114,7 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
     SpeciesOrganism *best = nullptr;
     for(size_t i = 0; i < nthreads; i++) {
         if( !best
-            || (fittest_thread[i] && (fittest_thread[i]->fitness > best->fitness)) ) {
+            || (fittest_thread[i] && (fittest_thread[i]->eval.fitness > best->eval.fitness)) ) {
 
             best = fittest_thread[i];
         }
@@ -122,7 +122,7 @@ bool SpeciesPopulation::evaluate(std::function<void (Organism &org)> eval_org) {
 
     timer.stop();
 
-    if(best && best->fitness > fittest.fitness) {
+    if(best && best->eval.fitness > fittest.eval.fitness) {
         fittest = *best;
         return true;
     } else {
@@ -261,9 +261,9 @@ void SpeciesPopulation::next_generation() {
 	//Check for SpeciesPopulation-level stagnation
     {
         SpeciesOrganism *pop_champ = sorted_species[0]->first();
-        if(pop_champ->fitness > highest_fitness) {
+        if(pop_champ->eval.fitness > highest_fitness) {
             real_t old_highest = highest_fitness;
-            highest_fitness = pop_champ->fitness;
+            highest_fitness = pop_champ->eval.fitness;
             highest_last_changed=0;
 
             printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg @ gen=%d\n",

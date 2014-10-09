@@ -4,6 +4,7 @@
 
 namespace NEAT {
 
+    // Specifies a set of input activations and an expected set of output activations.
     struct Step {
         enum ErrType {
             Err_Delta,
@@ -20,9 +21,11 @@ namespace NEAT {
              real_t weight_ = 1.0,
              ErrType err_type_ = Err_Delta);
 
-        real_t evaluate(class Organism &);
+        real_t evaluate(Organism &);
     };
 
+    // A set of Steps for which the neural net state is expected to begin in its default
+    // state.
     struct Test {
         enum Type {
             Training,
@@ -45,32 +48,24 @@ namespace NEAT {
         real_t evaluate(Organism &org, size_t istep);
     };
 
+    // A set of Tests that are all of the same type (e.g. Training).
     struct TestBattery {
+        TestBattery(const std::vector<Test> &tests_);
+
+        bool prepare_step(Organism &org, size_t istep);
+        void evaluate_step(Organism &org, size_t istep);
+        OrganismEvaluation get_evaluation(Organism &org);
+
+        //void show_report(Organism &org);
+
         std::vector<Test> tests;
-        real_t max_err = 0.0;
+        real_t max_err;
         struct TestStep {
             size_t itest;
             size_t istep;
         };
         std::vector<TestStep> test_steps;
         std::vector<real_t> population_err;
-
-        TestBattery();
-
-        void add(const Test &test);
-
-        struct EvalResult {
-            real_t fitness;
-            real_t error;
-        };
-        
-        void reset();
-
-        bool prepare_step(class Organism &org, size_t istep);
-        void evaluate_step(class Organism &org, size_t istep);
-        EvalResult get_evaluation(class Organism &org);
-
-        //void show_report(class Organism &org);
     };
 
     class Experiment {
@@ -91,7 +86,7 @@ namespace NEAT {
         Experiment(const char *name);
         virtual void init_env();
         virtual std::vector<Test> create_tests() = 0;
-        virtual bool is_success(class Organism *org);
+        virtual bool is_success(Organism *org);
 
     private:
         Experiment() {}
