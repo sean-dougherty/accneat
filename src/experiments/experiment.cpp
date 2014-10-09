@@ -10,8 +10,6 @@
 using namespace NEAT;
 using namespace std;
 
-#define NACTIVATES_PER_INPUT 10
-
 //------------------------------
 //---
 //--- UTIL
@@ -407,32 +405,26 @@ bool Experiment::is_success(Organism *org) {
     return org->eval.error <= 0.0000001;
 }
 
-void Experiment::evaluate(OrganismEvaluator *eval) {
+void Experiment::evaluate(OrganismEvaluator *evaluator) {
     TestBattery &battery = batteries.find(Test::Training)->second;
-    auto eval_func = [&battery] (Organism &org) {
 
-        for(size_t i = 0; battery.prepare_step(org, i); i++) {
-            for(size_t j = 0; j < NACTIVATES_PER_INPUT; j++) {
-                org.net.activate();
-            }
-            battery.evaluate_step(org, i);
-        }
-
-        org.eval = battery.get_evaluation(org);
+    auto prepare_step = [&battery] (Organism &org, size_t istep) {
+        return battery.prepare_step(org, istep);
     };
 
-    bool new_fittest = eval->evaluate(eval_func);
-    Organism *fittest = eval->get_fittest();
+    auto eval_step = [&battery] (Organism &org, size_t istep) {
+        battery.evaluate_step(org, istep);
+    };
 
-    if(new_fittest) {
-/*
-        batteries[Test::Training].show_report(fittest);
-        if(batteries.find(Test::Fittest) != batteries.end()) {
-            batteries[Test::Fittest].show_report(fittest);
-        }
-*/
-    }
+    auto eval_org  = [&battery] (Organism &org) {
+        return battery.get_evaluation(org);
+    };
 
+    evaluator->evaluate(prepare_step,
+                        eval_step,
+                        eval_org);
+
+    Organism *fittest = evaluator->get_fittest();
     Genome::Stats gstats = fittest->genome->get_stats();
     cout << "fittest [" << fittest->population_index << "]"
          << ": fitness=" << fittest->eval.fitness

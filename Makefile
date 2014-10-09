@@ -3,7 +3,7 @@ INCLUDES=-Iobj $(patsubst %,-I%,$(shell find src -type d))
 OBJECTS=${SOURCES:src/%.cpp=obj/%.o}
 DEPENDS=${OBJECTS:%.o=%.d}
 
-DEVMODE=non-empty
+#DEVMODE=non-empty
 
 ifdef DEVMODE
 	OPT=-O0

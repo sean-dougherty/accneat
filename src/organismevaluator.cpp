@@ -4,6 +4,8 @@
 #include "timer.h"
 #include <omp.h>
 
+#define NACTIVATES_PER_INPUT 10
+
 using namespace NEAT;
 using namespace std;
 
@@ -15,7 +17,9 @@ Organism *OrganismEvaluator::get_fittest() {
     return fittest.get();
 }
 
-bool OrganismEvaluator::evaluate(std::function<void (Organism &org)> eval_org) {
+bool OrganismEvaluator::evaluate(std::function<bool (Organism &org, size_t istep)> prepare_step,
+                                 std::function<void (Organism &org, size_t istep)> eval_step,
+                                 std::function<OrganismEvaluation (Organism &org)> eval) {
     static Timer timer("evaluate");
     timer.start();
 
@@ -29,7 +33,15 @@ bool OrganismEvaluator::evaluate(std::function<void (Organism &org)> eval_org) {
 #pragma omp parallel for
     for(size_t i = 0; i < norgs; i++) {
         Organism *org = pop->get(i);
-        eval_org( *org );
+
+        for(size_t istep = 0; prepare_step(*org, istep); istep++) {
+            for(size_t j = 0; j < NACTIVATES_PER_INPUT; j++) {
+                org->net.activate();
+            }
+            eval_step(*org, istep);
+        }
+
+        org->eval = eval(*org);
 
         size_t tnum = omp_get_thread_num();
         if( (fittest_thread[tnum] == nullptr)

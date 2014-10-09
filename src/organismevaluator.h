@@ -9,7 +9,10 @@ namespace NEAT {
         OrganismEvaluator(class Population *pop_);
 
         Organism *get_fittest();
-        bool evaluate(std::function<void (class Organism &org)> eval_org);
+
+        bool evaluate(std::function<bool (Organism &org, size_t istep)> prepare_step,
+                      std::function<void (Organism &org, size_t istep)> eval_step,
+                      std::function<OrganismEvaluation (Organism &org)> eval);
 
     private:
         class Population *pop;
