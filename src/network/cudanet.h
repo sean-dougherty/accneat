@@ -7,32 +7,13 @@
 #define NEURON_ATTRS ( (NEURON_BIAS) || (NEURON_TAU) )
 
 struct FiringRateModel__Neuron {
-#if NEURON_BIAS
-    float bias;
-#endif
-#if NEURON_TAU
-    float tau;
-#endif
     long  startsynapses;
     long  endsynapses;
-};
-
-struct FiringRateModel__NeuronAttrs
-{
-#if NEURON_BIAS
-    float bias;
-#endif
-#if NEURON_TAU
-    float tau;
-#endif
 };
 
 struct FiringRateModel__Synapse
 {
     float efficacy;   // > 0 for excitatory, < 0 for inhibitory
-#if SYNAPSE_LEARN
-    float lrate;
-#endif
     short fromneuron;
     short toneuron;
 };
@@ -62,20 +43,11 @@ struct FiringRateModel_Cuda {
                            float *all_output);
 
     struct Neuron {
-#if NEURON_BIAS
-        float bias;
-#endif
-#if NEURON_TAU
-        float tau;
-#endif
     };
     
     struct Synapse {
         short fromneuron;
         unsigned short partition;
-#if SYNAPSE_LEARN
-        float lrate;
-#endif
     };
 
     struct NeuronActivationPartition {

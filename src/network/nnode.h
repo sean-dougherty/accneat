@@ -26,39 +26,11 @@ namespace NEAT {
 
 	class NNode {
     public:
-		real_t activation;
-		real_t last_activation;
 		nodetype type;
 		std::vector<Link> incoming;
 
         NNode() {}
         NNode(nodetype type_) : type(type_) {
-            activation = last_activation = (type == nodetype::BIAS ? 1.0 : 0.0);
-        }
-
-        void flush() {
-            switch(type) {
-            case nodetype::BIAS:
-            case nodetype::SENSOR:
-                //no-op
-                break;
-            case nodetype::OUTPUT:
-            case nodetype::HIDDEN:
-                activation = 0.0;
-                last_activation = 0.0;
-                break;
-            default:
-                panic();
-            }
-        }
-
-		// If the node is a SENSOR, returns true and loads the value
-		void sensor_load(real_t value) {
-            if(type == nodetype::SENSOR) {
-                last_activation = activation = value;
-            } else {
-                panic();
-            }
         }
 	};
 

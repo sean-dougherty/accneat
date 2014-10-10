@@ -36,23 +36,19 @@ namespace NEAT {
         size_t ninput_nodes;
         size_t noutput_nodes;
 
-		bool adaptable; // Tells whether network can adapt or not
-		real_t maxweight; // Maximum weight in network for adaptation purposes
+        std::vector<real_t> activations_buffers[2];
+        real_t *activations, *last_activations;
     public:
         Network();
 		~Network();
 
-        void reset();
-        void init(real_t maxweight);
+        void init();
 
 		// Puts the network back into an inactive state
 		void flush();
 		
 		// Activates the net such that all outputs are active
 		void activate();
-
-		// Prints the values of its outputs
-		void show_activation();
 
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
 		void load_sensors(const real_t*);

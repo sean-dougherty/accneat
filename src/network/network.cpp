@@ -24,16 +24,8 @@ using std::endl;
 Network::Network() {
 }
 
-void Network::reset() {
-    nodes.clear();
-    ninput_nodes = 0;
-    noutput_nodes = 0;
-}
-
 // Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
-void Network::init(real_t maxweight_) {
-    maxweight = maxweight_;
-
+void Network::init() {
     size_t i = 0;
 
     for(; (i < nodes.size()) && (nodes[i].type == nodetype::BIAS); i++) {
@@ -56,20 +48,32 @@ void Network::init(real_t maxweight_) {
             abort();
         }
     }
+
+    activations_buffers[0].resize(nodes.size());
+    activations_buffers[1].resize(nodes.size());
+    activations = activations_buffers[0].data();
+    last_activations = activations_buffers[1].data();
+
+    flush();
 }
 
 Network::~Network() {
 }
 
-// Puts the network back into an initial state
+// Puts the network into an initial state
 void Network::flush() {
-    for(NNode &node: nodes) {
-        node.flush();
+    for(size_t i = 0; i < nbias_nodes; i++) {
+        activations[i] = last_activations[i] = 1.0;
+    }
+    for(size_t i = nbias_nodes; i < nodes.size(); i++) {
+        activations[i] = last_activations[i] = 0.0;
     }
 }
 
 // Activates the net such that all outputs are active
 void Network::activate() {
+    std::swap(activations, last_activations);
+
     // For each non-sensor node, compute the sum of its incoming activation
     for(size_t i = ninput_nodes; i < nodes.size(); i++) {
         NNode &node = nodes[i];
@@ -77,26 +81,19 @@ void Network::activate() {
         real_t activation = 0.0;
         // For each incoming connection, add the activity from the connection to the activesum 
         for(Link &link: node.incoming) {
-            NNode &inode = nodes[link.in_node_index];
-
-            activation += link.weight * inode.last_activation;
+            activation += link.weight * last_activations[link.in_node_index];
         } //End for over incoming links
 
-        node.activation = NEAT::fsigmoid(activation,
-                                         4.924273,
-                                         2.4621365);  //Sigmoidal activation- see comments under fsigmoid
-    }
-
-    for(size_t i = ninput_nodes; i < nodes.size(); i++) {
-        NNode &node = nodes[i];
-        node.last_activation = node.activation;
+        activations[i] = NEAT::fsigmoid(activation,
+                                        4.924273,
+                                        2.4621365);  //Sigmoidal activation- see comments under fsigmoid
     }
 }
 
 // Takes an array of sensor values and loads it into SENSOR inputs ONLY
 void Network::load_sensors(const real_t *sensvals) {
     for(size_t i = 0; i < nsensor_nodes; i++) {
-        nodes[i + nbias_nodes].sensor_load(sensvals[i]);
+        activations[i + nbias_nodes] = last_activations[i + nbias_nodes] = sensvals[i];
     }
 }
 
@@ -109,5 +106,5 @@ void Network::load_sensors(const std::vector<real_t> &sensvals) {
 real_t Network::get_output(size_t index) {
     assert(index < noutput_nodes);
 
-    return nodes[ninput_nodes + index].activation;
+    return activations[ninput_nodes + index];
 }

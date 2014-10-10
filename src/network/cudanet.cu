@@ -108,20 +108,6 @@ void FiringRateModel_Cuda::init(FiringRateModel__Neuron *neurons,
     {
         uint offset = 0;
 
-#if NEURON_ATTRS
-        {
-            Neuron *gpu_neurons = (Neuron *)(buffer + offset);
-            for(short i = 0; i < neurons_count; i++) {
-#if NEURON_BIAS
-                gpu_neurons[i].bias = neurons[i].bias;
-#endif
-#if NEURON_TAU
-                gpu_neurons[i].tau = neurons[i].tau;
-#endif
-            }
-        }
-#endif
-
         gpu.offsets.neurons = offset;
         offset += sizeof_neurons;
 
@@ -183,22 +169,12 @@ __global__ void update(FiringRateModel_Cuda::GpuState *states) {
     float *newneuronactivation = neuronactivation + state.neurons_count;
     float *partial_activation = newneuronactivation + state.neurons_count;
 
-#if NEURON_ATTRS
-    FiringRateModel_Cuda::Neuron neuron;
-#endif
-
     if(tid < state.neurons_count) {
-#if NEURON_ATTRS
-        neuron = state.neurons()[tid];        
-#endif
     	if(tid < state.input_neurons_count) {
         	neuronactivation[tid] = state.buffers.input_activation[tid];
             newneuronactivation[tid] = neuronactivation[tid];
     	} else {
 			neuronactivation[tid] = state.activations()[tid];
-#if NEURON_BIAS
-            newneuronactivation[tid] = neuron.bias;
-#endif
 		}
     }
     __syncthreads();

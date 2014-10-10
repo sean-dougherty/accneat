@@ -1189,12 +1189,9 @@ Trait &InnovGenome::get_trait(const InnovLinkGene &gene) {
 }
 
 void InnovGenome::init_phenotype(Network &net) {
-	real_t maxweight=0.0; //Compute the maximum weight for adaptation purposes
-	real_t weight_mag; //Measures absolute value of weights
-
-    net.reset();
     vector<NNode> &netnodes = net.nodes;
 
+    netnodes.clear();
 	//Create the nodes
 	for(InnovNodeGene &node: nodes) {
         netnodes.emplace_back(node.type);
@@ -1210,19 +1207,10 @@ void InnovGenome::init_phenotype(Network &net) {
 			//NOTE: This line could be run through a recurrency check if desired
 			// (no need to in the current implementation of NEAT)
 			netnodes[onode].incoming.emplace_back(gene.weight(), inode);
-
-            Link &newlink = netnodes[onode].incoming.back();
-
-			//Keep track of maximum weight
-			if (newlink.weight>0)
-				weight_mag=newlink.weight;
-			else weight_mag=-newlink.weight;
-			if (weight_mag>maxweight)
-				maxweight=weight_mag;
 		}
 	}
 
-    net.init(maxweight);
+    net.init();
 }
 
 InnovLinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {
