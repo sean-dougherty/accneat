@@ -17,8 +17,6 @@
 #define _NNODE_H_
 
 #include "link.h"
-#include "neat.h"
-#include "util.h"
 
 namespace NEAT {
 

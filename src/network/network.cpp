@@ -28,22 +28,22 @@ Network::Network() {
 void Network::init() {
     size_t i = 0;
 
-    for(; (i < nodes.size()) && (nodes[i].type == nodetype::BIAS); i++) {
+    for(; (i < nodes.size()) && (nodes[i].type == NT_BIAS); i++) {
     }
     nbias_nodes = i;
 
-    for(; (i < nodes.size()) && (nodes[i].type == nodetype::SENSOR); i++) {
+    for(; (i < nodes.size()) && (nodes[i].type == NT_SENSOR); i++) {
     }
     ninput_nodes = i;
     nsensor_nodes = ninput_nodes - nbias_nodes;
 
-    for(; (i < nodes.size()) && (nodes[i].type == nodetype::OUTPUT); i++) {
+    for(; (i < nodes.size()) && (nodes[i].type == NT_OUTPUT); i++) {
     }
     noutput_nodes = i - ninput_nodes;
     assert(noutput_nodes > 0);
 
     for(; (i < nodes.size()); i++) {
-        if(nodes[i].type != nodetype::HIDDEN) {
+        if(nodes[i].type != NT_HIDDEN) {
             cerr << "Bad neuron type at " << i << ": " << (int)nodes[i].type << endl;
             abort();
         }

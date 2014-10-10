@@ -1,10 +1,7 @@
 #pragma once
 
-#define NEURON_BIAS false
-#define NEURON_TAU false
-#define SYNAPSE_LEARN false
-
-#define NEURON_ATTRS ( (NEURON_BIAS) || (NEURON_TAU) )
+#include "link.h"
+#include "nnode.h"
 
 struct FiringRateModel__Neuron {
     long  startsynapses;

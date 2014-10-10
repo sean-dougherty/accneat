@@ -15,11 +15,11 @@
 */
 #pragma once
 
-#include "neat.h"
+#include "neattypes.h"
 
 namespace NEAT {
 
-    typedef uint16_t node_index_t;
+    typedef unsigned short node_index_t;
 
 	// ----------------------------------------------------------------------- 
 	// A LINK is a connection from one node to another with an associated weight 

@@ -1,12 +1,14 @@
 #define DEVICE_CODE
 
+#include <iostream>
+#include <vector>
+
 #include "cudanet.h"
 
 #include <assert.h>
 #include <cuda.h>
 #include <limits.h>
 #include <stdio.h>
-#include <iostream>
 
 #define errif( STMT, MSG... ) if( STMT ) { fprintf(stderr, "[%s:%d] '%s' ", __FILE__, __LINE__, #STMT); fprintf(stderr, MSG); fprintf(stderr, "\n"); abort(); }
 #define require( STMT ) if( !(STMT) ) { fprintf(stderr, "ASSERTION ERROR! [%s:%d] '%s'\n", __FILE__, __LINE__, #STMT); abort(); }
@@ -32,7 +34,9 @@ FiringRateModel_Cuda::~FiringRateModel_Cuda() {
 }
 
 void FiringRateModel_Cuda::init(FiringRateModel__Neuron *neurons,
-                                short neurons_count, short input_neurons_count, short output_neurons_count,
+                                short neurons_count,
+                                short input_neurons_count,
+                                short output_neurons_count,
                                 float *neuronactivation,
                                 FiringRateModel__Synapse *synapses,
                                 long synapses_count,
@@ -219,47 +223,10 @@ __global__ void update(FiringRateModel_Cuda::GpuState *states) {
     }
 
     if( (tid >= state.input_neurons_count) && (tid < state.neurons_count) ) {
-#if NEURON_TAU
-        newneuronactivation[tid] =
-            (1.0f - neuron.tau) * neuronactivation[tid]
-            + neuron.tau * logistic( newneuronactivation[tid], state.logistic_slope );
-#else
         newneuronactivation[tid] =
             logistic( newneuronactivation[tid], state.logistic_slope );
-#endif
     }
     __syncthreads();
-
-#if SYNAPSE_LEARN
-    for(int i = tid, it = 0; i < state.synapses_count; i += Threads_Per_Block, it++) {
-        FiringRateModel_Cuda::Synapse synapse = synapses[it];
-        short toneuron = state.partitions()[synapse.partition].toneuron;
-        float efficacy = efficacies[it];
-
-        efficacy += synapse.lrate
-            * (newneuronactivation[toneuron] - 0.5f)
-            * (neuronactivation[synapse.fromneuron] - 0.5f);
-
-        if (abs(efficacy) > (0.5f * state.max_weight)) {
-            efficacy *= 1.0f - (1.0f - state.decay_rate) *
-                (abs(efficacy) - 0.5f * state.max_weight) / (0.5f * state.max_weight);
-            if (efficacy > state.max_weight)
-                efficacy = state.max_weight;
-            else if (efficacy < -state.max_weight)
-                efficacy = -state.max_weight;
-        } else {
-            // not strictly correct for this to be in an else clause,
-            // but if lrate is reasonable, efficacy should never change
-            // sign with a new magnitude greater than 0.5 * Brain::config.maxWeight
-            if (synapse.lrate >= 0.0f)  // excitatory
-                efficacy = max(0.0f, efficacy);
-            if (synapse.lrate < 0.0f)  // inhibitory
-                efficacy = min(-1.e-10f, efficacy);
-        }
-
-        state.efficacies()[i] = efficacy;
-    }
-#endif
 
     if(tid < state.neurons_count) {
         state.activations()[tid] = newneuronactivation[tid];

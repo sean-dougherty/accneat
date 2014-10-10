@@ -19,10 +19,10 @@
 using NEAT::real_t;
 
 const std::vector<NEAT::nodetype> NEAT::nodetypes = {
-    NEAT::nodetype::BIAS,
-    NEAT::nodetype::SENSOR,
-    NEAT::nodetype::OUTPUT,
-    NEAT::nodetype::HIDDEN
+    NEAT::NT_BIAS,
+    NEAT::NT_SENSOR,
+    NEAT::NT_OUTPUT,
+    NEAT::NT_HIDDEN
 };
 
 NEAT::NeatEnv *NEAT::env = new NeatEnv();

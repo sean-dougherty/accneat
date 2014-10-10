@@ -16,24 +16,12 @@
 #ifndef _NERO_NEAT_H_
 #define _NERO_NEAT_H_
 
+#include "neattypes.h"
+
 namespace NEAT {
-    typedef float real_t;
-
-	enum class nodetype {
-        BIAS = 0,
-		SENSOR = 1,
-		OUTPUT = 2,
-		HIDDEN = 3
-	};
-
-    extern const std::vector<nodetype> nodetypes;
-
-    inline bool is_input(nodetype type) {
-        return (type == nodetype::BIAS) || (type == nodetype::SENSOR);
-    }
 
 	enum functype {
-		SIGMOID = 0
+		FT_SIGMOID = 0
 	};
 
 	enum mutator {
@@ -44,6 +32,12 @@ namespace NEAT {
     enum class GeneticSearchType {PHASED, BLENDED, COMPLEXIFY};
     enum class PopulationType {SPECIES};
     enum class GenomeType {INNOV};
+
+    extern const std::vector<nodetype> nodetypes;
+
+    inline bool is_input(nodetype type) {
+        return (type == NT_BIAS) || (type == NT_SENSOR);
+    }
 
     struct NeatEnv {
         GeneticSearchType search_type = GeneticSearchType::PHASED;
