@@ -15,6 +15,7 @@
 */
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "network.h"
+#include "util.h"
 #include <assert.h>
 
 using namespace NEAT;
@@ -25,32 +26,24 @@ Network::Network() {
 }
 
 // Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
-void Network::init() {
-    size_t i = 0;
+void Network::init(const NodeCounts &counts_,
+                   NNode *nodes_, size_t nnodes,
+                   Link *links_, size_t nlinks) {
 
-    for(; (i < nodes.size()) && (nodes[i].type == NT_BIAS); i++) {
-    }
-    nbias_nodes = i;
+    counts = counts_;
 
-    for(; (i < nodes.size()) && (nodes[i].type == NT_SENSOR); i++) {
-    }
-    ninput_nodes = i;
-    nsensor_nodes = ninput_nodes - nbias_nodes;
-
-    for(; (i < nodes.size()) && (nodes[i].type == NT_OUTPUT); i++) {
-    }
-    noutput_nodes = i - ninput_nodes;
-    assert(noutput_nodes > 0);
-
-    for(; (i < nodes.size()); i++) {
-        if(nodes[i].type != NT_HIDDEN) {
-            cerr << "Bad neuron type at " << i << ": " << (int)nodes[i].type << endl;
-            abort();
-        }
+    nodes.resize(nnodes);
+    for(size_t i = 0; i < nnodes; i++) {
+        nodes[i] = nodes_[i];
     }
 
-    activations_buffers[0].resize(nodes.size());
-    activations_buffers[1].resize(nodes.size());
+    links.resize(nlinks);
+    for(size_t i = 0; i < nlinks; i++) {
+        links[i] = links_[i];
+    }
+
+    activations_buffers[0].resize(nnodes);
+    activations_buffers[1].resize(nnodes);
     activations = activations_buffers[0].data();
     last_activations = activations_buffers[1].data();
 
@@ -62,10 +55,10 @@ Network::~Network() {
 
 // Puts the network into an initial state
 void Network::flush() {
-    for(size_t i = 0; i < nbias_nodes; i++) {
+    for(size_t i = 0; i < counts.nbias_nodes; i++) {
         activations[i] = last_activations[i] = 1.0;
     }
-    for(size_t i = nbias_nodes; i < nodes.size(); i++) {
+    for(size_t i = counts.nbias_nodes; i < counts.nnodes; i++) {
         activations[i] = last_activations[i] = 0.0;
     }
 }
@@ -75,16 +68,16 @@ void Network::activate() {
     std::swap(activations, last_activations);
 
     // For each non-sensor node, compute the sum of its incoming activation
-    for(size_t i = ninput_nodes; i < nodes.size(); i++) {
+    for(size_t i = counts.ninput_nodes; i < counts.nnodes; i++) {
         NNode &node = nodes[i];
 
-        real_t activation = 0.0;
-        // For each incoming connection, add the activity from the connection to the activesum 
-        for(Link &link: node.incoming) {
-            activation += link.weight * last_activations[link.in_node_index];
+        real_t sum = 0.0;
+        for(size_t j = node.incoming_start; j < node.incoming_end; j++) {
+            Link &link = links[j];
+            sum += link.weight * last_activations[link.in_node_index];
         } //End for over incoming links
 
-        activations[i] = NEAT::fsigmoid(activation,
+        activations[i] = NEAT::fsigmoid(sum,
                                         4.924273,
                                         2.4621365);  //Sigmoidal activation- see comments under fsigmoid
     }
@@ -92,19 +85,19 @@ void Network::activate() {
 
 // Takes an array of sensor values and loads it into SENSOR inputs ONLY
 void Network::load_sensors(const real_t *sensvals) {
-    for(size_t i = 0; i < nsensor_nodes; i++) {
-        activations[i + nbias_nodes] = last_activations[i + nbias_nodes] = sensvals[i];
+    for(size_t i = 0; i < counts.nsensor_nodes; i++) {
+        activations[i + counts.nbias_nodes] = last_activations[i + counts.nbias_nodes] = sensvals[i];
     }
 }
 
 void Network::load_sensors(const std::vector<real_t> &sensvals) {
-    assert(sensvals.size() == nsensor_nodes);
+    assert(sensvals.size() == counts.nsensor_nodes);
 
     load_sensors(sensvals.data());
 }
 
 real_t Network::get_output(size_t index) {
-    assert(index < noutput_nodes);
+    assert(index < counts.noutput_nodes);
 
-    return activations[ninput_nodes + index];
+    return activations[counts.ninput_nodes + index];
 }

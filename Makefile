@@ -9,7 +9,7 @@ DEPENDS=${OBJECTS:%.o=%.d}
 
 ifdef DEVMODE
 	OPT=-O0
-	OPENMP=-fopenmp
+	#OPENMP=-fopenmp
 	#PROFILE=-pg
 	MISC_FLAGS=
 else

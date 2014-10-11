@@ -16,22 +16,12 @@
 #ifndef _NNODE_H_
 #define _NNODE_H_
 
-#include "link.h"
-
 namespace NEAT {
 
-    class Link;
-
-	class NNode {
-    public:
-		nodetype type;
-		std::vector<Link> incoming;
-
-        NNode() {}
-        NNode(nodetype type_) : type(type_) {
-        }
+	struct NNode {
+        unsigned short incoming_start;
+        unsigned short incoming_end;
 	};
-
 
 } // namespace NEAT
 

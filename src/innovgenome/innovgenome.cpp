@@ -1189,28 +1189,85 @@ Trait &InnovGenome::get_trait(const InnovLinkGene &gene) {
 }
 
 void InnovGenome::init_phenotype(Network &net) {
-    vector<NNode> &netnodes = net.nodes;
+    size_t nnodes = nodes.size();
 
-    netnodes.clear();
-	//Create the nodes
-	for(InnovNodeGene &node: nodes) {
-        netnodes.emplace_back(node.type);
-	}
+    //---
+    //--- Count how many of each type of node.
+    //---
+    NodeCounts node_counts;
+    memset(&node_counts, 0, sizeof(node_counts));
 
-	//Create the links by iterating through the genes
-    for(InnovLinkGene &gene: links) {
-		//Only create the link if the gene is enabled
-		if(gene.enable) {
-            node_index_t inode = get_node_index(gene.in_node_id());
-            node_index_t onode = get_node_index(gene.out_node_id());
+    for(size_t i = 0; i < nnodes; i++) {
+        InnovNodeGene &node = nodes[i];
 
-			//NOTE: This line could be run through a recurrency check if desired
-			// (no need to in the current implementation of NEAT)
-			netnodes[onode].incoming.emplace_back(gene.weight(), inode);
+        switch(node.type) {
+        case NT_BIAS:
+            node_counts.nbias_nodes++;
+            break;
+        case NT_SENSOR:
+            node_counts.nsensor_nodes++;
+            break;
+        case NT_OUTPUT:
+            node_counts.noutput_nodes++;
+            break;
+        case NT_HIDDEN:
+            node_counts.nhidden_nodes++;
+            break;
+        default:
+            panic();
+        }
+    }
+    node_counts.nnodes = nnodes;
+    node_counts.ninput_nodes = node_counts.nbias_nodes + node_counts.nsensor_nodes;
+
+    //---
+    //--- Create unsorted array of links, converting node ID to index in process.
+    //---
+    Link netlinks[links.size()];
+    size_t nlinks = 0;
+    size_t node_nlinks[nnodes];
+    memset(node_nlinks, 0, sizeof(size_t) * nnodes);
+
+    for(InnovLinkGene &link: links) {
+		if(link.enable) {
+            Link &netlink = netlinks[nlinks++];
+
+            netlink.weight = link.weight();
+            netlink.in_node_index = get_node_index(link.in_node_id());
+            netlink.out_node_index = get_node_index(link.out_node_id());
+
+            node_nlinks[netlink.out_node_index]++;
 		}
-	}
+    }
 
-    net.init();
+    //---
+    //--- Determine layout of links for each node in sorted array
+    //---
+    NNode netnodes[nnodes];
+    netnodes[0].incoming_start = 0;
+    netnodes[0].incoming_end = node_nlinks[0];
+    for(size_t i = 1; i < nnodes; i++) {
+        NNode &prev = netnodes[i-1];
+        NNode &curr = netnodes[i];
+
+        curr.incoming_start = prev.incoming_end;
+        curr.incoming_end = curr.incoming_start + node_nlinks[i];
+    }
+    assert(netnodes[nnodes - 1].incoming_end == nlinks);
+    
+    //---
+    //--- Create sorted links
+    //---
+    memset(node_nlinks, 0, sizeof(size_t) * nnodes);
+    Link netlinks_sorted[nlinks];
+    for(size_t i = 0; i < nlinks; i++) {
+        Link &netlink = netlinks[i];
+        size_t inode = netlink.out_node_index;
+        size_t isorted = netnodes[inode].incoming_start + node_nlinks[inode]++;
+        netlinks_sorted[isorted] = netlink;
+    }
+
+    net.init(node_counts, netnodes, nnodes, netlinks_sorted, nlinks);
 }
 
 InnovLinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {

@@ -16,10 +16,20 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
+#include "link.h"
 #include "neat.h"
 #include "nnode.h"
 
 namespace NEAT {
+
+    struct NodeCounts {
+        size_t nnodes;
+        size_t nbias_nodes;
+        size_t nsensor_nodes;
+        size_t ninput_nodes;
+        size_t noutput_nodes;
+        size_t nhidden_nodes;
+    };
 
 	// ----------------------------------------------------------------------- 
 	// A NETWORK is a LIST of input NODEs and a LIST of output NODEs           
@@ -27,14 +37,9 @@ namespace NEAT {
 	//   or learn on its own, even though it may be part of a larger framework 
 	class Network {
     private:
-    public: // todo: remove public
-        friend class Organism; // todo: remove friend
-
-		std::vector<NNode> nodes;  // A list of all the nodes
-        size_t nbias_nodes;
-        size_t nsensor_nodes;
-        size_t ninput_nodes;
-        size_t noutput_nodes;
+        NodeCounts counts;
+		std::vector<NNode> nodes;
+		std::vector<Link> links;
 
         std::vector<real_t> activations_buffers[2];
         real_t *activations, *last_activations;
@@ -42,7 +47,9 @@ namespace NEAT {
         Network();
 		~Network();
 
-        void init();
+        void init(const NodeCounts &counts,
+                  NNode *nodes, size_t nnodes,
+                  Link *links, size_t nlinks);
 
 		// Puts the network back into an inactive state
 		void flush();

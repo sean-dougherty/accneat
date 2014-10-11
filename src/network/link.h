@@ -23,16 +23,10 @@ namespace NEAT {
 
 	// ----------------------------------------------------------------------- 
 	// A LINK is a connection from one node to another with an associated weight 
-	class Link {
-	public: 
+	struct Link {
 		real_t weight; // Weight of connection
         node_index_t in_node_index; // NNode inputting into the link
-
-    Link(real_t w,
-         node_index_t inode_index)
-        : weight(w)
-            , in_node_index(inode_index) {
-        }	
+        node_index_t out_node_index; // NNode gaining energy from the link
 	};
 
 } // namespace NEAT
