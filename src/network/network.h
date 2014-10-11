@@ -16,9 +16,7 @@
 #ifndef _NETWORK_H_
 #define _NETWORK_H_
 
-#include "link.h"
-#include "neat.h"
-#include "nnode.h"
+#include "neattypes.h"
 
 namespace NEAT {
 
@@ -30,6 +28,23 @@ namespace NEAT {
         size_t noutput_nodes;
         size_t nhidden_nodes;
     };
+
+    typedef unsigned short node_index_t;
+
+	// ----------------------------------------------------------------------- 
+	// A LINK is a connection from one node to another with an associated weight 
+	struct Link {
+		real_t weight; // Weight of connection
+        node_index_t in_node_index; // NNode inputting into the link
+        node_index_t out_node_index; // NNode gaining energy from the link
+	};
+
+    typedef unsigned short link_index_t;
+
+	struct NNode {
+        link_index_t incoming_start;
+        link_index_t incoming_end;
+	};
 
 	// ----------------------------------------------------------------------- 
 	// A NETWORK is a LIST of input NODEs and a LIST of output NODEs           

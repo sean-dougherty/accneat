@@ -1,7 +1,6 @@
 #pragma once
 
-#include "link.h"
-#include "nnode.h"
+#include "network.h"
 
 struct FiringRateModel__Neuron {
     long  startsynapses;
