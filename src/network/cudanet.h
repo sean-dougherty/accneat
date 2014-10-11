@@ -8,14 +8,26 @@ struct FiringRateModel__Neuron {
     long  endsynapses;
 };
 
-struct FiringRateModel__Synapse
-{
+struct FiringRateModel__Synapse {
     float efficacy;   // > 0 for excitatory, < 0 for inhibitory
     short fromneuron;
     short toneuron;
 };
 
 typedef void *Identity;
+
+struct CudaSynapse {
+    short fromneuron;
+    float efficacy;
+    unsigned short partition;
+};
+
+struct NeuronActivationPartition {
+    short toneuron;
+    short offset;
+    short len;
+    short __padding;
+};
 
 struct FiringRateModel_Cuda {
 
@@ -39,21 +51,6 @@ struct FiringRateModel_Cuda {
                            float *all_input,
                            float *all_output);
 
-    struct Neuron {
-    };
-    
-    struct Synapse {
-        short fromneuron;
-        unsigned short partition;
-    };
-
-    struct NeuronActivationPartition {
-        short toneuron;
-        short offset;
-        short len;
-        short __padding;
-    };
-
     FiringRateModel_Cuda();
     ~FiringRateModel_Cuda();
 
@@ -61,10 +58,7 @@ struct FiringRateModel_Cuda {
               short neurons_count, short input_neurons_count, short output_neurons_count,
               float *neuronactivation,
               FiringRateModel__Synapse *synapses,
-              long synapses_count,
-              float logistic_slope,
-              float decay_rate,
-              float max_weight);
+              long synapses_count);
 
     unsigned char *buffer;
     size_t sizeof_buffer;
@@ -75,12 +69,8 @@ struct FiringRateModel_Cuda {
         short output_neurons_count;
         unsigned short partitions_count;
         long synapses_count;
-        float logistic_slope;
-        float decay_rate;
-        float max_weight;
 
         struct {
-            uint neurons;
             uint synapses;
             uint partitions;
             uint activations;
@@ -96,12 +86,8 @@ struct FiringRateModel_Cuda {
 
 #ifdef DEVICE_CODE
 
-        inline __device__ Neuron *neurons() {
-            return (Neuron *)(buffers.__main + offsets.neurons);
-        }
-
-        inline __device__ Synapse *synapses() {
-            return (Synapse *)(buffers.__main + offsets.synapses);
+        inline __device__ CudaSynapse *synapses() {
+            return (CudaSynapse *)(buffers.__main + offsets.synapses);
         }
 
         inline __device__ NeuronActivationPartition *partitions() {
