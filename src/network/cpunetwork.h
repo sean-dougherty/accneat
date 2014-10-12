@@ -9,9 +9,8 @@ namespace NEAT {
         NodeCounts counts;
 		std::vector<NetNode> nodes;
 		std::vector<NetLink> links;
+        std::vector<real_t> activations;
 
-        std::vector<real_t> activations_buffers[2];
-        real_t *activations, *last_activations;
     public:
         CpuNetwork() {}
 		virtual ~CpuNetwork() {}

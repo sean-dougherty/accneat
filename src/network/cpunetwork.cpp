@@ -39,10 +39,7 @@ void CpuNetwork::configure(const NodeCounts &counts_,
         links[i] = links_[i];
     }
 
-    activations_buffers[0].resize(nnodes);
-    activations_buffers[1].resize(nnodes);
-    activations = activations_buffers[0].data();
-    last_activations = activations_buffers[1].data();
+    activations.resize(nnodes);
 
     flush();
 }
@@ -53,14 +50,7 @@ Network &CpuNetwork::operator=(const Network &other_) {
     this->counts = other.counts;
     this->nodes = other.nodes;
     this->links = other.links;
-    this->activations_buffers[0] = other.activations_buffers[0];
-    this->activations_buffers[1] = other.activations_buffers[1];
-
-    activations = activations_buffers[0].data();
-    last_activations = activations_buffers[1].data();
-    if(other.activations == other.activations_buffers[1].data()) {
-        std::swap(activations, last_activations);
-    }
+    this->activations = other.activations;
 
     return *this;
 }
@@ -68,31 +58,46 @@ Network &CpuNetwork::operator=(const Network &other_) {
 // Puts the network into an initial state
 void CpuNetwork::flush() {
     for(size_t i = 0; i < counts.nbias_nodes; i++) {
-        activations[i] = last_activations[i] = 1.0;
+        activations[i] = 1.0;
     }
     for(size_t i = counts.nbias_nodes; i < counts.nnodes; i++) {
-        activations[i] = last_activations[i] = 0.0;
+        activations[i] = 0.0;
     }
 }
 
 void CpuNetwork::activate(size_t ncycles) {
-    for(size_t icycle = 0; icycle < ncycles; icycle++) {
-        std::swap(activations, last_activations);
+    real_t act_other[counts.nnodes];
 
-        // For each non-sensor node, compute the sum of its incoming activation
+    //Copy only input activation state
+    memcpy(act_other, activations.data(), sizeof(real_t) * counts.ninput_nodes);
+
+    real_t *act_curr = activations.data(), *act_new = act_other;
+
+    for(size_t icycle = 0; icycle < ncycles; icycle++) {
+
         for(size_t i = counts.ninput_nodes; i < counts.nnodes; i++) {
             NetNode &node = nodes[i];
 
             real_t sum = 0.0;
             for(size_t j = node.incoming_start; j < node.incoming_end; j++) {
                 NetLink &link = links[j];
-                sum += link.weight * last_activations[link.in_node_index];
-            } //End for over incoming links
+                sum += link.weight * act_curr[link.in_node_index];
+            }
 
-            activations[i] = NEAT::fsigmoid(sum,
-                                            4.924273,
-                                            2.4621365);  //Sigmoidal activation- see comments under fsigmoid
+            act_new[i] = NEAT::fsigmoid(sum,
+                                        4.924273,
+                                        2.4621365);  //Sigmoidal activation- see comments under fsigmoid
         }
+
+        std::swap(act_curr, act_new);
+    }
+
+    if(act_curr != activations.data()) {
+        // If an odd number of cycles, we have to copy non-input data
+        // of act_other back into activations.
+        memcpy(activations.data() + counts.ninput_nodes,
+               act_other + counts.ninput_nodes,
+               sizeof(real_t) * (counts.nnodes - counts.ninput_nodes));
     }
 }
 
@@ -100,7 +105,7 @@ void CpuNetwork::load_sensors(const std::vector<real_t> &sensvals) {
     assert(sensvals.size() == counts.nsensor_nodes);
 
     for(size_t i = 0; i < counts.nsensor_nodes; i++) {
-        activations[i + counts.nbias_nodes] = last_activations[i + counts.nbias_nodes] = sensvals[i];
+        activations[i + counts.nbias_nodes] = sensvals[i];
     }
 }
 
