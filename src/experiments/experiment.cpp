@@ -67,7 +67,7 @@ Step::Step(const vector<real_t> &input_,
 }
 
 real_t Step::evaluate(Organism &org) {
-    Network *net = &org.net;
+    Network *net = org.net.get();
 
     switch(err_type) {
     case Err_Delta: {
@@ -112,11 +112,11 @@ Test::Test(const string &name_,
 
 void Test::prepare(Organism &org, size_t istep) {
     if(istep == 0) {
-        org.net.flush();
+        org.net->flush();
     }
 
     Step &step = steps[istep];
-    org.net.load_sensors(step.input);
+    org.net->load_sensors(step.input);
 }
 
 real_t Test::evaluate(Organism &org, size_t istep) {

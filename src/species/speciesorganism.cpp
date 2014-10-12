@@ -1,4 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "networkmanager.h"
 #include "speciesorganism.h"
 #include "species.h"
 
@@ -6,12 +7,14 @@ using namespace NEAT;
 
 SpeciesOrganism::SpeciesOrganism(const SpeciesOrganism &other) {
     this->genome = other.genome->make_default();
+    this->net = env->network_manager->make_default();
     other.copy_into(*this);
 }
 
 SpeciesOrganism::SpeciesOrganism(const Genome &genome) {
     this->genome = genome.make_default();
     *this->genome = genome;
+    this->net = env->network_manager->make_default();
     init(0);
 }
 

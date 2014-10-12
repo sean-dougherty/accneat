@@ -16,6 +16,7 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include <unistd.h>
 #include "neat.h"
+#include "networkmanager.h"
 #include "experiment.h"
 #include "util.h"
 
@@ -122,6 +123,8 @@ int main(int argc, char *argv[]) {
         env->mutate_delete_node_prob *= 0.1;
         env->mutate_delete_link_prob *= 0.1;
     }
+
+    env->network_manager = new NetworkManager();
 
     const char *experiment_name = argv[optind++];
 

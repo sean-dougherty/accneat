@@ -42,7 +42,7 @@ namespace NEAT {
 #pragma omp parallel for
             for(size_t i = 0; i < _n; i++) {
                 Organism &org = curr()[i];
-                org.genome->init_phenotype(org.net);
+                org.genome->init_phenotype(*org.net);
             }
         }
 

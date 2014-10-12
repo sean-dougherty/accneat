@@ -15,20 +15,22 @@
 */
 
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "networkmanager.h"
 #include "organism.h"
-#include "species.h"
 
 using namespace NEAT;
 using namespace std;
 
 Organism::Organism(const Organism &other) {
     this->genome = other.genome->make_default();
+    this->net = env->network_manager->make_default();
     other.copy_into(*this);
 }
 
 Organism::Organism(const Genome &genome) {
     this->genome = genome.make_default();
     *this->genome = genome;
+    this->net = env->network_manager->make_default();
 
     //Note: We're in the base class constructor, so a derived class' init() won't
     //      be called. The derived class' constructor must also call init().
@@ -60,8 +62,8 @@ void Organism::copy_into(Organism &dst) const {
     
     copy(population_index);
     copy(eval);
-    copy(net);
     *dst.genome = *this->genome;
+    *dst.net = *this->net;
     copy(generation);
 
 #undef copy

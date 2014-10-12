@@ -41,7 +41,7 @@ namespace NEAT {
 
         OrganismEvaluation eval;
         std::unique_ptr<Genome> genome; //The Organism's genotype
-        Network net;  //The Organism's phenotype
+        std::unique_ptr<Network> net;  //The Organism's phenotype
 		int generation;  //Tells which generation this Organism is from
 
         Organism(const Organism &other);
