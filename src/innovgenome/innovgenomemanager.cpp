@@ -24,6 +24,10 @@ static InnovGenome *to_innov(Genome &g) {
     return dynamic_cast<InnovGenome *>(&g);
 }
 
+unique_ptr<Genome> InnovGenomeManager::make_default() {
+    return unique_ptr<Genome>(new InnovGenome());
+}
+
 vector<unique_ptr<Genome>> InnovGenomeManager::create_seed_generation(size_t ngenomes,
                                                                       rng_t rng,
                                                                       size_t ntraits,

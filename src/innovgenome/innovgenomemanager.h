@@ -11,6 +11,8 @@ namespace NEAT {
     public:
         virtual ~InnovGenomeManager();
 
+        virtual std::unique_ptr<Genome> make_default() override;
+
         virtual std::vector<std::unique_ptr<Genome>> create_seed_generation(size_t ngenomes,
                                                                             class rng_t rng,
                                                                             size_t ntraits,

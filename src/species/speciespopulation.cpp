@@ -14,6 +14,7 @@
    limitations under the License.
 */
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "genomemanager.h"
 #include "organism.h"
 #include "species.h"
 #include "speciespopulation.h"
@@ -27,12 +28,10 @@ using namespace NEAT;
 using namespace std;
 
 SpeciesPopulation::SpeciesPopulation(rng_t rng,
-                                     GenomeManager *genome_manager_,
                                      vector<unique_ptr<Genome>> &seeds)
     : norgs(seeds.size())
     , generation(0)
     , orgs(rng, seeds, seeds.size())
-    , genome_manager(genome_manager_)
     , highest_fitness(0.0)
     , highest_last_changed(0) {
 
@@ -80,8 +79,8 @@ void SpeciesPopulation::speciate() {
     for(SpeciesOrganism &org: orgs.curr()) {
         assert(org.species == nullptr);
         for(Species *s: species) {
-            if( genome_manager->are_compatible(*org.genome,
-                                               *s->first()->genome) ) {
+            if( env->genome_manager->are_compatible(*org.genome,
+                                                    *s->first()->genome) ) {
                 org.species = s;
                 break;
             }
@@ -316,11 +315,11 @@ void SpeciesPopulation::next_generation() {
 
             parms.species->reproduce(parms.ioffspring,
                                      baby,
-                                     genome_manager,
+                                     env->genome_manager,
                                      sorted_species);
         }
 
-        genome_manager->finalize_generation();
+        env->genome_manager->finalize_generation();
 
         //Create the neural nets for the new organisms.
         orgs.init_phenotypes();
@@ -340,8 +339,8 @@ void SpeciesPopulation::next_generation() {
 
                 for(Species *s: species) {
                     if(s->size()) {
-                        if(genome_manager->are_compatible(*org.genome,
-                                                          *s->first()->genome)) {
+                        if(env->genome_manager->are_compatible(*org.genome,
+                                                               *s->first()->genome)) {
                             org.species = s;
                             break;
                         }
@@ -361,8 +360,8 @@ void SpeciesPopulation::next_generation() {
                     i++) {
 
                     Species *s = species[i];
-                    if(genome_manager->are_compatible(*org.genome,
-                                                      *s->first()->genome)) {
+                    if(env->genome_manager->are_compatible(*org.genome,
+                                                           *s->first()->genome)) {
                         org.species = s;
                         break;
                     }

@@ -124,10 +124,6 @@ InnovGenome::InnovGenome(rng_t rng_,
     }
 }
 
-unique_ptr<Genome> InnovGenome::make_default() const {
-    return unique_ptr<Genome>(new InnovGenome());
-}
-
 Genome &InnovGenome::operator=(const Genome &other) {
     return *this = dynamic_cast<const InnovGenome &>(other);
 }

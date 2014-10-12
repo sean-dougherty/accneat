@@ -15,7 +15,6 @@
 */
 #pragma once 
 
-#include "genomemanager.h"
 #include "organismsbuffer.h"
 #include "population.h"
 #include "speciesorganism.h"
@@ -26,7 +25,6 @@ namespace NEAT {
 	public:
 		// Construct off of a single spawning Genome 
 		SpeciesPopulation(rng_t rng,
-                          GenomeManager *genome_manager,
                           std::vector<std::unique_ptr<Genome>> &seeds);
 		virtual ~SpeciesPopulation();
 
@@ -48,7 +46,6 @@ namespace NEAT {
         OrganismsBuffer<SpeciesOrganism> orgs;
 
         std::vector<class Species*> species;  // Species in the SpeciesPopulation. Note that the species should comprise all the genomes 
-        GenomeManager *genome_manager;
 
 		// ******* Member variables used during reproduction *******
 		int last_species;  //The highest species number

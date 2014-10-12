@@ -13,6 +13,8 @@ namespace NEAT {
 
         virtual ~GenomeManager() {}
 
+        virtual std::unique_ptr<Genome> make_default() = 0;
+
         virtual std::vector<std::unique_ptr<Genome>> create_seed_generation(size_t ngenomes,
                                                                             class rng_t rng,
                                                                             size_t ntraits,

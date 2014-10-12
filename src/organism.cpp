@@ -15,6 +15,7 @@
 */
 
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "genomemanager.h"
 #include "networkmanager.h"
 #include "organism.h"
 
@@ -22,13 +23,13 @@ using namespace NEAT;
 using namespace std;
 
 Organism::Organism(const Organism &other) {
-    this->genome = other.genome->make_default();
+    this->genome = env->genome_manager->make_default();
     this->net = env->network_manager->make_default();
     other.copy_into(*this);
 }
 
 Organism::Organism(const Genome &genome) {
-    this->genome = genome.make_default();
+    this->genome = env->genome_manager->make_default();
     *this->genome = genome;
     this->net = env->network_manager->make_default();
 

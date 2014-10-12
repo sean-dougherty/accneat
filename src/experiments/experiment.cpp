@@ -336,16 +336,16 @@ void Experiment::run(rng_t &rng, int gens) {
         //Create a unique rng sequence for this experiment
         rng_t rng_exp(rng.integer());
 
-        GenomeManager *genome_manager = GenomeManager::create();
+        env->genome_manager = GenomeManager::create();
         vector<unique_ptr<Genome>> genomes = 
-            genome_manager->create_seed_generation(env->pop_size,
-                                                   rng_exp,
-                                                   1,
-                                                   ninputs,
-                                                   noutputs,
-                                                   ninputs);
+            env->genome_manager->create_seed_generation(env->pop_size,
+                                                        rng_exp,
+                                                        1,
+                                                        ninputs,
+                                                        noutputs,
+                                                        ninputs);
         //Spawn the Population
-        Population *pop = Population::create(rng_exp, genome_manager, genomes);
+        Population *pop = Population::create(rng_exp, genomes);
         unique_ptr<OrganismEvaluator> eval = make_unique<OrganismEvaluator>(pop);
       
         bool success = false;
@@ -389,7 +389,7 @@ void Experiment::run(rng_t &rng, int gens) {
         print(eval.get(), expcount, gen - 1);
 
         delete pop;
-        delete genome_manager;
+        delete env->genome_manager;
     }
 
     cout << "Failures: " << (env->num_runs - nsuccesses) << " out of " << env->num_runs << " runs" << endl;

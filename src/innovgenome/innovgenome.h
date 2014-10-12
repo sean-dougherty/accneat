@@ -39,7 +39,6 @@ namespace NEAT {
                     size_t noutputs,
                     size_t nhidden);
 
-        virtual std::unique_ptr<Genome> make_default() const override;
         virtual Genome &operator=(const Genome &other) override;
 
 		//Destructor kills off all lists (including the trait vector)

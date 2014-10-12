@@ -24,7 +24,6 @@ namespace NEAT {
     class Population {
     public:
         static Population *create(rng_t rng,
-                                  GenomeManager *genome_manager,
                                   std::vector<std::unique_ptr<Genome>> &seeds);
 
         virtual ~Population() {}

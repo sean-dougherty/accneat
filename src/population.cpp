@@ -23,12 +23,11 @@ using namespace std;
 
 
 Population *Population::create(rng_t rng,
-                               GenomeManager *genome_manager,
                                vector<unique_ptr<Genome>> &seeds) {
 
     switch(env->population_type) {
     case PopulationType::SPECIES:
-        return new SpeciesPopulation(rng, genome_manager, seeds);
+        return new SpeciesPopulation(rng, seeds);
     default:
         panic();
     }
