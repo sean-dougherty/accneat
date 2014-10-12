@@ -143,7 +143,7 @@ namespace NEAT {
         Trait &get_trait(const InnovLinkGene &gene);
 
         InnovNodeGene *get_node(int id);
-        node_index_t get_node_index(int id);
+        node_size_t get_node_index(int id);
 
         virtual void init_phenotype(class Network &net) override;
 

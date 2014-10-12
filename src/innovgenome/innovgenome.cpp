@@ -1186,6 +1186,7 @@ Trait &InnovGenome::get_trait(const InnovLinkGene &gene) {
 
 void InnovGenome::init_phenotype(Network &net) {
     size_t nnodes = nodes.size();
+    assert(nnodes <= NODES_MAX);
 
     //---
     //--- Count how many of each type of node.
@@ -1219,14 +1220,14 @@ void InnovGenome::init_phenotype(Network &net) {
     //---
     //--- Create unsorted array of links, converting node ID to index in process.
     //---
-    Link netlinks[links.size()];
+    NetLink netlinks[links.size()];
     size_t nlinks = 0;
     size_t node_nlinks[nnodes];
     memset(node_nlinks, 0, sizeof(size_t) * nnodes);
 
     for(InnovLinkGene &link: links) {
 		if(link.enable) {
-            Link &netlink = netlinks[nlinks++];
+            NetLink &netlink = netlinks[nlinks++];
 
             netlink.weight = link.weight();
             netlink.in_node_index = get_node_index(link.in_node_id());
@@ -1236,15 +1237,17 @@ void InnovGenome::init_phenotype(Network &net) {
 		}
     }
 
+    assert(nlinks <= LINKS_MAX);
+
     //---
     //--- Determine layout of links for each node in sorted array
     //---
-    NNode netnodes[nnodes];
+    NetNode netnodes[nnodes];
     netnodes[0].incoming_start = 0;
     netnodes[0].incoming_end = node_nlinks[0];
     for(size_t i = 1; i < nnodes; i++) {
-        NNode &prev = netnodes[i-1];
-        NNode &curr = netnodes[i];
+        NetNode &prev = netnodes[i-1];
+        NetNode &curr = netnodes[i];
 
         curr.incoming_start = prev.incoming_end;
         curr.incoming_end = curr.incoming_start + node_nlinks[i];
@@ -1255,15 +1258,18 @@ void InnovGenome::init_phenotype(Network &net) {
     //--- Create sorted links
     //---
     memset(node_nlinks, 0, sizeof(size_t) * nnodes);
-    Link netlinks_sorted[nlinks];
+    NetLink netlinks_sorted[nlinks];
     for(size_t i = 0; i < nlinks; i++) {
-        Link &netlink = netlinks[i];
+        NetLink &netlink = netlinks[i];
         size_t inode = netlink.out_node_index;
         size_t isorted = netnodes[inode].incoming_start + node_nlinks[inode]++;
         netlinks_sorted[isorted] = netlink;
     }
 
-    net.init(node_counts, netnodes, nnodes, netlinks_sorted, nlinks);
+    //---
+    //--- Configure the net
+    //---
+    net.configure(node_counts, netnodes, nnodes, netlinks_sorted, nlinks);
 }
 
 InnovLinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {
@@ -1283,8 +1289,8 @@ InnovNodeGene *InnovGenome::get_node(int id) {
     return node_lookup.find(id);
 }
 
-node_index_t InnovGenome::get_node_index(int id) {
-    node_index_t i = get_node(id) - nodes.data();
+node_size_t InnovGenome::get_node_index(int id) {
+    node_size_t i = get_node(id) - nodes.data();
     assert(nodes[i].node_id == id);
     return i;
 }

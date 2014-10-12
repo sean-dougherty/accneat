@@ -14,8 +14,8 @@
    limitations under the License.
 */
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "cpunetwork.h"
 #include "neat.h"
-#include "network.h"
 #include "util.h"
 #include <assert.h>
 
@@ -23,14 +23,10 @@ using namespace NEAT;
 using std::cerr;
 using std::endl;
 
-Network::Network() {
-}
-
 // Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
-void Network::init(const NodeCounts &counts_,
-                   NNode *nodes_, size_t nnodes,
-                   Link *links_, size_t nlinks) {
-
+void CpuNetwork::configure(const NodeCounts &counts_,
+                           NetNode *nodes_, node_size_t nnodes,
+                           NetLink *links_, link_size_t nlinks) {
     counts = counts_;
 
     nodes.resize(nnodes);
@@ -51,11 +47,26 @@ void Network::init(const NodeCounts &counts_,
     flush();
 }
 
-Network::~Network() {
+Network &CpuNetwork::operator=(const Network &other_) {
+    const CpuNetwork &other = dynamic_cast<const CpuNetwork &>(other_);
+
+    this->counts = other.counts;
+    this->nodes = other.nodes;
+    this->links = other.links;
+    this->activations_buffers[0] = other.activations_buffers[0];
+    this->activations_buffers[1] = other.activations_buffers[1];
+
+    activations = activations_buffers[0].data();
+    last_activations = activations_buffers[1].data();
+    if(other.activations == other.activations_buffers[1].data()) {
+        std::swap(activations, last_activations);
+    }
+
+    return *this;
 }
 
 // Puts the network into an initial state
-void Network::flush() {
+void CpuNetwork::flush() {
     for(size_t i = 0; i < counts.nbias_nodes; i++) {
         activations[i] = last_activations[i] = 1.0;
     }
@@ -64,40 +75,36 @@ void Network::flush() {
     }
 }
 
-// Activates the net such that all outputs are active
-void Network::activate() {
-    std::swap(activations, last_activations);
+void CpuNetwork::activate(size_t ncycles) {
+    for(size_t icycle = 0; icycle < ncycles; icycle++) {
+        std::swap(activations, last_activations);
 
-    // For each non-sensor node, compute the sum of its incoming activation
-    for(size_t i = counts.ninput_nodes; i < counts.nnodes; i++) {
-        NNode &node = nodes[i];
+        // For each non-sensor node, compute the sum of its incoming activation
+        for(size_t i = counts.ninput_nodes; i < counts.nnodes; i++) {
+            NetNode &node = nodes[i];
 
-        real_t sum = 0.0;
-        for(size_t j = node.incoming_start; j < node.incoming_end; j++) {
-            Link &link = links[j];
-            sum += link.weight * last_activations[link.in_node_index];
-        } //End for over incoming links
+            real_t sum = 0.0;
+            for(size_t j = node.incoming_start; j < node.incoming_end; j++) {
+                NetLink &link = links[j];
+                sum += link.weight * last_activations[link.in_node_index];
+            } //End for over incoming links
 
-        activations[i] = NEAT::fsigmoid(sum,
-                                        4.924273,
-                                        2.4621365);  //Sigmoidal activation- see comments under fsigmoid
+            activations[i] = NEAT::fsigmoid(sum,
+                                            4.924273,
+                                            2.4621365);  //Sigmoidal activation- see comments under fsigmoid
+        }
     }
 }
 
-// Takes an array of sensor values and loads it into SENSOR inputs ONLY
-void Network::load_sensors(const real_t *sensvals) {
+void CpuNetwork::load_sensors(const std::vector<real_t> &sensvals) {
+    assert(sensvals.size() == counts.nsensor_nodes);
+
     for(size_t i = 0; i < counts.nsensor_nodes; i++) {
         activations[i + counts.nbias_nodes] = last_activations[i + counts.nbias_nodes] = sensvals[i];
     }
 }
 
-void Network::load_sensors(const std::vector<real_t> &sensvals) {
-    assert(sensvals.size() == counts.nsensor_nodes);
-
-    load_sensors(sensvals.data());
-}
-
-real_t Network::get_output(size_t index) {
+real_t CpuNetwork::get_output(size_t index) {
     assert(index < counts.noutput_nodes);
 
     return activations[counts.ninput_nodes + index];

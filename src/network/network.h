@@ -20,63 +20,50 @@
 
 namespace NEAT {
 
+    #define NODES_MAX USHRT_MAX
+    #define LINKS_MAX USHRT_MAX
+
+    typedef unsigned short node_size_t;
+    typedef unsigned short link_size_t;
+
     struct NodeCounts {
-        size_t nnodes;
-        size_t nbias_nodes;
-        size_t nsensor_nodes;
-        size_t ninput_nodes;
-        size_t noutput_nodes;
-        size_t nhidden_nodes;
+        node_size_t nnodes;
+        node_size_t nbias_nodes;
+        node_size_t nsensor_nodes;
+        node_size_t ninput_nodes;
+        node_size_t noutput_nodes;
+        node_size_t nhidden_nodes;
     };
 
-    typedef unsigned short node_index_t;
-
-	// ----------------------------------------------------------------------- 
-	// A LINK is a connection from one node to another with an associated weight 
-	struct Link {
+	struct NetLink {
 		real_t weight; // Weight of connection
-        node_index_t in_node_index; // NNode inputting into the link
-        node_index_t out_node_index; // NNode gaining energy from the link
+        node_size_t in_node_index; // NetNode inputting into the link
+        node_size_t out_node_index; // NetNode gaining energy from the link
 	};
 
-    typedef unsigned short link_index_t;
-
-	struct NNode {
-        link_index_t incoming_start;
-        link_index_t incoming_end;
+	struct NetNode {
+        link_size_t incoming_start;
+        link_size_t incoming_end;
 	};
 
-	// ----------------------------------------------------------------------- 
-	// A NETWORK is a LIST of input NODEs and a LIST of output NODEs           
-	//   The point of the network is to define a single entity which can evolve
-	//   or learn on its own, even though it may be part of a larger framework 
 	class Network {
-    private:
-        NodeCounts counts;
-		std::vector<NNode> nodes;
-		std::vector<Link> links;
-
-        std::vector<real_t> activations_buffers[2];
-        real_t *activations, *last_activations;
     public:
-        Network();
-		~Network();
+		virtual ~Network() {}
 
-        void init(const NodeCounts &counts,
-                  NNode *nodes, size_t nnodes,
-                  Link *links, size_t nlinks);
+        virtual Network &operator=(const Network &other) = 0;
+
+        virtual void configure(const NodeCounts &counts,
+                               NetNode *nodes, node_size_t nnodes,
+                               NetLink *links, link_size_t nlinks) = 0;
 
 		// Puts the network back into an inactive state
-		void flush();
+		virtual void flush() = 0;
 		
-		// Activates the net such that all outputs are active
-		void activate();
+		virtual void activate(size_t ncycles) = 0;
 
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
-		void load_sensors(const real_t*);
-		void load_sensors(const std::vector<real_t> &sensvals);
-
-        real_t get_output(size_t index);
+		virtual void load_sensors(const std::vector<real_t> &sensvals) = 0;
+        virtual real_t get_output(size_t index) = 0;
 	};
 
 } // namespace NEAT
