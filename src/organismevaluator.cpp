@@ -46,9 +46,7 @@ bool OrganismEvaluator::evaluate(std::function<bool (Organism &org, size_t istep
             Organism *org = pop->get(iorg);
             if(prepare_step(*org, istep)) {
                 remaining = true;
-                for(size_t j = 0; j < NACTIVATES_PER_INPUT; j++) {
-                    org->net.activate();
-                }
+                org->net->activate(NACTIVATES_PER_INPUT);
                 eval_step(*org, istep);
             } else {
                 org->eval = eval(*org);

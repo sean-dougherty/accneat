@@ -6,6 +6,9 @@ namespace NEAT {
 
     typedef float real_t;
 
+    typedef unsigned char uchar;
+    typedef unsigned short ushort;
+
 	enum nodetype {
         NT_BIAS = 0,
 		NT_SENSOR = 1,
@@ -13,4 +16,7 @@ namespace NEAT {
 		NT_HIDDEN = 3
 	};
 
+    #define __in const
+    #define __out
+    #define __inout
 }

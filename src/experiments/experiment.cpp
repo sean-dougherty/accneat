@@ -111,12 +111,8 @@ Test::Test(const string &name_,
 }
 
 void Test::prepare(Organism &org, size_t istep) {
-    if(istep == 0) {
-        org.net->flush();
-    }
-
     Step &step = steps[istep];
-    org.net->load_sensors(step.input);
+    org.net->load_sensors(step.input, istep == 0);
 }
 
 real_t Test::evaluate(Organism &org, size_t istep) {

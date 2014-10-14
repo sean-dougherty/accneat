@@ -26,13 +26,18 @@ namespace NEAT {
     typedef unsigned short node_size_t;
     typedef unsigned short link_size_t;
 
-    struct NodeCounts {
-        node_size_t nnodes;
-        node_size_t nbias_nodes;
-        node_size_t nsensor_nodes;
-        node_size_t ninput_nodes;
-        node_size_t noutput_nodes;
-        node_size_t nhidden_nodes;
+    struct NetDims {
+        struct {
+            node_size_t bias;
+            node_size_t sensor;
+            node_size_t output;
+            node_size_t hidden;
+
+            node_size_t all;
+            node_size_t input;
+        } nnodes;
+        
+        link_size_t nlinks;
     };
 
 	struct NetLink {
@@ -52,17 +57,16 @@ namespace NEAT {
 
         virtual Network &operator=(const Network &other) = 0;
 
-        virtual void configure(const NodeCounts &counts,
-                               NetNode *nodes, node_size_t nnodes,
-                               NetLink *links, link_size_t nlinks) = 0;
-
-		// Puts the network back into an inactive state
-		virtual void flush() = 0;
-		
-		virtual void activate(size_t ncycles) = 0;
+        virtual void configure(const NetDims &dims,
+                               NetNode *nodes,
+                               NetLink *links) = 0;
 
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
-		virtual void load_sensors(const std::vector<real_t> &sensvals) = 0;
+		virtual void load_sensors(const std::vector<real_t> &sensvals,
+                                  bool clear_noninput) = 0;
+
+		virtual void activate(size_t ncycles) = 0;
+
         virtual real_t get_output(size_t index) = 0;
 	};
 

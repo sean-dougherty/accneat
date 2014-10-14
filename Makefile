@@ -1,15 +1,21 @@
+#ENABLE_CUDA=non-empty
+#DEVMODE=non-empty
+
 INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 SOURCES=$(shell find src -name "*.cpp")
 OBJECTS=${SOURCES:src/%.cpp=obj/cpp/%.o}
-CUDA_SOURCES=$(shell find src -name "*.cu")
-CUDA_OBJECTS=${CUDA_SOURCES:src/%.cu=obj/cu/%.o}
 DEPENDS=${OBJECTS:%.o=%.d}
 
-#DEVMODE=non-empty
+ifdef ENABLE_CUDA
+	CUDA_SOURCES=$(shell find src -name "*.cu")
+	CUDA_OBJECTS=${CUDA_SOURCES:src/%.cu=obj/cu/%.o}
+endif
+
+
 
 ifdef DEVMODE
 	OPT=-O0
-	#OPENMP=-fopenmp
+	OPENMP=-fopenmp
 	#PROFILE=-pg
 	MISC_FLAGS=
 else

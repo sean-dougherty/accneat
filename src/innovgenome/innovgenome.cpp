@@ -1191,31 +1191,31 @@ void InnovGenome::init_phenotype(Network &net) {
     //---
     //--- Count how many of each type of node.
     //---
-    NodeCounts node_counts;
-    memset(&node_counts, 0, sizeof(node_counts));
+    NetDims dims;
+    memset(&dims, 0, sizeof(dims));
 
     for(size_t i = 0; i < nnodes; i++) {
         InnovNodeGene &node = nodes[i];
 
         switch(node.type) {
         case NT_BIAS:
-            node_counts.nbias_nodes++;
+            dims.nnodes.bias++;
             break;
         case NT_SENSOR:
-            node_counts.nsensor_nodes++;
+            dims.nnodes.sensor++;
             break;
         case NT_OUTPUT:
-            node_counts.noutput_nodes++;
+            dims.nnodes.output++;
             break;
         case NT_HIDDEN:
-            node_counts.nhidden_nodes++;
+            dims.nnodes.hidden++;
             break;
         default:
             panic();
         }
     }
-    node_counts.nnodes = nnodes;
-    node_counts.ninput_nodes = node_counts.nbias_nodes + node_counts.nsensor_nodes;
+    dims.nnodes.all = nnodes;
+    dims.nnodes.input = dims.nnodes.bias + dims.nnodes.sensor;
 
     //---
     //--- Create unsorted array of links, converting node ID to index in process.
@@ -1236,8 +1236,9 @@ void InnovGenome::init_phenotype(Network &net) {
             node_nlinks[netlink.out_node_index]++;
 		}
     }
-
     assert(nlinks <= LINKS_MAX);
+
+    dims.nlinks = nlinks;
 
     //---
     //--- Determine layout of links for each node in sorted array
@@ -1269,7 +1270,7 @@ void InnovGenome::init_phenotype(Network &net) {
     //---
     //--- Configure the net
     //---
-    net.configure(node_counts, netnodes, nnodes, netlinks_sorted, nlinks);
+    net.configure(dims, netnodes, netlinks_sorted);
 }
 
 InnovLinkGene *InnovGenome::find_link(int in_node_id, int out_node_id, bool is_recurrent) {
