@@ -60,6 +60,7 @@ cd $neat_dir
 
 source /share/apps/Modules/3.2.10/init/sh
 module load gcc/4.9.1
+module load cuda/6.0
 
 make || exit 1
 
