@@ -26,14 +26,18 @@ namespace NEAT {
 
             for(size_t i = 0; i < n; i++) {
                 _a.emplace_back(*seeds[i + population_index]);
-                _a[i].population_index = i + population_index;
-                _a[i].genome->genome_id = _a[i].population_index;
+                size_t ipop = i + population_index;
+                _a[i].population_index = ipop;
+                _a[i].net->population_index = ipop;
+                _a[i].genome->genome_id = ipop;
                 _a[i].genome->rng.seed(rng.integer());
             }
             for(size_t i = 0; i < n; i++) {
                 _b.emplace_back(*seeds[i + population_index]);
-                _b[i].population_index = i + population_index;
-                _b[i].genome->genome_id = _b[i].population_index;
+                size_t ipop = i + population_index;
+                _b[i].population_index = ipop;
+                _b[i].net->population_index = ipop;
+                _b[i].genome->genome_id = ipop;
                 _b[i].genome->rng.seed(rng.integer());
             }
         }

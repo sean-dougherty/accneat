@@ -53,6 +53,8 @@ namespace NEAT {
 
 	class Network {
     public:
+        size_t population_index;
+
 		virtual ~Network() {}
 
         virtual Network &operator=(const Network &other) = 0;

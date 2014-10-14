@@ -66,15 +66,13 @@ Step::Step(const vector<real_t> &input_,
     }
 }
 
-real_t Step::evaluate(Organism &org) {
-    Network *net = org.net.get();
-
+real_t Step::process_output(Network &net) {
     switch(err_type) {
     case Err_Delta: {
         real_t result = 0.0;
 
         for(size_t i = 0; i < output.size(); i++) {
-            real_t err = abs(net->get_output(i) - output[i]);
+            real_t err = abs(net.get_output(i) - output[i]);
             if(err < 0.05) {
                 err = 0.0;
             }
@@ -87,7 +85,7 @@ real_t Step::evaluate(Organism &org) {
         size_t result = 0;
 
         for(size_t i = 0; i < output.size(); i++) {
-            if( int(net->get_output(i) + 0.5) != int(output[i]) ) {
+            if( int(net.get_output(i) + 0.5) != int(output[i]) ) {
                 result++;
             }
         }
@@ -110,13 +108,13 @@ Test::Test(const string &name_,
     : name(name_), steps(steps_), type(type_) {
 }
 
-void Test::prepare(Organism &org, size_t istep) {
+void Test::load_sensors(Network &net, size_t istep) {
     Step &step = steps[istep];
-    org.net->load_sensors(step.input, istep == 0);
+    net.load_sensors(step.input, istep == 0);
 }
 
-real_t Test::evaluate(Organism &org, size_t istep) {
-    return steps[istep].evaluate(org);
+real_t Test::process_output(Network &net, size_t istep) {
+    return steps[istep].process_output(net);
 }
 
 //------------------------------
@@ -141,22 +139,22 @@ TestBattery::TestBattery(const std::vector<Test> &tests_) : tests(tests_) {
     }
 }
 
-bool TestBattery::prepare_step(Organism &org, size_t istep) {
+bool TestBattery::load_sensors(Network &net, size_t istep) {
     if(istep >= test_steps.size())
         return false;
     else if(istep == 0)
-        population_err[org.population_index] = 0.0;
+        population_err[net.population_index] = 0.0;
 
     TestStep &step = test_steps[istep];
-    tests[step.itest].prepare(org, step.istep);
+    tests[step.itest].load_sensors(net, step.istep);
 
     return true;
 }
 
-void TestBattery::evaluate_step(Organism &org, size_t istep) {
+void TestBattery::process_output(Network &net, size_t istep) {
     TestStep &step = test_steps[istep];
 
-    population_err[org.population_index] += tests[step.itest].evaluate(org, step.istep);
+    population_err[net.population_index] += tests[step.itest].process_output(net, step.istep);
 }
 
 OrganismEvaluation TestBattery::get_evaluation(Organism &org) {
@@ -404,20 +402,20 @@ bool Experiment::is_success(Organism *org) {
 void Experiment::evaluate(OrganismEvaluator *evaluator) {
     TestBattery &battery = batteries.find(Test::Training)->second;
 
-    auto prepare_step = [&battery] (Organism &org, size_t istep) {
-        return battery.prepare_step(org, istep);
+    NetworkManager::LoadSensorsFunc load_sensors = [&battery] (Network &net, size_t istep) {
+        return battery.load_sensors(net, istep);
     };
 
-    auto eval_step = [&battery] (Organism &org, size_t istep) {
-        battery.evaluate_step(org, istep);
+    NetworkManager::ProcessOutputFunc process_output = [&battery] (Network &net, size_t istep) {
+        battery.process_output(net, istep);
     };
 
     auto eval_org  = [&battery] (Organism &org) {
         return battery.get_evaluation(org);
     };
 
-    evaluator->evaluate(prepare_step,
-                        eval_step,
+    evaluator->evaluate(load_sensors,
+                        process_output,
                         eval_org);
 
     Organism *fittest = evaluator->get_fittest();

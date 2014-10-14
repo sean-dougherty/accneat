@@ -1,5 +1,6 @@
 #pragma once
 
+#include "networkmanager.h"
 #include "organism.h"
 
 namespace NEAT {
@@ -10,8 +11,8 @@ namespace NEAT {
 
         Organism *get_fittest();
 
-        bool evaluate(std::function<bool (Organism &org, size_t istep)> prepare_step,
-                      std::function<void (Organism &org, size_t istep)> eval_step,
+        bool evaluate(NetworkManager::LoadSensorsFunc load_sensors,
+                      NetworkManager::ProcessOutputFunc process_output,
                       std::function<OrganismEvaluation (Organism &org)> eval);
 
     private:

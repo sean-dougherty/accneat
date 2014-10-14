@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
         env->mutate_delete_link_prob *= 0.1;
     }
 
-    env->network_manager = new NetworkManager();
+    env->network_manager = NetworkManager::create();
 
     const char *experiment_name = argv[optind++];
 

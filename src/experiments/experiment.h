@@ -21,7 +21,7 @@ namespace NEAT {
              real_t weight_ = 1.0,
              ErrType err_type_ = Err_Delta);
 
-        real_t evaluate(Organism &);
+        real_t process_output(Network &net);
     };
 
     // A set of Steps for which the neural net state is expected to begin in its default
@@ -44,16 +44,16 @@ namespace NEAT {
         : Test("", steps_, type_) {
         }
 
-        void prepare(Organism &org, size_t istep);
-        real_t evaluate(Organism &org, size_t istep);
+        void load_sensors(Network &net, size_t istep);
+        real_t process_output(Network &net, size_t istep);
     };
 
     // A set of Tests that are all of the same type (e.g. Training).
     struct TestBattery {
         TestBattery(const std::vector<Test> &tests_);
 
-        bool prepare_step(Organism &org, size_t istep);
-        void evaluate_step(Organism &org, size_t istep);
+        bool load_sensors(Network &net, size_t istep);
+        void process_output(Network &net, size_t istep);
         OrganismEvaluation get_evaluation(Organism &org);
 
         //void show_report(Organism &org);
