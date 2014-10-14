@@ -1,4 +1,4 @@
-#ENABLE_CUDA=non-empty
+ENABLE_CUDA=non-empty
 #DEVMODE=non-empty
 
 PFM_LD_FLAGS=-L/share/apps/cuda/cuda6/lib64

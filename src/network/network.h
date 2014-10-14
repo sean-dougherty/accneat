@@ -57,8 +57,6 @@ namespace NEAT {
 
 		virtual ~Network() {}
 
-        virtual Network &operator=(const Network &other) = 0;
-
         virtual void configure(const NetDims &dims,
                                NetNode *nodes,
                                NetLink *links) = 0;
@@ -66,8 +64,6 @@ namespace NEAT {
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
 		virtual void load_sensors(const std::vector<real_t> &sensvals,
                                   bool clear_noninput) = 0;
-
-		virtual void activate(size_t ncycles) = 0;
 
         virtual real_t get_output(size_t index) = 0;
 	};

@@ -64,8 +64,10 @@ void Organism::copy_into(Organism &dst) const {
     copy(population_index);
     copy(eval);
     *dst.genome = *this->genome;
-    *dst.net = *this->net;
     copy(generation);
+
+    // Networks must be regenerated.
+    dst.net = env->network_manager->make_default();
 
 #undef copy
 }

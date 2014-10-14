@@ -18,7 +18,8 @@ namespace NEAT {
     };
 
     struct ActivateParms {
-        uint flush_step;
+        bool clear_noninput;
+        bool enabled;
     };
 
     struct Offsets {
@@ -40,6 +41,13 @@ namespace NEAT {
         uint main;
         uint input;
         uint output;
+
+        Lens &operator+=(const Lens &a) {
+            main += a.main;
+            input += a.input;
+            output += a.output;
+            return *this;
+        }
 
         friend Lens operator+(const Lens &a, const Lens &b) {
             Lens c;
@@ -73,89 +81,54 @@ namespace NEAT {
 
     class CudaNetwork : public Network {
     private:
-        class CudaNetworkBatch *batch;
-        RawBuffers bufs;
+        friend class CudaNetworkBatch;
+
         CudaNetDims dims;
+        std::vector<CudaLink> gpu_links;
+        std::vector<ActivationPartition> partitions;
+
+        RawBuffers bufs;
         Offsets offsets;
 
     public:
         CudaNetwork() {}
         virtual ~CudaNetwork() {}
 
-        void set_batch(class CudaNetworkBatch *batch_) {batch = batch_;}
-        void get_gpu(__out GpuState &gpu);
-        void set_bufs(const RawBuffers &bufs);
+        void set_bufs(const RawBuffers &bufs, const Offsets &offsets);
+
+        void disable();
+        bool is_enabled();
 
         virtual void configure(const NetDims &counts,
                                NetNode *nodes,
                                NetLink *links);
+
 		virtual void load_sensors(const std::vector<real_t> &sensvals,
                                   bool clear_noninput);
+
         virtual real_t get_output(size_t index);
     };
 
     class CudaNetworkBatch {
         uint nnets;
-        CudaNetDims template_dims;
-        RawBuffers h_bufs;
-        RawBuffers d_bufs;
         GpuState *h_gpu_states;
         GpuState *d_gpu_states;
+
+        RawBuffers h_bufs;
+        RawBuffers d_bufs;
         Offsets offsets;
         Lens capacity;
         Lens lens;
-        uint step;
+        uint sizeof_shared;
 
     public:
         CudaNetworkBatch(uint nnets);
         ~CudaNetworkBatch();
 
-        uint get_step() {return step;}
+        void configure(CudaNetwork **nets, uint nnets);
 
-        void configure_net(__in CudaNetDims &dims,
-                           __out RawBuffers &bufs,
-                           __out Offsets &offsets);
-
-        void configure_device(CudaNetwork **nets,
-                              uint nnets);
-
-        void activate();
+        void activate(uint ncycles);
     };
-
-
-#if false
-    class CudaNetworkBatch {
-        struct {
-            uint buflen;
-            uchar *buffer;
-            uchar *d_buffer;
-
-            uint offset_activations;
-            uint offset_parms;
-        } update_input;
-
-        struct {
-            uint buflen;
-            uchar *buffer;
-            uchar *d_buffer;
-        } update_output;
-
-        struct {
-            CudaNetwork::GpuState *gpus;
-            CudaNetwork::GpuState *d_gpus;
-
-            uchar *buffers;
-            uchar *d_buffers;
-        } config;
-
-        uint sizeof_shared;
-    public:
-        CudaNetworkBatch(CudaNetwork **nets, size_t nnets);
-        ~CudaNetworkBatch();
-
-        void activate();
-    };
-#endif
 }
 
 #if false

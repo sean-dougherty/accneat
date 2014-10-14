@@ -115,6 +115,11 @@ else
         cp out $gold
     else
         files=$(find experiment_* -type f | sort)
+	if [ -z "$files" ]; then
+	    echo "FOUND NO RESULTS FILES!"
+	    exit 1
+	fi
+
         if (
             rc=0
             for x in $files; do

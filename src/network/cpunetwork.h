@@ -15,7 +15,7 @@ namespace NEAT {
         CpuNetwork() {}
 		virtual ~CpuNetwork() {}
 
-        virtual Network &operator=(const Network &other) override;
+		void activate(size_t ncycles);
 
         virtual void configure(const NetDims &dims,
                                NetNode *nodes,
@@ -25,8 +25,6 @@ namespace NEAT {
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
 		virtual void load_sensors(const std::vector<real_t> &sensvals,
                                   bool clear_noninput) override;
-
-		virtual void activate(size_t ncycles) override;
 
         virtual real_t get_output(size_t index) override;
 	};

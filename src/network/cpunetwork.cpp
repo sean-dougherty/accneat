@@ -48,18 +48,6 @@ void CpuNetwork::configure(const NetDims &dims_,
     }
 }
 
-Network &CpuNetwork::operator=(const Network &other_) {
-    const CpuNetwork &other = dynamic_cast<const CpuNetwork &>(other_);
-
-    this->population_index = other.population_index;
-    this->dims = other.dims;
-    this->nodes = other.nodes;
-    this->links = other.links;
-    this->activations = other.activations;
-
-    return *this;
-}
-
 void CpuNetwork::load_sensors(const std::vector<real_t> &sensvals,
                               bool clear_noninput) {
     assert(sensvals.size() == dims.nnodes.sensor);
