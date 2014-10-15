@@ -61,6 +61,8 @@ namespace NEAT {
                                NetNode *nodes,
                                NetLink *links) = 0;
 
+        virtual NetDims get_dims() = 0;
+
 		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
 		virtual void load_sensors(const std::vector<real_t> &sensvals,
                                   bool clear_noninput) = 0;

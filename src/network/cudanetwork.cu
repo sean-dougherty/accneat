@@ -22,7 +22,7 @@
 
 #define p(msg) std::cout << "[cuda]: " << msg << std::endl
 
-#define Threads_Per_Block 64
+#define Threads_Per_Block 1
 #define MAX_NEURONS Threads_Per_Block
 #define NACTIVATE_ITERATIONS 10
 
@@ -38,7 +38,6 @@ namespace NEAT {
     __global__ void activate(GpuState *states,
                              RawBuffers bufs,
                              uint ncycles);
-
 
     static uchar *alloc_host(uint size) {
         uchar *result;
@@ -70,6 +69,40 @@ namespace NEAT {
         h_buf = alloc_host(newlen);
         d_buf = alloc_dev(newlen);
     }
+
+#define __dh_util static inline __device__ __host__
+
+    __dh_util CudaLink *links(const RawBuffers &bufs,
+                              const Offsets &offs) {
+        return (CudaLink *)(bufs.main + offs.main.links);
+    }
+
+    __dh_util ActivationPartition *partitions(const RawBuffers &bufs,
+                                              const Offsets &offs) {
+        return (ActivationPartition *)(bufs.main + offs.main.partitions);
+    }
+
+    __dh_util real_t *input_activations(const RawBuffers &bufs,
+                                        const Offsets &offs) {
+        return (real_t *)(bufs.input + offs.input.activation);
+    }
+
+    __dh_util real_t *hidden_activations(const RawBuffers &bufs,
+                                         const Offsets &offs) {
+        return (real_t *)(bufs.main + offs.main.activation);
+    }
+
+    __dh_util real_t *output_activations(const RawBuffers &bufs,
+                                         const Offsets &offs) {
+        return (real_t *)(bufs.output + offs.output.activation);
+    }
+
+    __dh_util ActivateParms &activate_parms(const RawBuffers &bufs,
+                                            const Offsets &offs) {
+        return *(ActivateParms *)(bufs.input + offs.input.activate_parms);
+    }
+
+#undef __dh_util
 
 //--------------------------------------------------------------------------------
 //---
@@ -129,6 +162,8 @@ namespace NEAT {
                 net_lens.main = sizeof_activation + sizeof_links + sizeof_partitions;
 
                 net_offs.main.activation = this->lens.main;
+                // gpu requires proper alignment
+                assert(net_offs.main.activation % sizeof(real_t) == 0);
                 net_offs.main.links = net_offs.main.activation + sizeof_activation;
                 net_offs.main.partitions = net_offs.main.links + sizeof_links;
             }
@@ -142,6 +177,8 @@ namespace NEAT {
 
                 net_offs.input.activate_parms = this->lens.input;
                 net_offs.input.activation = net_offs.input.activate_parms + sizeof_parms;
+                // gpu requires proper alignment
+                assert(net_offs.input.activation % sizeof(real_t) == 0);
             }
 
             //output buffer
@@ -151,6 +188,8 @@ namespace NEAT {
                 net_lens.output = sizeof_activation;
 
                 net_offs.output.activation = this->lens.output;
+                // gpu requires proper alignment
+                assert(net_offs.output.activation % sizeof(real_t) == 0);
             }
 
             sizeof_shared = max(sizeof_shared, net_sizeof_shared);
@@ -191,6 +230,8 @@ namespace NEAT {
     }
 
     void CudaNetworkBatch::activate(uint ncycles) {
+        std::cout << "input[0]=" << (int)h_bufs.input[0] << std::endl;
+
         xcuda( cudaMemcpy(d_bufs.input,
                           h_bufs.input,
                           lens.input,
@@ -206,45 +247,34 @@ namespace NEAT {
                           cudaMemcpyDeviceToHost) );
     }
 
+    void CudaNetworkBatch::get_activations(CudaNetwork *net,
+                                           __out std::vector<real_t> &result) {
+        result.clear();
+        for(size_t i = 0; i < net->dims.nnodes.bias; i++) {
+            result.push_back(1.0);
+        }
+
+        for(size_t i = 0; i < net->dims.nnodes.sensor; i++) {
+            result.push_back(input_activations(h_bufs, net->offsets)[i]);
+        }
+
+        for(size_t i = 0; i < net->dims.nnodes.output; i++) {
+            result.push_back(output_activations(h_bufs, net->offsets)[i]);
+        }
+
+        real_t hidden[net->dims.nnodes.hidden];
+        xcuda( cudaMemcpy(hidden, hidden_activations(d_bufs, net->offsets), sizeof(hidden), cudaMemcpyDeviceToHost) );
+
+        for(size_t i = 0; i < net->dims.nnodes.hidden; i++) {
+            result.push_back(hidden[i]);
+        }
+    }
+
 //--------------------------------------------------------------------------------
 //---
 //--- CLASS CudaNetwork
 //---
 //--------------------------------------------------------------------------------
-#define __dh_util static inline __device__ __host__
-
-    __dh_util CudaLink *links(const RawBuffers &bufs,
-                                  const Offsets &offs) {
-        return (CudaLink *)(bufs.main + offs.main.links);
-    }
-
-    __dh_util ActivationPartition *partitions(const RawBuffers &bufs,
-                                                  const Offsets &offs) {
-        return (ActivationPartition *)(bufs.main + offs.main.partitions);
-    }
-
-    __dh_util real_t *input_activations(const RawBuffers &bufs,
-                                        const Offsets &offs) {
-        return (real_t *)(bufs.input + offs.input.activation);
-    }
-
-    __dh_util real_t *hidden_activations(const RawBuffers &bufs,
-                                             const Offsets &offs) {
-        return (real_t *)(bufs.main + offs.main.activation);
-    }
-
-    __dh_util real_t *output_activations(const RawBuffers &bufs,
-                                             const Offsets &offs) {
-        return (real_t *)(bufs.output + offs.output.activation);
-    }
-
-    __dh_util ActivateParms &activate_parms(const RawBuffers &bufs,
-                                                const Offsets &offs) {
-        return *(ActivateParms *)(bufs.input + offs.input.activate_parms);
-    }
-
-#undef __dh_util
-
     void CudaNetwork::set_bufs(const RawBuffers &bufs_,
                                const Offsets &offsets_) {
         bufs = bufs_;
@@ -259,6 +289,10 @@ namespace NEAT {
 
         activate_parms(bufs, offsets).clear_noninput = true;
         activate_parms(bufs, offsets).enabled = true;
+    }
+
+    void CudaNetwork::set_clear_noninput(bool val) {
+        activate_parms(bufs, offsets).clear_noninput = val;
     }
 
     void CudaNetwork::disable() {
@@ -330,7 +364,7 @@ namespace NEAT {
     __device__ void sum_partition(float *x, int i, int n, float *result) {
         int stride = __popc(n) == 1 ? n >> 1 : 1 << 31 - __clz(n);
 
-        if(i + stride < n) {
+        if( (stride > 0) && (i + stride < n) ) {
             x[i] += x[i + stride];
         }
       
@@ -338,7 +372,7 @@ namespace NEAT {
 
         stride >>= 1;
         // max_stride necessary to keep all threads from all partitions in sync.
-        for(int max_stride = Threads_Per_Block >> 4; max_stride > 0; stride >>= 1, max_stride >>= 1) {
+        for(int max_stride = Threads_Per_Block >> 1; max_stride > 0; stride >>= 1, max_stride >>= 1) {
             if(i < stride) {
                 x[i] += x[i + stride];
             }
@@ -352,8 +386,23 @@ namespace NEAT {
         __syncthreads();
     }
 
-    static __device__ float logistic(float x) {
-        return (1.0f / (1.0f + exp(-1 * x * 4.924273)));
+    __global__ void test_sum_partition_kernel(float *x, int n, float *result) {
+        uint tid = threadIdx.x;
+        __shared__ float shx[Threads_Per_Block];
+        *result = 0;
+        int i;
+        if(tid < n) {
+            shx[tid] = x[tid];
+            i = tid;
+        } else {
+            i = 1; n = 0;
+        }
+        sum_partition(shx, i, n, result);
+    }
+
+    inline __device__ real_t fsigmoid(real_t activesum,real_t slope,real_t constant) {
+        //NON-SHIFTED STEEPENED
+        return (1/(1+(exp(-(slope*activesum))))); //Compressed
     }
 
     __global__ void activate(GpuState *states,
@@ -363,9 +412,13 @@ namespace NEAT {
         if(!activate_parms(bufs, state.offsets).enabled) {
             return;
         }
+        // to print input:
+        // p *(@global float * @local)(bufs.input + state.offsets.input.activation)@N
 
         extern __shared__ char __shared_buf[];
 
+        // in cuda-gdb: print *((@shared float*)activation + i)
+        //              print *((@shared float*)newactivation)@6
         real_t *activation = (real_t *)__shared_buf;
         real_t *newactivation = activation + state.dims.nnodes.all;
         real_t *partial_activation = newactivation + state.dims.nnodes.all;
@@ -397,6 +450,13 @@ namespace NEAT {
         const int nits = 1 + (state.dims.nlinks - 1) / Threads_Per_Block;
 
         for(uint icycle = 0; icycle < ncycles; icycle++) {
+            for(uint inode = tid + state.dims.nnodes.input;
+                inode < state.dims.nnodes.all;
+                inode += Threads_Per_Block) {
+                newactivation[inode] = 0.0;
+            }
+            __syncthreads();
+
             for(uint ilink = tid, it = 0; it < nits; ilink += Threads_Per_Block, it++) {
                 float *partition_x;
                 int partition_i;
@@ -428,10 +488,10 @@ namespace NEAT {
                 __syncthreads();
             }
 
-            for(uint inode = tid; inode < state.dims.nnodes.all; inode += Threads_Per_Block) {
-                if(inode >= state.dims.nnodes.input) {
-                    newactivation[inode] = logistic( newactivation[inode] );
-                }
+            for(uint inode = tid + state.dims.nnodes.input; inode < state.dims.nnodes.all; inode += Threads_Per_Block) {
+                newactivation[inode] = fsigmoid(newactivation[inode],
+                                                4.924273,
+                                                2.4621365);
             }
             {
                 float *swap = newactivation;
@@ -455,147 +515,41 @@ namespace NEAT {
         }
     }
 
-} // namespace NEAT
+    void test_sum_partition() {
+        for(size_t n = 1; n <= Threads_Per_Block; n++) {
+            real_t x[n];
+            size_t sizeof_x = sizeof(real_t) * n;
 
-
-//--------------------------------------------------------------------------------
-//---
-//--- OLD STUFF
-//---
-//--------------------------------------------------------------------------------
-#if false
-__device__ void sum_partition(float *x, int i, int n, float *result) {
-    int stride = __popc(n) == 1 ? n >> 1 : 1 << 31 - __clz(n);
-
-    if(i + stride < n) {
-        x[i] += x[i + stride];
-    }
-      
-    __syncthreads();
-
-    stride >>= 1;
-    // max_stride necessary to keep all threads from all partitions in sync.
-    for(int max_stride = Threads_Per_Block >> 4; max_stride > 0; stride >>= 1, max_stride >>= 1) {
-        if(i < stride) {
-            x[i] += x[i + stride];
-        }
-        __syncthreads();
-    }
-
-    if(i == 0) {
-        *result += x[0];
-    }
-
-    __syncthreads();
-}
-
-static __device__ float logistic(float x) {
-    return (1.0f / (1.0f + exp(-1 * x * 4.924273)));
-}
-
-__global__ void update(FiringRateModel_Cuda::GpuState *states) {
-    int tid = threadIdx.x;
-
-    FiringRateModel_Cuda::GpuState state = states[blockIdx.x];
-
-    extern __shared__ char __shared_buf[];
-
-    float *neuronactivation = (float *)__shared_buf;
-    float *newneuronactivation = neuronactivation + state.neurons_count;
-    float *partial_activation = newneuronactivation + state.neurons_count;
-
-    if(tid < state.neurons_count) {
-    	if(tid < state.input_neurons_count) {
-        	neuronactivation[tid] = state.buffers.input_activation[tid];
-            newneuronactivation[tid] = neuronactivation[tid];
-    	} else {
-			neuronactivation[tid] = state.activations()[tid];
-		}
-    }
-    __syncthreads();
-
-    for(int it = 0; it < NACTIVATE_ITERATIONS; it++) {
-
-        for(int isynapse = tid; isynapse < state.synapses_count; isynapse += Threads_Per_Block) {
-            float *partition_x;
-            int partition_i;
-            int partition_n;
-            float *result;
-
-            if(isynapse < state.synapses_count) {
-                CudaSynapse synapse = state.synapses()[isynapse];
-                partial_activation[tid] = synapse.efficacy * neuronactivation[synapse.fromneuron];
-
-                NeuronActivationPartition p = state.partitions()[synapse.partition];
-                partition_x = partial_activation + p.offset;
-                partition_i = tid - p.offset;
-                partition_n = p.len;
-                result = newneuronactivation + p.toneuron;
-            } else {
-                partition_x = NULL;
-                partition_i = 1;
-                partition_n = 0;
-                result = NULL;
+            real_t expected = 0.0;
+            for(size_t i = 0; i < n; i++) {
+                //x[i] = real_t(i) + 1;
+                x[i] = drand48();
+                expected += x[i];
             }
-            __syncthreads();
 
-            sum_partition(partition_x,
-                          partition_i,
-                          partition_n,
-                          result);
+            real_t actual = -100;
 
-            __syncthreads();
-        }
+            real_t *d_x = (real_t *)alloc_dev(sizeof_x);
+            xcuda( cudaMemcpy(d_x,
+                              x,
+                              sizeof_x,
+                              cudaMemcpyHostToDevice) );
 
-        if( (tid >= state.input_neurons_count) && (tid < state.neurons_count) ) {
-            newneuronactivation[tid] = logistic( newneuronactivation[tid] );
+            real_t *d_actual = (real_t *)alloc_dev(sizeof(real_t));
+
+            NEAT::test_sum_partition_kernel<<<1, Threads_Per_Block>>>(d_x, n, d_actual);
+            
+            xcuda( cudaMemcpy(&actual,
+                              d_actual,
+                              sizeof(real_t),
+                              cudaMemcpyDeviceToHost) );
+
+            if( fabs(expected - actual) / expected >= 0.05 ) {
+                std::cout << "n=" << n << ", Expected=" << expected << ", Actual=" << actual << std::endl;
+            }
         }
-        {
-            float *swap = newneuronactivation;
-            newneuronactivation = neuronactivation;
-            newneuronactivation = swap;
-        }
-        __syncthreads();
+            
+        exit(0);
     }
 
-    if(tid < state.neurons_count) {
-        state.activations()[tid] = neuronactivation[tid];
-
-        if( (tid >= state.input_neurons_count)
-            && (tid < state.input_neurons_count + state.output_neurons_count) ) {
-            state.buffers.output_activation[tid - state.input_neurons_count] = neuronactivation[tid];
-        }
-    }
-}
-
-typedef FiringRateModel_Cuda::AgentState AgentState;
-typedef FiringRateModel_Cuda::GpuState GpuState;
-
-static GpuState *gpus = NULL;
-static GpuState *d_gpus = NULL;
-static unsigned char *buffers = NULL;
-static unsigned char *d_buffers = NULL;
-static uint sizeof_shared = 0;
-static float *d_all_input = NULL;
-static uint sizeof_input = 0;
-static float *d_all_output = NULL;
-static uint sizeof_output = 0;
-
-void FiringRateModel_Cuda::update_all(AgentState *agents,
-                                      long nagents,
-                                      float *all_input,
-                                      float *all_output) {
-
-    xcuda( cudaMemcpy(d_all_input,
-                      all_input,
-                      sizeof_input,
-                      cudaMemcpyHostToDevice) );
-
-    ::update<<<nagents, Threads_Per_Block, sizeof_shared>>>(d_gpus);
-
-    xcuda( cudaMemcpy(all_output,
-                      d_all_output,
-                      sizeof_output,
-                      cudaMemcpyDeviceToHost) );
-}
-#endif // #if false (old stuff)
+} // namespace NEAT

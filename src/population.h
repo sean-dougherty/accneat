@@ -38,5 +38,7 @@ namespace NEAT {
 		virtual void write(std::ostream& out) = 0;
     };
 
+    extern Population *debug_population;
+
 } // namespace NEAT
 

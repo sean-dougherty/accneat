@@ -20,8 +20,7 @@
 #include <assert.h>
 
 using namespace NEAT;
-using std::cerr;
-using std::endl;
+using namespace std;
 
 // Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
 void CpuNetwork::configure(const NetDims &dims_,
@@ -48,7 +47,7 @@ void CpuNetwork::configure(const NetDims &dims_,
     }
 }
 
-void CpuNetwork::load_sensors(const std::vector<real_t> &sensvals,
+void CpuNetwork::load_sensors(const vector<real_t> &sensvals,
                               bool clear_noninput) {
     assert(sensvals.size() == dims.nnodes.sensor);
 
@@ -83,6 +82,7 @@ void CpuNetwork::activate(size_t ncycles) {
             for(size_t j = node.incoming_start; j < node.incoming_end; j++) {
                 NetLink &link = links[j];
                 sum += link.weight * act_curr[link.in_node_index];
+                cout << "from=" << (link.in_node_index+1) << ", to=" << (i+1) << ", weight=" << link.weight << ", act[from]=" << act_curr[link.in_node_index] << ", sum=" << sum << endl;
             }
 
             act_new[i] = NEAT::fsigmoid(sum,
@@ -100,6 +100,10 @@ void CpuNetwork::activate(size_t ncycles) {
                act_other + dims.nnodes.input,
                sizeof(real_t) * (dims.nnodes.all - dims.nnodes.input));
     }
+}
+
+void CpuNetwork::get_activations(__out vector<real_t> &result) {
+    result = activations;
 }
 
 real_t CpuNetwork::get_output(size_t index) {

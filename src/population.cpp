@@ -21,14 +21,21 @@
 using namespace NEAT;
 using namespace std;
 
+Population *NEAT::debug_population = nullptr;
 
 Population *Population::create(rng_t rng,
                                vector<unique_ptr<Genome>> &seeds) {
+    Population *result;
 
     switch(env->population_type) {
     case PopulationType::SPECIES:
-        return new SpeciesPopulation(rng, seeds);
+        result = new SpeciesPopulation(rng, seeds);
+        break;
     default:
         panic();
     }
+
+    debug_population = result;
+
+    return result;
 }

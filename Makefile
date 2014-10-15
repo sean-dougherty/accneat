@@ -1,4 +1,4 @@
-include Makefile.conf
+	include Makefile.conf
 
 INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 SOURCES=$(shell find src -name "*.cpp")
@@ -17,9 +17,10 @@ endif
 
 ifdef DEVMODE
 	OPT=-O0
-	OPENMP=-fopenmp
+	#OPENMP=-fopenmp
 	#PROFILE=-pg
 	MISC_FLAGS=
+	NVCC_FLAGS=-G
 else
 	OPT=-O3
 	OPENMP=-fopenmp
@@ -46,6 +47,6 @@ obj/cpp/%.o: src/%.cpp Makefile.conf Makefile src/util/std.h.gch
 
 obj/cu/%.o: src/%.cu src/%.h Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	nvcc -Xcompiler "${OPT}" -g -Isrc -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
+	nvcc ${NVCC_FLAGS} -Xcompiler "${OPT}" -g -Isrc -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
 
 -include ${DEPENDS}
