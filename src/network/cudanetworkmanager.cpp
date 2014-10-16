@@ -58,6 +58,8 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
     bool remaining = true;
     for(size_t istep = 0; remaining; istep++) {
         remaining = false;
+
+#pragma omp parallel for reduction(||:remaining)
         for(size_t inet = 0; inet < nnets; inet++) {
             if(nets[inet]->is_enabled() && !load_sensors(*nets[inet], istep)) {
                 nets[inet]->disable();
@@ -112,6 +114,7 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
             }
 #endif
 
+#pragma omp parallel for
             for(size_t inet = 0; inet < nnets; inet++) {
                 if(nets[inet]->is_enabled()) {
                     process_output(*nets[inet], istep);
