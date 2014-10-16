@@ -47,12 +47,14 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
     batch->configure(nets, nnets);
 
 #ifdef VERIFY_VIA_CPU
-    static size_t ii = 0;
-    CpuNetwork cpunets[nnets];
-    for(size_t i = 0; i < nnets; i++) {
-        debug_population->get(i)->genome->init_phenotype(cpunets[i]);
-        cpunets[i].population_index = i;
-    }
+/*************************************************************/
+/**/static size_t ii = 0;
+/**/CpuNetwork cpunets[nnets];
+/**/for(size_t i = 0; i < nnets; i++) {
+/**/    debug_population->get(i)->genome->init_phenotype(cpunets[i]);
+/**/    cpunets[i].population_index = i;
+/**/}
+/*************************************************************/
 #endif
 
     bool remaining = true;
@@ -65,7 +67,9 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
                 nets[inet]->disable();
             } else {
 #ifdef VERIFY_VIA_CPU
-                load_sensors(cpunets[inet], istep);
+/*************************************************************/
+/**/            load_sensors(cpunets[inet], istep);
+/*************************************************************/
 #endif
                 remaining = true;
             }
@@ -75,43 +79,40 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
 #ifndef VERIFY_VIA_CPU
             batch->activate(NACTIVATES_PER_INPUT);
 #else
-            vector<real_t> cpu_act;
-            vector<real_t> cuda_act;
-
-            for(size_t icycle = 0; icycle < NACTIVATES_PER_INPUT / 10; icycle++) {
-                ii++;
-                if(ii == 1922) {
-                    //debug_population->get(0)->genome->print(cout);
-                    //cout << "[" << ii << "] --- Out of order cpu activate ---" << endl;
-                    //cpunets[0].activate(1);
-                }
-
-                batch->activate(10);
-                for(size_t inet = 0; inet < nnets; inet++) {
-                    nets[inet]->set_clear_noninput(false);
-                }
-                //cout << "[" << ii << "] gpu=" << batch->get_activations(nets[0], cuda_act) << endl;
-
-                for(size_t inet = 0; inet < nnets; inet++) {
-                    cpunets[inet].activate(10);
-                    //cout << "[" << ii << "] cpu=" << cpunets[inet].get_activations(cpu_act) << endl;
-
-                    cpunets[inet].get_activations(cpu_act);
-                    batch->get_activations(nets[inet], cuda_act);
-
-                    assert(cpu_act.size() == cuda_act.size());
-                    for(size_t iact = 0; iact < cpu_act.size(); iact++) {
-                        if( fabs(cpu_act[iact] - cuda_act[iact]) > 0.05 ) {
-                            cout << "[" << ii << "] mismatch at index " << iact << endl;
-                            cout << "cpu =" << cpu_act << endl;
-                            cout << "cuda=" << cuda_act << endl;
-                            getchar();
-                        }
-                    }
-
-                    cpunets[inet].set_activations(cuda_act);
-                }
-            }
+/*************************************************************/
+/**/        vector<real_t> cpu_act;
+/**/        vector<real_t> cuda_act;
+/**/
+/**/        for(size_t icycle = 0; icycle < NACTIVATES_PER_INPUT / 10; icycle++) {
+/**/            ii++;
+/**/
+/**/            batch->activate(10);
+/**/            for(size_t inet = 0; inet < nnets; inet++) {
+/**/                nets[inet]->set_clear_noninput(false);
+/**/            }
+/**/            //cout << "[" << ii << "] gpu=" << batch->get_activations(nets[0], cuda_act) << endl;
+/**/
+/**/            for(size_t inet = 0; inet < nnets; inet++) {
+/**/                cpunets[inet].activate(10);
+/**/                //cout << "[" << ii << "] cpu=" << cpunets[inet].get_activations(cpu_act) << endl;
+/**/
+/**/                cpunets[inet].get_activations(cpu_act);
+/**/                batch->get_activations(nets[inet], cuda_act);
+/**/
+/**/                assert(cpu_act.size() == cuda_act.size());
+/**/                for(size_t iact = 0; iact < cpu_act.size(); iact++) {
+/**/                    if( fabs(cpu_act[iact] - cuda_act[iact]) > 0.05 ) {
+/**/                        cout << "[" << ii << "] mismatch at index " << iact << endl;
+/**/                        cout << "cpu =" << cpu_act << endl;
+/**/                        cout << "cuda=" << cuda_act << endl;
+/**/                        getchar();
+/**/                    }
+/**/                }
+/**/
+/**/                cpunets[inet].set_activations(cuda_act);
+/**/            }
+/**/        }
+/*************************************************************/
 #endif
 
 #pragma omp parallel for
