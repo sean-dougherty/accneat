@@ -5,6 +5,8 @@
 #include "cudanetwork.h"
 #include "neat.h"
 #include "util.h"
+#include <assert.h>
+#include <omp.h>
 
 //#define VERIFY_VIA_CPU
 
@@ -12,7 +14,6 @@
 #include "cpunetwork.h"
 #include "organism.h"
 #include "population.h"
-#include <assert.h>
 #endif
 
 using namespace NEAT;
@@ -31,8 +32,17 @@ ostream &operator<<(ostream &out, const vector<real_t> &x) {
 }
 
 CudaNetworkManager::CudaNetworkManager() {
-    //test_sum_partition();
-    batch = new CudaNetworkBatch(env->pop_size);
+    size_t batch_size = env->pop_size / nbatches;
+
+    for(size_t i = 0; i < nbatches; i++) {
+        batch_bounds[i].i = i * batch_size;
+        if( i == (nbatches - 1) ) {
+            batch_size += env->pop_size % nbatches;
+        }
+        batch_bounds[i].n = batch_size;
+
+        batches[i] = new CudaNetworkBatch(i, batch_size);
+    }
 }
 
 unique_ptr<Network> CudaNetworkManager::make_default() {
@@ -43,6 +53,18 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
                                   LoadSensorsFunc load_sensors,
                                   ProcessOutputFunc process_output) {
     CudaNetwork **nets = (CudaNetwork **)nets_;
+
+#pragma omp parallel for
+    for(size_t i = 0; i < nbatches; i++) {
+        __activate(i, nets + batch_bounds[i].i, batch_bounds[i].n, load_sensors, process_output);
+    }
+}
+
+void CudaNetworkManager::__activate(size_t ibatch,
+                                    CudaNetwork **nets, size_t nnets,
+                                    LoadSensorsFunc load_sensors,
+                                    ProcessOutputFunc process_output) {
+    CudaNetworkBatch *batch = batches[ibatch];
 
     batch->configure(nets, nnets);
 
@@ -61,7 +83,7 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
     for(size_t istep = 0; remaining; istep++) {
         remaining = false;
 
-#pragma omp parallel for reduction(||:remaining)
+//#pragma omp parallel for reduction(||:remaining)
         for(size_t inet = 0; inet < nnets; inet++) {
             if(nets[inet]->is_enabled() && !load_sensors(*nets[inet], istep)) {
                 nets[inet]->disable();
@@ -115,7 +137,7 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
 /*************************************************************/
 #endif
 
-#pragma omp parallel for
+//#pragma omp parallel for
             for(size_t inet = 0; inet < nnets; inet++) {
                 if(nets[inet]->is_enabled()) {
                     process_output(*nets[inet], istep);

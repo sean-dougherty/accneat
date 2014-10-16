@@ -113,8 +113,11 @@ namespace NEAT {
 //--- CLASS CudaNetworkBatch
 //---
 //--------------------------------------------------------------------------------
-    CudaNetworkBatch::CudaNetworkBatch(uint nnets_)
-        : nnets(nnets_) {
+    CudaNetworkBatch::CudaNetworkBatch(int device_, uint nnets_)
+        : device(device_), nnets(nnets_) {
+
+        cudaSetDevice(device);
+
         memset(&h_bufs, 0, sizeof(h_bufs));
         memset(&d_bufs, 0, sizeof(d_bufs));
         memset(&offsets, 0, sizeof(offsets));
@@ -126,6 +129,8 @@ namespace NEAT {
     }
 
     CudaNetworkBatch::~CudaNetworkBatch() {
+        cudaSetDevice(device);
+
         free_host((uchar *&)h_gpu_states);
         free_dev((uchar *&)d_gpu_states);
 
@@ -141,6 +146,8 @@ namespace NEAT {
     void CudaNetworkBatch::configure(CudaNetwork **nets,
                                      uint nnets) {
         assert(nnets = this->nnets);
+
+        cudaSetDevice(device);
 
         memset(&lens, 0, sizeof(lens));
         sizeof_shared = 0;

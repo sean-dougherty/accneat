@@ -1,4 +1,4 @@
-	include Makefile.conf
+include Makefile.conf
 
 INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 SOURCES=$(shell find src -name "*.cpp")
@@ -17,7 +17,7 @@ endif
 
 ifdef DEVMODE
 	OPT=-O0
-	#OPENMP=-fopenmp
+	OPENMP=-fopenmp
 	#PROFILE=-pg
 	MISC_FLAGS=
 	NVCC_FLAGS=-G -g

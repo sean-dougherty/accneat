@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network.h"
+#include <pthread.h>
 
 namespace NEAT {
 
@@ -115,6 +116,7 @@ namespace NEAT {
     };
 
     class CudaNetworkBatch {
+        int device;
         uint nnets;
         GpuState *h_gpu_states;
         GpuState *d_gpu_states;
@@ -127,7 +129,7 @@ namespace NEAT {
         uint sizeof_shared;
 
     public:
-        CudaNetworkBatch(uint nnets);
+        CudaNetworkBatch(int device, uint nnets);
         ~CudaNetworkBatch();
 
         void configure(CudaNetwork **nets, uint nnets);
