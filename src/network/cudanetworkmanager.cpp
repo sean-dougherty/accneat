@@ -6,7 +6,7 @@
 #include "neat.h"
 #include "util.h"
 
-#define VERIFY_VIA_CPU
+//#define VERIFY_VIA_CPU
 
 #ifdef VERIFY_VIA_CPU
 #include "cpunetwork.h"
@@ -76,7 +76,7 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
             vector<real_t> cpu_act;
             vector<real_t> cuda_act;
 
-            for(size_t icycle = 0; icycle < 1; icycle++) {
+            for(size_t icycle = 0; icycle < NACTIVATES_PER_INPUT / 10; icycle++) {
                 ii++;
                 if(ii == 1922) {
                     //debug_population->get(0)->genome->print(cout);
@@ -84,16 +84,14 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
                     //cpunets[0].activate(1);
                 }
 
-                batch->activate(NACTIVATES_PER_INPUT);
-/*
+                batch->activate(10);
                 for(size_t inet = 0; inet < nnets; inet++) {
                     nets[inet]->set_clear_noninput(false);
                 }
-*/
                 //cout << "[" << ii << "] gpu=" << batch->get_activations(nets[0], cuda_act) << endl;
 
                 for(size_t inet = 0; inet < nnets; inet++) {
-                    cpunets[inet].activate(NACTIVATES_PER_INPUT);
+                    cpunets[inet].activate(10);
                     //cout << "[" << ii << "] cpu=" << cpunets[inet].get_activations(cpu_act) << endl;
 
                     cpunets[inet].get_activations(cpu_act);
@@ -105,9 +103,11 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
                             cout << "[" << ii << "] mismatch at index " << iact << endl;
                             cout << "cpu =" << cpu_act << endl;
                             cout << "cuda=" << cuda_act << endl;
-                            abort();
+                            getchar();
                         }
                     }
+
+                    cpunets[inet].set_activations(cuda_act);
                 }
             }
 #endif

@@ -20,7 +20,7 @@ ifdef DEVMODE
 	#OPENMP=-fopenmp
 	#PROFILE=-pg
 	MISC_FLAGS=
-	NVCC_FLAGS=-G
+	NVCC_FLAGS=-G -g
 else
 	OPT=-O3
 	OPENMP=-fopenmp
@@ -47,6 +47,6 @@ obj/cpp/%.o: src/%.cpp Makefile.conf Makefile src/util/std.h.gch
 
 obj/cu/%.o: src/%.cu src/%.h Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	nvcc ${NVCC_FLAGS} -Xcompiler "${OPT}" -g -Isrc -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
+	nvcc ${NVCC_FLAGS} -Xcompiler "${OPT}" -Isrc -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
 
 -include ${DEPENDS}

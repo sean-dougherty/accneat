@@ -23,8 +23,6 @@
 #define p(msg) std::cout << "[cuda]: " << msg << std::endl
 
 #define Threads_Per_Block 64
-#define MAX_NEURONS Threads_Per_Block
-#define NACTIVATE_ITERATIONS 10
 
 #define xcuda(stmt) {                                                   \
         cudaError_t err = stmt;                                         \
@@ -342,9 +340,7 @@ namespace NEAT {
                 sensvals.data(),
                 sizeof(real_t) * dims.nnodes.sensor );
 
-        if(clear_noninput) {
-            activate_parms(bufs, offsets).clear_noninput = clear_noninput;
-        }
+        activate_parms(bufs, offsets).clear_noninput = clear_noninput;
     }
 
     real_t CudaNetwork::get_output(size_t index) {

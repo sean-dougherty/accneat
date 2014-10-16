@@ -106,6 +106,10 @@ vector<real_t> &CpuNetwork::get_activations(__out vector<real_t> &result) {
     return result = activations;
 }
 
+void CpuNetwork::set_activations(__in vector<real_t> &newacts) {
+    activations = newacts;
+}
+
 real_t CpuNetwork::get_output(size_t index) {
     assert(index < dims.nnodes.output);
 

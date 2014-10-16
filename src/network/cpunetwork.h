@@ -17,6 +17,7 @@ namespace NEAT {
 
 		void activate(size_t ncycles);
         std::vector<real_t> &get_activations(__out std::vector<real_t> &result);
+        void set_activations(__in std::vector<real_t> &newacts);
 
         virtual void configure(const NetDims &dims,
                                NetNode *nodes,
