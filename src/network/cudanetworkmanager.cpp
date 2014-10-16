@@ -42,13 +42,12 @@ unique_ptr<Network> CudaNetworkManager::make_default() {
 void CudaNetworkManager::activate(Network **nets_, size_t nnets,
                                   LoadSensorsFunc load_sensors,
                                   ProcessOutputFunc process_output) {
-    cout << "CudaNetworkManager::activate()" << endl;
-
     CudaNetwork **nets = (CudaNetwork **)nets_;
 
     batch->configure(nets, nnets);
 
 #ifdef VERIFY_VIA_CPU
+    static size_t ii = 0;
     CpuNetwork cpunets[nnets];
     for(size_t i = 0; i < nnets; i++) {
         debug_population->get(i)->genome->init_phenotype(cpunets[i]);
@@ -77,16 +76,25 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
             vector<real_t> cpu_act;
             vector<real_t> cuda_act;
 
-            for(size_t icycle = 0; icycle < NACTIVATES_PER_INPUT; icycle++) {
-                debug_population->get(0)->genome->print(cout);
+            for(size_t icycle = 0; icycle < 1; icycle++) {
+                ii++;
+                if(ii == 1922) {
+                    //debug_population->get(0)->genome->print(cout);
+                    //cout << "[" << ii << "] --- Out of order cpu activate ---" << endl;
+                    //cpunets[0].activate(1);
+                }
 
-                batch->activate(1);
+                batch->activate(NACTIVATES_PER_INPUT);
+/*
                 for(size_t inet = 0; inet < nnets; inet++) {
                     nets[inet]->set_clear_noninput(false);
                 }
+*/
+                //cout << "[" << ii << "] gpu=" << batch->get_activations(nets[0], cuda_act) << endl;
 
                 for(size_t inet = 0; inet < nnets; inet++) {
-                    cpunets[inet].activate(1);
+                    cpunets[inet].activate(NACTIVATES_PER_INPUT);
+                    //cout << "[" << ii << "] cpu=" << cpunets[inet].get_activations(cpu_act) << endl;
 
                     cpunets[inet].get_activations(cpu_act);
                     batch->get_activations(nets[inet], cuda_act);
@@ -94,7 +102,7 @@ void CudaNetworkManager::activate(Network **nets_, size_t nnets,
                     assert(cpu_act.size() == cuda_act.size());
                     for(size_t iact = 0; iact < cpu_act.size(); iact++) {
                         if( fabs(cpu_act[iact] - cuda_act[iact]) > 0.05 ) {
-                            cout << "mismatch at index " << iact << endl;
+                            cout << "[" << ii << "] mismatch at index " << iact << endl;
                             cout << "cpu =" << cpu_act << endl;
                             cout << "cuda=" << cuda_act << endl;
                             abort();

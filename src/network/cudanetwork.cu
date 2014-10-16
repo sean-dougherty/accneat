@@ -22,7 +22,7 @@
 
 #define p(msg) std::cout << "[cuda]: " << msg << std::endl
 
-#define Threads_Per_Block 1
+#define Threads_Per_Block 64
 #define MAX_NEURONS Threads_Per_Block
 #define NACTIVATE_ITERATIONS 10
 
@@ -82,13 +82,13 @@ namespace NEAT {
         return (ActivationPartition *)(bufs.main + offs.main.partitions);
     }
 
-    __dh_util real_t *input_activations(const RawBuffers &bufs,
+    __dh_util real_t *sensor_activations(const RawBuffers &bufs,
                                         const Offsets &offs) {
         return (real_t *)(bufs.input + offs.input.activation);
     }
 
-    __dh_util real_t *hidden_activations(const RawBuffers &bufs,
-                                         const Offsets &offs) {
+    __dh_util real_t *noninput_activations(const RawBuffers &bufs,
+                                           const Offsets &offs) {
         return (real_t *)(bufs.main + offs.main.activation);
     }
 
@@ -155,7 +155,7 @@ namespace NEAT {
 
             //main buffer
             {
-                uint sizeof_activation = sizeof(real_t) * dims.nnodes.hidden;
+                uint sizeof_activation = sizeof(real_t) * (dims.nnodes.noninput);
                 uint sizeof_links = sizeof(CudaLink) * dims.nlinks;
                 uint sizeof_partitions = sizeof(ActivationPartition) * dims.npartitions;
 
@@ -230,8 +230,6 @@ namespace NEAT {
     }
 
     void CudaNetworkBatch::activate(uint ncycles) {
-        std::cout << "input[0]=" << (int)h_bufs.input[0] << std::endl;
-
         xcuda( cudaMemcpy(d_bufs.input,
                           h_bufs.input,
                           lens.input,
@@ -247,27 +245,24 @@ namespace NEAT {
                           cudaMemcpyDeviceToHost) );
     }
 
-    void CudaNetworkBatch::get_activations(CudaNetwork *net,
-                                           __out std::vector<real_t> &result) {
+    std::vector<real_t> &CudaNetworkBatch::get_activations(CudaNetwork *net,
+                                                           __out std::vector<real_t> &result) {
         result.clear();
         for(size_t i = 0; i < net->dims.nnodes.bias; i++) {
             result.push_back(1.0);
         }
-
         for(size_t i = 0; i < net->dims.nnodes.sensor; i++) {
-            result.push_back(input_activations(h_bufs, net->offsets)[i]);
+            result.push_back(sensor_activations(h_bufs, net->offsets)[i]);
         }
 
-        for(size_t i = 0; i < net->dims.nnodes.output; i++) {
-            result.push_back(output_activations(h_bufs, net->offsets)[i]);
+        real_t noninput[net->dims.nnodes.noninput];
+        xcuda( cudaMemcpy(noninput, noninput_activations(d_bufs, net->offsets), sizeof(noninput), cudaMemcpyDeviceToHost) );
+
+        for(size_t i = 0; i < net->dims.nnodes.noninput; i++) {
+            result.push_back(noninput[i]);
         }
 
-        real_t hidden[net->dims.nnodes.hidden];
-        xcuda( cudaMemcpy(hidden, hidden_activations(d_bufs, net->offsets), sizeof(hidden), cudaMemcpyDeviceToHost) );
-
-        for(size_t i = 0; i < net->dims.nnodes.hidden; i++) {
-            result.push_back(hidden[i]);
-        }
+        return result;
     }
 
 //--------------------------------------------------------------------------------
@@ -343,7 +338,7 @@ namespace NEAT {
 
     void CudaNetwork::load_sensors(const std::vector<real_t> &sensvals,
                                    bool clear_noninput) {
-        memcpy( input_activations(bufs, offsets),
+        memcpy( sensor_activations(bufs, offsets),
                 sensvals.data(),
                 sizeof(real_t) * dims.nnodes.sensor );
 
@@ -412,7 +407,7 @@ namespace NEAT {
         if(!activate_parms(bufs, state.offsets).enabled) {
             return;
         }
-        // to print input:
+        // to print sensors:
         // p *(@global float * @local)(bufs.input + state.offsets.input.activation)@N
 
         extern __shared__ char __shared_buf[];
@@ -432,16 +427,16 @@ namespace NEAT {
                     activation[inode] = 1.0;
                 } else {
                     activation[inode] =
-                        input_activations(bufs, state.offsets)[inode - nbias];
+                        sensor_activations(bufs, state.offsets)[inode - nbias];
                 }
                 newactivation[inode] = activation[inode];
             } else {
-                const uint nio = state.dims.nnodes.input + state.dims.nnodes.output;
                 if( activate_parms(bufs, state.offsets).clear_noninput ) {
                     activation[inode] = 0.0;
                 } else {
+                    const uint ninput = state.dims.nnodes.input;
                     activation[inode] =
-                        hidden_activations(bufs, state.offsets)[inode - nio];
+                        noninput_activations(bufs, state.offsets)[inode - ninput];
                 }
             }
         }
@@ -488,7 +483,10 @@ namespace NEAT {
                 __syncthreads();
             }
 
-            for(uint inode = tid + state.dims.nnodes.input; inode < state.dims.nnodes.all; inode += Threads_Per_Block) {
+            for(uint inode = tid + state.dims.nnodes.input;
+                inode < state.dims.nnodes.all;
+                inode += Threads_Per_Block) {
+
                 newactivation[inode] = fsigmoid(newactivation[inode],
                                                 4.924273,
                                                 2.4621365);
@@ -501,16 +499,17 @@ namespace NEAT {
             __syncthreads();
         }
 
-        const uint nio = state.dims.nnodes.input + state.dims.nnodes.output;
-
         for(uint inode = tid + state.dims.nnodes.input;
             inode < state.dims.nnodes.all;
             inode += Threads_Per_Block) {
 
-            if(inode < nio) {
-                output_activations(bufs, state.offsets)[inode - state.dims.nnodes.input] = activation[inode];
-            } else {
-                hidden_activations(bufs, state.offsets)[inode - nio] = activation[inode];
+            uint offset = inode - state.dims.nnodes.input;
+            real_t act = activation[inode];
+
+            noninput_activations(bufs, state.offsets)[offset] = act;
+
+            if(inode < (state.dims.nnodes.input + state.dims.nnodes.output)) {
+                output_activations(bufs, state.offsets)[offset] = act;
             }
         }
     }

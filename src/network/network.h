@@ -35,6 +35,7 @@ namespace NEAT {
 
             node_size_t all;
             node_size_t input;
+            node_size_t noninput;
         } nnodes;
         
         link_size_t nlinks;

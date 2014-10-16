@@ -1216,6 +1216,7 @@ void InnovGenome::init_phenotype(Network &net) {
     }
     dims.nnodes.all = nnodes;
     dims.nnodes.input = dims.nnodes.bias + dims.nnodes.sensor;
+    dims.nnodes.noninput = dims.nnodes.output + dims.nnodes.hidden;
 
     //---
     //--- Create unsorted array of links, converting node ID to index in process.

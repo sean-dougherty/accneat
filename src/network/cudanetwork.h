@@ -134,7 +134,7 @@ namespace NEAT {
         void configure(CudaNetwork **nets, uint nnets);
 
         void activate(uint ncycles);
-        void get_activations(CudaNetwork *net, __out std::vector<real_t> &result);
+        std::vector<real_t> &get_activations(CudaNetwork *net, __out std::vector<real_t> &result);
     };
 
     void test_sum_partition();

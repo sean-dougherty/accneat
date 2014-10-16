@@ -82,7 +82,7 @@ void CpuNetwork::activate(size_t ncycles) {
             for(size_t j = node.incoming_start; j < node.incoming_end; j++) {
                 NetLink &link = links[j];
                 sum += link.weight * act_curr[link.in_node_index];
-                cout << "from=" << (link.in_node_index+1) << ", to=" << (i+1) << ", weight=" << link.weight << ", act[from]=" << act_curr[link.in_node_index] << ", sum=" << sum << endl;
+                //cout << "from=" << (link.in_node_index+1) << ", to=" << (i+1) << ", weight=" << link.weight << ", act[from]=" << act_curr[link.in_node_index] << ", partial=" << link.weight * act_curr[link.in_node_index] << ", sum=" << sum << endl;
             }
 
             act_new[i] = NEAT::fsigmoid(sum,
@@ -102,8 +102,8 @@ void CpuNetwork::activate(size_t ncycles) {
     }
 }
 
-void CpuNetwork::get_activations(__out vector<real_t> &result) {
-    result = activations;
+vector<real_t> &CpuNetwork::get_activations(__out vector<real_t> &result) {
+    return result = activations;
 }
 
 real_t CpuNetwork::get_output(size_t index) {
