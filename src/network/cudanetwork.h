@@ -5,16 +5,15 @@
 namespace NEAT {
 
     struct CudaLink {
+        link_size_t partition;
         node_size_t in_node_index;
         real_t weight;
-        link_size_t partition;
     };
 
     struct ActivationPartition {
         node_size_t out_node_index;
-        ushort offset;
-        ushort len;
-        short __padding;
+        uchar offset;
+        uchar len;
     };
 
     struct ActivateParms {

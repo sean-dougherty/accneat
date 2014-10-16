@@ -22,7 +22,13 @@
 
 #define p(msg) std::cout << "[cuda]: " << msg << std::endl
 
-#define Threads_Per_Block 64
+// Number of threads cannot exceed max value of ActivationPartition's offset and
+// len fields. If they are of type uchar, then Threads_Per_Block must be < 256
+#define Threads_Per_Block 32
+
+// Use no more than 256 bytes of local memory for links
+#define Max_Links_Per_Thread (256 / sizeof(CudaLink))
+#define Max_Links (Max_Links_Per_Thread * Threads_Per_Block)
 
 #define xcuda(stmt) {                                                   \
         cudaError_t err = stmt;                                         \
@@ -302,6 +308,8 @@ namespace NEAT {
 
         static_cast<NetDims &>(dims) = dims_;
 
+        require(dims.nlinks < Max_Links);
+
         partitions.clear();
         gpu_links.resize(dims.nlinks);
 
@@ -440,13 +448,23 @@ namespace NEAT {
 
         const int nits = 1 + (state.dims.nlinks - 1) / Threads_Per_Block;
 
+        CudaLink local_links[Max_Links_Per_Thread];
+        ActivationPartition local_partitions[Max_Links_Per_Thread];
+        for(uint ilink = tid, it = 0; it < nits; ilink += Threads_Per_Block, it++) {
+            CudaLink &link = local_links[it];
+            ActivationPartition &p = local_partitions[it];
+            if(ilink < state.dims.nlinks) {
+                link = links(bufs, state.offsets)[ilink];
+                p = partitions(bufs, state.offsets)[local_links[it].partition];
+            }
+        }
+
         for(uint icycle = 0; icycle < ncycles; icycle++) {
             for(uint inode = tid + state.dims.nnodes.input;
                 inode < state.dims.nnodes.all;
                 inode += Threads_Per_Block) {
                 newactivation[inode] = 0.0;
             }
-            __syncthreads();
 
             for(uint ilink = tid, it = 0; it < nits; ilink += Threads_Per_Block, it++) {
                 float *partition_x;
@@ -455,10 +473,10 @@ namespace NEAT {
                 float *result;
 
                 if(ilink < state.dims.nlinks) {
-                    CudaLink link = links(bufs, state.offsets)[ilink];
+                    CudaLink &link = local_links[it];
                     partial_activation[tid] = link.weight * activation[link.in_node_index];
 
-                    ActivationPartition p = partitions(bufs, state.offsets)[link.partition];
+                    ActivationPartition &p = local_partitions[it];
                     partition_x = partial_activation + p.offset;
                     partition_i = tid - p.offset;
                     partition_n = p.len;
@@ -469,14 +487,13 @@ namespace NEAT {
                     partition_n = 0;
                     result = NULL;
                 }
+
                 __syncthreads();
 
                 sum_partition(partition_x,
                               partition_i,
                               partition_n,
                               result);
-
-                __syncthreads();
             }
 
             for(uint inode = tid + state.dims.nnodes.input;
@@ -487,12 +504,13 @@ namespace NEAT {
                                                 4.924273,
                                                 2.4621365);
             }
+            __syncthreads();
+
             {
                 float *swap = newactivation;
                 newactivation = activation;
                 activation = swap;
             }
-            __syncthreads();
         }
 
         for(uint inode = tid + state.dims.nnodes.input;
