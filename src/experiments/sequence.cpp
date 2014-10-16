@@ -36,6 +36,30 @@ struct Seq1bit3elExperiment : public Experiment {
     }
 } seq_1bit_3el;
 
+struct Seq1bit4elExperiment : public Experiment {
+    Seq1bit4elExperiment() : Experiment("seq-1bit-4el") {
+    }
+
+    virtual vector<Test> create_tests() override {
+        string syms = "ab";
+        vector<string> seqs = permute_repeat(syms, 4);
+
+        vector<string> training;
+        vector<string> fittest;
+        rng_t rng{42};
+
+        for(string seq: seqs) {
+            if(rng.under(0.5)) {
+                training.push_back(seq);
+            }
+            fittest.push_back(seq);
+        }
+
+        return concat(create_parallel_output_tests(syms, training, Test::Training),
+                      create_parallel_output_tests(syms, fittest, Test::Fittest));
+    }
+} seq_1bit_4el;
+
 struct FooExperiment : public Experiment {
     FooExperiment() : Experiment("foo") {
     }

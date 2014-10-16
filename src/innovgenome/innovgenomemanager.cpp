@@ -184,14 +184,14 @@ void InnovGenomeManager::finalize_generation() {
         int phase_duration = generation - search_phase_start;
         switch(search_phase) {
         case COMPLEXIFY:
-            if(phase_duration >= 100) {
+            if(phase_duration >= 50) {
                 cout << "phase PRUNE @ gen " << generation << endl;
                 search_phase_start = generation;
                 search_phase = PRUNE;
             }
             break;
         case PRUNE:
-            if(phase_duration >= 30) {
+            if(phase_duration >= 50) {
                 cout << "phase COMPLEXIFY @ gen " << generation << endl;
                 search_phase_start = generation;
                 search_phase = COMPLEXIFY;
