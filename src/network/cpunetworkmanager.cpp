@@ -13,8 +13,6 @@ unique_ptr<Network> CpuNetworkManager::make_default() {
     return unique_ptr<Network>(new CpuNetwork());
 }
 
-typedef NetworkManager::BatchSensors BatchSensors;
-
 unique_ptr<BatchSensors> CpuNetworkManager::make_batch_sensors(node_size_t nsensors,
                                                                size_t nsteps) {
     return unique_ptr<BatchSensors>(new CpuBatchSensors(nsensors, nsteps));

@@ -15,7 +15,7 @@ Organism *OrganismEvaluator::get_fittest() {
     return fittest.get();
 }
 
-bool OrganismEvaluator::evaluate(NetworkManager::BatchSensors *batch_sensors,
+bool OrganismEvaluator::evaluate(BatchSensors *batch_sensors,
                                  NetworkManager::ProcessOutputFunc process_output,
                                  std::function<OrganismEvaluation (Organism &org)> eval) {
     static Timer timer("evaluate");

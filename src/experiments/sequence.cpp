@@ -44,6 +44,10 @@ struct Seq1bit4elExperiment : public Experiment {
         string syms = "ab";
         vector<string> seqs = permute_repeat(syms, 4);
 
+        return concat(create_parallel_output_tests(syms, seqs, Test::Training),
+                      create_parallel_output_tests(syms, seqs, Test::Fittest));
+
+/*
         vector<string> training;
         vector<string> fittest;
         rng_t rng{42};
@@ -57,6 +61,7 @@ struct Seq1bit4elExperiment : public Experiment {
 
         return concat(create_parallel_output_tests(syms, training, Test::Training),
                       create_parallel_output_tests(syms, fittest, Test::Fittest));
+*/
     }
 } seq_1bit_4el;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "batchsensors.h"
 #include "neattypes.h"
 
 namespace NEAT {
@@ -9,13 +10,6 @@ namespace NEAT {
         //---
         //--- Types
         //---
-        class BatchSensors {
-        public:
-            virtual void configure_step(size_t istep,
-                                        const std::vector<real_t> &values,
-                                        bool clear_noninput) = 0;
-        };
-
         typedef std::function<void (class Network &net, size_t istep)> ProcessOutputFunc;
 
         //---

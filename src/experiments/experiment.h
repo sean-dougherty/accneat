@@ -65,7 +65,7 @@ namespace NEAT {
         };
         std::vector<TestStep> test_steps;
         std::vector<real_t> population_err;
-        std::unique_ptr<NetworkManager::BatchSensors> batch_sensors;
+        std::unique_ptr<BatchSensors> batch_sensors;
     };
 
     class Experiment {

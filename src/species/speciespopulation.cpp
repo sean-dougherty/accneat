@@ -321,9 +321,6 @@ void SpeciesPopulation::next_generation() {
 
         env->genome_manager->finalize_generation();
 
-        //Create the neural nets for the new organisms.
-        orgs.init_phenotypes();
-
         timer.stop();
     }
 
@@ -406,6 +403,9 @@ void SpeciesPopulation::next_generation() {
 
         species.resize(nspecies);
     }
+
+    //Create the neural nets for the new organisms.
+    orgs.init_phenotypes();
 
 #ifndef NDEBUG
     for(SpeciesOrganism &org: orgs.curr()) {

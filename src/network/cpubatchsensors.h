@@ -6,7 +6,7 @@
 
 namespace NEAT {
 
-    class CpuBatchSensors : public NetworkManager::BatchSensors {
+    class CpuBatchSensors : public BatchSensors {
         node_size_t nsensors;
         size_t nsteps;
         std::vector<real_t> sensor_vals;
@@ -23,6 +23,8 @@ namespace NEAT {
             sensor_vals.resize(sensors_start(nsteps));
             clear_noninput.resize(nsteps);
         }
+
+        virtual ~CpuBatchSensors() {}
 
         size_t get_nsteps() {return nsteps;}
 
