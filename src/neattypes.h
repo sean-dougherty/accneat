@@ -9,6 +9,12 @@ namespace NEAT {
     typedef unsigned char uchar;
     typedef unsigned short ushort;
 
+    #define NODES_MAX USHRT_MAX
+    #define LINKS_MAX USHRT_MAX
+
+    typedef unsigned short node_size_t;
+    typedef unsigned short link_size_t;
+
 	enum nodetype {
         NT_BIAS = 0,
 		NT_SENSOR = 1,

@@ -148,4 +148,19 @@ void CudaNetworkManager::__activate(size_t ibatch,
     
 }
 
+typedef NetworkManager::BatchSensors BatchSensors;
+
+unique_ptr<BatchSensors> CudaNetworkManager::make_batch_sensors(node_size_t nsensors,
+                                                                size_t nsteps) {
+    impl();
+}
+
+void CudaNetworkManager::activate(class Network **nets,
+                                  size_t nnets,
+                                  BatchSensors *batch_sensors_,
+                                  ProcessOutputFunc process_output) {
+    impl();
+}
+
+
 #endif

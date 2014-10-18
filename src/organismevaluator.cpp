@@ -15,7 +15,7 @@ Organism *OrganismEvaluator::get_fittest() {
     return fittest.get();
 }
 
-bool OrganismEvaluator::evaluate(NetworkManager::LoadSensorsFunc load_sensors,
+bool OrganismEvaluator::evaluate(NetworkManager::BatchSensors *batch_sensors,
                                  NetworkManager::ProcessOutputFunc process_output,
                                  std::function<OrganismEvaluation (Organism &org)> eval) {
     static Timer timer("evaluate");
@@ -27,7 +27,7 @@ bool OrganismEvaluator::evaluate(NetworkManager::LoadSensorsFunc load_sensors,
         nets[i] = pop->get(i)->net.get();
     }
 
-    env->network_manager->activate(nets, norgs, load_sensors, process_output);
+    env->network_manager->activate(nets, norgs, batch_sensors, process_output);
 
     Organism *best = nullptr;
     for(size_t i = 0; i < norgs; i++) {

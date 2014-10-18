@@ -1,4 +1,5 @@
 #include "neat.h"
+#include "networkmanager.h"
 #include "organism.h"
 #include "util.h"
 
@@ -44,7 +45,6 @@ namespace NEAT {
         : Test("", steps_, type_) {
         }
 
-        void load_sensors(Network &net, size_t istep);
         real_t process_output(Network &net, size_t istep);
     };
 
@@ -52,7 +52,6 @@ namespace NEAT {
     struct TestBattery {
         TestBattery(const std::vector<Test> &tests_);
 
-        bool load_sensors(Network &net, size_t istep);
         void process_output(Network &net, size_t istep);
         OrganismEvaluation get_evaluation(Organism &org);
 
@@ -66,6 +65,7 @@ namespace NEAT {
         };
         std::vector<TestStep> test_steps;
         std::vector<real_t> population_err;
+        std::unique_ptr<NetworkManager::BatchSensors> batch_sensors;
     };
 
     class Experiment {

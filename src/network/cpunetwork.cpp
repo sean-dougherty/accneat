@@ -48,11 +48,10 @@ void CpuNetwork::configure(const NetDims &dims_,
 }
 
 void CpuNetwork::load_sensors(const vector<real_t> &sensvals,
+                              size_t off,
                               bool clear_noninput) {
-    assert(sensvals.size() == dims.nnodes.sensor);
-
     for(size_t i = 0; i < dims.nnodes.sensor; i++) {
-        activations[i + dims.nnodes.bias] = sensvals[i];
+        activations[i + dims.nnodes.bias] = sensvals[i + off];
     }
 
     //If clear, then reset non-input activations.

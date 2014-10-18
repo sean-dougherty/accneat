@@ -11,7 +11,7 @@ namespace NEAT {
 
         Organism *get_fittest();
 
-        bool evaluate(NetworkManager::LoadSensorsFunc load_sensors,
+        bool evaluate(NetworkManager::BatchSensors *batch_sensors,
                       NetworkManager::ProcessOutputFunc process_output,
                       std::function<OrganismEvaluation (Organism &org)> eval);
 

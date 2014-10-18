@@ -20,12 +20,6 @@
 
 namespace NEAT {
 
-    #define NODES_MAX USHRT_MAX
-    #define LINKS_MAX USHRT_MAX
-
-    typedef unsigned short node_size_t;
-    typedef unsigned short link_size_t;
-
     struct NetDims {
         struct {
             node_size_t bias;
@@ -63,10 +57,6 @@ namespace NEAT {
                                NetLink *links) = 0;
 
         virtual NetDims get_dims() = 0;
-
-		// Takes an array of sensor values and loads it into SENSOR inputs ONLY
-		virtual void load_sensors(const std::vector<real_t> &sensvals,
-                                  bool clear_noninput) = 0;
 
         virtual real_t get_output(size_t index) = 0;
 	};

@@ -108,11 +108,6 @@ Test::Test(const string &name_,
     : name(name_), steps(steps_), type(type_) {
 }
 
-void Test::load_sensors(Network &net, size_t istep) {
-    Step &step = steps[istep];
-    net.load_sensors(step.input, istep == 0);
-}
-
 real_t Test::process_output(Network &net, size_t istep) {
     return steps[istep].process_output(net);
 }
@@ -137,21 +132,21 @@ TestBattery::TestBattery(const std::vector<Test> &tests_) : tests(tests_) {
             max_err += step.weight * step.output.size();
         }
     }
-}
 
-bool TestBattery::load_sensors(Network &net, size_t istep) {
-    if(istep >= test_steps.size())
-        return false;
-    else if(istep == 0)
-        population_err[net.population_index] = 0.0;
-
-    TestStep &step = test_steps[istep];
-    tests[step.itest].load_sensors(net, step.istep);
-
-    return true;
+    batch_sensors = env->network_manager->make_batch_sensors(tests[0].steps[0].input.size(),
+                                                             test_steps.size());
+    for(size_t istep = 0; istep < test_steps.size(); istep++) {
+        TestStep tstep = test_steps[istep];
+        batch_sensors->configure_step(istep,
+                                      tests[tstep.itest].steps[tstep.istep].input,
+                                      tstep.istep == 0);
+    }
 }
 
 void TestBattery::process_output(Network &net, size_t istep) {
+    if(istep == 0)
+        population_err[net.population_index] = 0.0;
+
     TestStep &step = test_steps[istep];
 
     population_err[net.population_index] += tests[step.itest].process_output(net, step.istep);
@@ -402,10 +397,6 @@ bool Experiment::is_success(Organism *org) {
 void Experiment::evaluate(OrganismEvaluator *evaluator) {
     TestBattery &battery = batteries.find(Test::Training)->second;
 
-    NetworkManager::LoadSensorsFunc load_sensors = [&battery] (Network &net, size_t istep) {
-        return battery.load_sensors(net, istep);
-    };
-
     NetworkManager::ProcessOutputFunc process_output = [&battery] (Network &net, size_t istep) {
         battery.process_output(net, istep);
     };
@@ -414,7 +405,7 @@ void Experiment::evaluate(OrganismEvaluator *evaluator) {
         return battery.get_evaluation(org);
     };
 
-    evaluator->evaluate(load_sensors,
+    evaluator->evaluate(battery.batch_sensors.get(),
                         process_output,
                         eval_org);
 

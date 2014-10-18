@@ -15,6 +15,13 @@ namespace NEAT {
                               LoadSensorsFunc load_sensors,
                               ProcessOutputFunc process_output) override;
 
+        virtual std::unique_ptr<BatchSensors> make_batch_sensors(node_size_t nsensors,
+                                                                 size_t nsteps) override;
+
+        virtual void activate(class Network **nets,
+                              size_t nnets,
+                              BatchSensors *batch_sensors,
+                              ProcessOutputFunc process_output) override;
 
     private:
         void __activate(size_t ibatch,

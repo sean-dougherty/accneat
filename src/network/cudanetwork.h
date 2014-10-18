@@ -20,7 +20,7 @@ namespace NEAT {
     struct ActivateParms {
         bool clear_noninput;
         bool enabled;
-        short __padding; // This precedes, activations, which must be properly aligned for the
+        short __padding; // This precedes activations, which must be properly aligned for the
                          // GPU to read them properly!!!
     };
 
