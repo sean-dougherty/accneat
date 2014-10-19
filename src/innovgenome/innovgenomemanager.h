@@ -52,6 +52,7 @@ namespace NEAT {
             PRUNE
         } search_phase;
         int search_phase_start;
+        int max_phase_duration;
     };
 
 }

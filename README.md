@@ -49,7 +49,7 @@ The *seq-1bit-4el* experiment (provided with AccNEAT) is considerably more diffi
 than XOR, making it a better showcase for AccNEAT's improved search algorithm and
 parallelism. The following table shows how much progress AccNEAT is able to make in
 30 minutes of execution with a variety of search and processor configurations. Note 
-that the "complexify" search is the algorithm used by original NEAT implementation.
+that the "complexify" search is the algorithm used by the original NEAT implementation.
 
 **Table 2: Generations processed and fitness achieved within 30 minutes wall time**
 
@@ -86,9 +86,9 @@ for portability.
 
 * NVCC and an Nvidia graphics card if you want to use a GPU accelerator. The Cuda code
 is currently written to support 1.3 compute capability devices. The only NVCC version
-that has been tried is 6.0, but earlier version may work as well. Note that NVCC won't
+that has been tried is 6.0, but an earlier version may work as well. Note that NVCC won't
 work with GCC 4.9, so you'll need to have an older version of GCC as well! GCC 4.1 and
-4.4 have worked well.
+4.4 have worked fine.
 
 ## Installing/Building
 
@@ -136,7 +136,7 @@ OPTIONS
   -s search_type       {phased, blended, complexify} (default=phased)
 ```
 
-So, to run the XOR experiment with 10 times with a population size of 5,000, and using the complexify search, you would type:
+So, to run the XOR experiment 10 times with a population size of 5,000, and using the complexify search, you would type:
 
 ```
 ./neat -c 10 -n 5000 -s complexify xor
@@ -151,4 +151,4 @@ delete the old directories.
 For an example of how to make your own experiment, look at *src/experiments/xor.cpp*, which
 shows a simple declaration of input and output. For an example of a more complicated setup,
 see *src/experiments/regex.cpp*. Simply put your source file in the *src/experiments* directory,
-and it should be automatically built and available from the command-line tool.
+and it should be automatically built and will be available from the command-line tool.

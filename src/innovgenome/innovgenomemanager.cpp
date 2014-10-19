@@ -7,19 +7,21 @@ using namespace NEAT;
 using namespace std;
 
 /* Colin's values
-#define COMPLEXIFY_PHASE_DURATION 100
-#define PRUNE_PHASE_DURATION 30
+#define MAX_COMPLEXIFY_PHASE_DURATION 100
+#define MAX_PRUNE_PHASE_DURATION 0.3
 */
-#define COMPLEXIFY_PHASE_DURATION 40
-#define PRUNE_PHASE_DURATION 40
+#define MAX_COMPLEXIFY_PHASE_DURATION 40
+#define PRUNE_PHASE_FACTOR 0.5
 
 InnovGenomeManager::InnovGenomeManager() {
     if(env->search_type == GeneticSearchType::PHASED) {
         search_phase = COMPLEXIFY;
         search_phase_start = 1;
+        max_phase_duration = MAX_COMPLEXIFY_PHASE_DURATION;
     } else {
         search_phase = UNDEFINED;
         search_phase_start = -1;
+        max_phase_duration = 0;
     }
     generation = 1;
 }
@@ -196,18 +198,20 @@ void InnovGenomeManager::finalize_generation(bool new_fittest) {
         int phase_duration = generation - search_phase_start;
         switch(search_phase) {
         case COMPLEXIFY:
-            if( (phase_duration >= COMPLEXIFY_PHASE_DURATION) 
+            if( (phase_duration >= max_phase_duration) 
                 || new_fittest) {
                 cout << "phase PRUNE @ gen " << generation << endl;
                 search_phase_start = generation;
                 search_phase = PRUNE;
+                max_phase_duration = 1 + int(PRUNE_PHASE_FACTOR * phase_duration);
             }
             break;
         case PRUNE:
-            if(phase_duration >= PRUNE_PHASE_DURATION) {
+            if(phase_duration >= max_phase_duration) {
                 cout << "phase COMPLEXIFY @ gen " << generation << endl;
                 search_phase_start = generation;
                 search_phase = COMPLEXIFY;
+                max_phase_duration = MAX_COMPLEXIFY_PHASE_DURATION;
             }
             break;
         default:
