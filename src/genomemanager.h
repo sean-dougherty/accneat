@@ -41,7 +41,7 @@ namespace NEAT {
         virtual void mutate(Genome &genome,
                             MutationOperation op = MUTATE_OP_ANY) = 0;
 
-        virtual void finalize_generation() = 0;
+        virtual void finalize_generation(bool new_fittest) = 0;
     };
 
 }

@@ -35,7 +35,7 @@ namespace NEAT {
         virtual void mutate(Genome &genome,
                             MutationOperation op = MUTATE_OP_ANY) override;
 
-        virtual void finalize_generation() override;
+        virtual void finalize_generation(bool new_fittest) override;
 
     private:
         CreateInnovationFunc create_innov_func(Genome &g);

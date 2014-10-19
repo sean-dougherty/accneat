@@ -228,17 +228,20 @@ void SpeciesPopulation::next_generation() {
     std::sort(sorted_species.begin(), sorted_species.end(), order_species);
 
 	//Check for SpeciesPopulation-level stagnation
+    bool new_highest_fitness = false;
     {
         SpeciesOrganism *pop_champ = sorted_species[0]->first();
         if(pop_champ->eval.fitness > highest_fitness) {
             real_t old_highest = highest_fitness;
             highest_fitness = pop_champ->eval.fitness;
             highest_last_changed=0;
+            new_highest_fitness = true;
 
             printf("NEW POPULATION RECORD FITNESS: %lg, delta=%lg @ gen=%d\n",
                    highest_fitness, highest_fitness - old_highest, generation);
         } else {
             ++highest_last_changed;
+            new_highest_fitness = false;
 
             printf("%zu generations since last population fitness record: %lg\n",
                    size_t(highest_last_changed), highest_fitness);
@@ -280,31 +283,32 @@ void SpeciesPopulation::next_generation() {
         warn("total_expected (" << total_expected << ") > size (" << norgs << ")"); 
     }
 
+    orgs.next_generation(generation);
+
+    //Initialize the parms for each reproduce invocation
+    struct reproduce_parms_t {
+        Species *species;
+        int ioffspring;
+    } reproduce_parms[norgs];
+
+    {
+        size_t iorg = 0;
+        for(size_t i = 0, n = species.size(); i < n; i++) {
+            Species *s = species[i];
+
+            for(int j = 0; (j < s->expected_offspring) && (iorg < norgs); j++) {
+                reproduce_parms[iorg].species = s;
+                reproduce_parms[iorg].ioffspring = j;
+                iorg++;
+            }
+        }
+        assert(iorg == norgs);
+    }
+
     //Create the next generation.
     {
         static Timer timer("reproduce");
         timer.start();
-
-        orgs.next_generation(generation);
-
-        //Initialize the parms for each reproduce invocation
-        struct reproduce_parms_t {
-            Species *species;
-            int ioffspring;
-        } reproduce_parms[norgs];
-        {
-            size_t iorg = 0;
-            for(size_t i = 0, n = species.size(); i < n; i++) {
-                Species *s = species[i];
-
-                for(int j = 0; (j < s->expected_offspring) && (iorg < norgs); j++) {
-                    reproduce_parms[iorg].species = s;
-                    reproduce_parms[iorg].ioffspring = j;
-                    iorg++;
-                }
-            }
-            assert(iorg == norgs);
-        }
 
 #pragma omp parallel for
         for(size_t iorg = 0; iorg < norgs; iorg++) {
@@ -319,7 +323,7 @@ void SpeciesPopulation::next_generation() {
                                      sorted_species);
         }
 
-        env->genome_manager->finalize_generation();
+        env->genome_manager->finalize_generation(new_highest_fitness);
 
         timer.stop();
     }
@@ -332,14 +336,21 @@ void SpeciesPopulation::next_generation() {
 #pragma omp parallel for
             for(size_t i = 0; i < norgs; i++) {
                 SpeciesOrganism &org = orgs.curr()[i];
-                org.species = nullptr;
+                Species *origin_species = reproduce_parms[i].species;
 
-                for(Species *s: species) {
-                    if(s->size()) {
-                        if(env->genome_manager->are_compatible(*org.genome,
-                                                               *s->first()->genome)) {
-                            org.species = s;
-                            break;
+                if(env->genome_manager->are_compatible(*org.genome,
+                                                       *origin_species->first()->genome)) {
+                    org.species = origin_species;
+                } else {
+                    org.species = nullptr;
+
+                    for(Species *s: species) {
+                        if(s->size() && (s != origin_species)) {
+                            if(env->genome_manager->are_compatible(*org.genome,
+                                                                   *s->first()->genome)) {
+                                org.species = s;
+                                break;
+                            }
                         }
                     }
                 }

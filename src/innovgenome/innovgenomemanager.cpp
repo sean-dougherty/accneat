@@ -6,6 +6,13 @@
 using namespace NEAT;
 using namespace std;
 
+/* Colin's values
+#define COMPLEXIFY_PHASE_DURATION 100
+#define PRUNE_PHASE_DURATION 30
+*/
+#define COMPLEXIFY_PHASE_DURATION 40
+#define PRUNE_PHASE_DURATION 40
+
 InnovGenomeManager::InnovGenomeManager() {
     if(env->search_type == GeneticSearchType::PHASED) {
         search_phase = COMPLEXIFY;
@@ -174,9 +181,14 @@ void InnovGenomeManager::mutate(Genome &genome_,
     default:
         panic();
     }
+
+    if(genome->links.size() == 0) {
+        genome->mutate_add_link(create_innov_func(genome_),
+                                env->newlink_tries);
+    }
 }
 
-void InnovGenomeManager::finalize_generation() {
+void InnovGenomeManager::finalize_generation(bool new_fittest) {
     innovations.apply();
 
     generation++;
@@ -184,14 +196,15 @@ void InnovGenomeManager::finalize_generation() {
         int phase_duration = generation - search_phase_start;
         switch(search_phase) {
         case COMPLEXIFY:
-            if(phase_duration >= 50) {
+            if( (phase_duration >= COMPLEXIFY_PHASE_DURATION) 
+                || new_fittest) {
                 cout << "phase PRUNE @ gen " << generation << endl;
                 search_phase_start = generation;
                 search_phase = PRUNE;
             }
             break;
         case PRUNE:
-            if(phase_duration >= 50) {
+            if(phase_duration >= PRUNE_PHASE_DURATION) {
                 cout << "phase COMPLEXIFY @ gen " << generation << endl;
                 search_phase_start = generation;
                 search_phase = COMPLEXIFY;
