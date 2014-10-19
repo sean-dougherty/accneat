@@ -1,5 +1,0 @@
-#ENABLE_CUDA=non-empty
-#DEVMODE=non-empty
-
-PFM_LD_FLAGS=
-PFM_NVCC_CCBIN=~/bin/gcc-4.8

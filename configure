@@ -1,0 +1,7 @@
+cat > Makefile.conf <<EOF
+ENABLE_CUDA=false
+DEVMODE=false
+
+PFM_LD_FLAGS=
+PFM_NVCC_CCBIN=
+EOF

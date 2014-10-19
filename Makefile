@@ -8,17 +8,16 @@ DEPENDS=${OBJECTS:%.o=%.d}
 LIBS=-lgomp
 DEFINES=
 
-ifdef ENABLE_CUDA
+ifeq (${ENABLE_CUDA}, true)
 	CUDA_SOURCES=$(shell find src -name "*.cu")
 	CUDA_OBJECTS=${CUDA_SOURCES:src/%.cu=obj/cu/%.o}
 	LIBS+=-lcudart
 	DEFINES+=-DENABLE_CUDA
 endif
 
-ifdef DEVMODE
+ifeq (${DEVMODE}, true)
 	OPT=-O0
 	OPENMP=-fopenmp
-	#PROFILE=-pg
 	MISC_FLAGS=
 	NVCC_FLAGS=-G -g
 else

@@ -1,0 +1,9 @@
+#
+# Configuration for Sean's xubuntu laptop
+#
+
+ENABLE_CUDA=true
+DEVMODE=false
+
+PFM_LD_FLAGS=
+PFM_NVCC_CCBIN=~/bin/gcc-4.8
