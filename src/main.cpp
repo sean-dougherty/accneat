@@ -134,7 +134,6 @@ int main(int argc, char *argv[]) {
     }
 
     rng_t rng{rng_seed};
-    exp->init();
     exp->run(rng, maxgens);
 
     return(0);

@@ -1,4 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "map.h"
 #include "util.h"
 
 using namespace std;
@@ -26,7 +27,7 @@ struct Section {
     vector<Line> lines;
 };
 
-map<string, Section> parse_sections(string path) {
+static map<string, Section> parse_sections(string path) {
     ifstream in(path);
     if(!in.good()) {
         error("Failed opening " << path);
@@ -102,85 +103,7 @@ map<string, Section> parse_sections(string path) {
     return result;
 }
 
-struct Glyph {
-    string type;
-    char character;
-    map<string, string> attrs;
-
-    std::string str() {
-        ostringstream out;
-        out << "Glyph{"
-            << "type=" << type
-            << ", char=" << character;
-
-        out << ", attrs={";
-        bool first = true;
-        for(auto &kv: attrs) {
-            if(!first) {
-                out << ", ";
-                first = false;
-            }
-            out << kv.first << "='" << kv.second << "'";
-        }
-        out << "}";
-        out << "}";
-        return out.str();
-    }
-};
-
-struct Location {
-    struct {
-        string row;
-        string col;
-    } label;
-    struct {
-        size_t row;
-        size_t col;
-    } index;
-
-    bool operator<(const Location &other) const {
-        if(index.row < other.index.row) {
-            return true;
-        } else if(index.row == other.index.row) {
-            return index.col < other.index.col;
-        } else {
-            return false;
-        }
-    }
-};
-
-struct LocationTranslator {
-    map<string, size_t> row_index;
-    map<string, size_t> col_index;
-    map<size_t, string> col_label;
-    map<size_t, string> row_label;
-
-    bool try_find(string row, string col, Location &result) {
-        if(::try_find(row_index, row, result.index.row)) {
-            if(::try_find(col_index, col, result.index.col)) {
-                result.label.row = row;
-                result.label.col = col;
-                return true;
-            }
-        }
-
-        result = {};
-        return false;
-    }
-};
-
-struct Object {
-    Location loc;
-    Glyph glyph;
-    map<string, string> attrs;
-};
-
-struct Map {
-    LocationTranslator loc_trans;
-    map<Location, Object> objects;
-};
-
-pair<string, string> parse_equals(Line &line) {
+static pair<string, string> parse_equals(Line &line) {
     size_t pos = line.text.find_first_of('=');
     if(pos == string::npos) {
         line.err("Expecting '='");
@@ -191,7 +114,7 @@ pair<string, string> parse_equals(Line &line) {
     return {lhs, rhs};
 }
 
-void parse_glyphs_attrs(Section &section, map<char, Glyph> &glyphs) {
+static void parse_glyphs_attrs(Section &section, map<char, Glyph> &glyphs) {
     for(Line &line: section.lines) {
         pair<string, string> def = parse_equals(line);
 
@@ -221,8 +144,8 @@ void parse_glyphs_attrs(Section &section, map<char, Glyph> &glyphs) {
     }
 }
 
-map<char, Glyph> parse_glyphs(Section &section_glyphs,
-                              Section &section_attrs) {
+static map<char, Glyph> parse_glyphs(Section &section_glyphs,
+                                     Section &section_attrs) {
     map<char, Glyph> glyphs;
 
     for(Line &line: section_glyphs.lines) {
@@ -246,8 +169,8 @@ map<char, Glyph> parse_glyphs(Section &section_glyphs,
     return glyphs;
 }
 
-void parse_objects_attrs(Section &section,
-                         Map &map) {
+static void parse_objects_attrs(Section &section,
+                                Map &map) {
     for(Line &line: section.lines) {
         pair<string, string> def = parse_equals(line);
 
@@ -289,9 +212,9 @@ void parse_objects_attrs(Section &section,
     }    
 }
 
-Map parse_objects(Section &section,
-                  Section &section_attrs,
-                  map<char, Glyph> &glyphs) {
+static Map parse_objects(Section &section,
+                         Section &section_attrs,
+                         map<char, Glyph> &glyphs) {
     Map map;
 
     {
@@ -359,7 +282,7 @@ Map parse_objects(Section &section,
     return map;
 }
 
-Map parse(string path) {
+Map parse_map(string path) {
     map<string, Section> sections = parse_sections(path);
 
     map<char, Glyph> glyphs = parse_glyphs(sections["glyphs"],
