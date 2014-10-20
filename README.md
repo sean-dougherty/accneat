@@ -10,11 +10,6 @@ required by at least an order of magnitude, and for difficult problems as much
 as three orders of magnitude. This acceleration of NEAT is accomplished via the
 following strategies:
 
-* Optimizations that improve the original implementation of NEAT without
-altering its genetic/evolutionary algorithm (e.g. using datatstructures that
-reduce CPU cache misses and search algorithms that require *O(log N)* instead
-of *O(N)*).
-
 * Take advantage of parallel hardware (i.e. multicore CPUs and GPUs).
 
 * Additional genetic operators (e.g. node delete mutation) and search strategies
@@ -22,6 +17,11 @@ of *O(N)*).
 [described by Colin Green](http://sharpneat.sourceforge.net/phasedsearch.html)
 ) that serve to
 prevent explosive growth in complexity of evolved networks.
+
+* Optimizations that improve the original implementation of NEAT without
+altering its genetic/evolutionary algorithm (e.g. using datatstructures that
+reduce CPU cache misses and search algorithms that require *O(log N)* instead
+of *O(N)*).
 
 Performance gains are most dramatic for very difficult problems, but benefits
 can also be seen for small, simple experiments, like evolving a network that can
@@ -47,25 +47,51 @@ operating system was CentOS 6.5.*
 
 The *seq-1bit-4el* experiment (provided with AccNEAT) is considerably more difficult
 than XOR, making it a better showcase for AccNEAT's improved search algorithm and
-parallelism. The following table shows how much progress AccNEAT is able to make in
-30 minutes of execution with a variety of search and processor configurations. Note 
-that the "complexify" search is the algorithm used by the original NEAT implementation.
+parallelism. Table 2 shows how many generations were processed over 10 minute intervals
+using the *complexify* and *phased* search algorithms, where *complexify* is the search
+algorithm used in the original NEAT implementations and *phased* is inspired by the
+algorithm used in SharpNEAT. The first number is the cumulative number of generations
+processed through that time, while the number in parentheses shows how many generations
+were processed in that interval.
 
-**Table 2: Generations processed and fitness achieved within 30 minutes wall time**
+**Table 2: Generations processed**
 
-| Configuration         | Search Algorithm | Generation | Fitness *(1.0 = perfect)* |
-| ----------------------|------------------|-----------:|--------------------------:| 
-| AccNEAT, 12 CPU cores | complexify       |      1,112 |                  0.878473 |
-| AccNEAT, GPU          | complexify       |      1,532 |                  0.883114 |
-| AccNEAT, 12 CPU cores | phased           |      2,175 |                  0.919856 |
-| AccNEAT, GPU          | phased           |      4,978 |                  0.932065 |
+| Time       | CPU complexify | GPU complexify |    CPU phased |     GPU phased |
+|------------|---------------:|---------------:|--------------:|---------------:|
+| 10 minutes |    632         |    848         | 1,006         | 2,151          |
+| 20 minutes |    904 *(+272)*|  1,235 *(+387)*| 1,667 *(+661)*| 3,809 *(+1658)*|
+| 30 minutes |  1,123 *(+219)*|  1,532 *(+297)*| 2,183 *(+516)*| 4,969 *(+1160)*|
+| 40 minutes |  1,307 *(+184)*|  1,779 *(+247)*| 2,714 *(+531)*| 5,992 *(+1023)*|
+| 50 minutes |  1,469 *(+162)*|  1,993 *(+214)*| 3,203 *(+489)*| 6,940  *(+948)*|
+| 60 minutes |  1,616 *(+147)*|  2,182 *(+189)*| 3,695 *(+492)*| 7,886  *(+947)*|
 
-What this table fails to illustrate is that the time required to compute additional
-generations with the complexify search increases roughly exponentially, while the
-phased search increases roughly linearly. In addition, the amount of RAM required by
-the complexify search will easily exceed 16 GB after a couple days of execution, and it
-will continue to require more with each passing generation. In other words, lengthy
-executions of large populations are not technically feasible with the complexify search.
+*Note: CPU configurations used 12 cores*
+
+One important point to take from this table is that, unlike XOR, the use of a GPU
+provides significant gains over 12 CPU cores. In general, the larger the networks
+being executed, the more benefit will be gained from parallel hardware. Perhaps
+the more important thing to note is that the *complexify* experiments show a consistent
+trend of processing fewer generations in every subsequent time interval. This trend
+consistently holds, and *complexify* runs will effectively asymptote and fail to make
+any more progress.
+
+Table 3 shows the fitness scores of the experiments shown in Table 2.
+
+**Table 3 Fitness** *(1.0 = perfect)
+
+| Time       | CPU complexify | GPU complexify | CPU phased | GPU phased |
+|------------|---------------:|---------------:|-----------:|-----------:|
+| 10 minutes |       0.876120 |       0.881474 |   0.890474 |   0.884226 |
+| 20 minutes |       0.876120 |       0.883114 |   0.898549 |   0.925414 |
+| 30 minutes |       0.878473 |       0.883114 |   0.919856 |   0.932065 |
+| 40 minutes |       0.878473 |       0.883114 |   0.919856 |   0.941101 |
+| 50 minutes |       0.878473 |       0.883114 |   0.919856 |   0.941101 |
+| 60 minutes |       0.878473 |       0.895156 |   0.933002 |   0.941101 |
+
+The *complexify* runs will never go on to achieve a score much above a 0.90; their
+progress will grind to a halt as their genomes become too big. The *phased* runs,
+however, will achieve a 1.0 fitness. While not shown in Table 3, the *GPU phased*
+experiment went on to achieve a 1.0 fitness at generation 9,837, which took 86 minutes.
 
 ## What is the status of AccNEAT?
 
