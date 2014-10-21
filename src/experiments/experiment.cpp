@@ -1,7 +1,6 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "experiment.h"
 #include "network.h"
-#include "organismevaluator.h"
 #include "population.h"
 #include "stats.h"
 #include "timer.h"
@@ -70,11 +69,10 @@ Experiment::~Experiment() {
     }
 }
 
-void Experiment::print(OrganismEvaluator *eval,
-                       int experiment_num,
+void Experiment::print(int experiment_num,
                        int geneneration) {
     ofstream out(get_fittest_path(experiment_num, geneneration));
-    eval->get_fittest()->write(out);
+    fittest->write(out);
 }
 
 void Experiment::run(rng_t &rng, int gens) {
@@ -93,6 +91,7 @@ void Experiment::run(rng_t &rng, int gens) {
         //Create a unique rng sequence for this experiment
         rng_t rng_exp(rng.integer());
 
+        fittest = nullptr;
         env->genome_manager = GenomeManager::create();
         vector<unique_ptr<Genome>> genomes = 
             env->genome_manager->create_seed_generation(env->pop_size,
@@ -102,8 +101,7 @@ void Experiment::run(rng_t &rng, int gens) {
                                                         noutputs,
                                                         ninputs);
         //Spawn the Population
-        Population *pop = Population::create(rng_exp, genomes);
-        unique_ptr<OrganismEvaluator> eval = make_unique<OrganismEvaluator>(pop);
+        pop = Population::create(rng_exp, genomes);
       
         bool success = false;
         int gen;
@@ -117,9 +115,9 @@ void Experiment::run(rng_t &rng, int gens) {
                 pop->next_generation();
             }
 
-            evaluate(eval.get());
+            evaluate();
 
-            if(is_success(eval->get_fittest())) {
+            if(is_success(fittest.get())) {
                 success = true;
                 nsuccesses++;
             }
@@ -129,21 +127,20 @@ void Experiment::run(rng_t &rng, int gens) {
 
             //Don't print on success because we'll exit the loop and print then.
             if(!success && (gen % env->print_every == 0))
-                print(eval.get(), expcount, gen);
+                print(expcount, gen);
         }
 
         if(success) {
             success_generations.push_back(gen);
         }
         {
-            Organism *fittest = eval->get_fittest();
             Genome::Stats gstats = fittest->genome->get_stats();
             fitness.push_back(fittest->eval.fitness);
             nnodes.push_back(gstats.nnodes);
             nlinks.push_back(gstats.nlinks);
         }
 
-        print(eval.get(), expcount, gen - 1);
+        print(expcount, gen - 1);
 
         delete pop;
         delete env->genome_manager;
@@ -162,20 +159,38 @@ bool Experiment::is_success(Organism *org) {
     return org->eval.error <= 0.0000001;
 }
 
-void Experiment::evaluate(OrganismEvaluator *evaluator) {
+void Experiment::evaluate() {
     auto process_output = [this] (Network &net, size_t istep) {
         this->process_output(net, istep);
     };
+    BatchSensors *batch_sensors = get_sensors();
 
-    auto eval_org  = [this] (Organism &org) {
-        return evaluate(org);
-    };
+    static Timer timer("evaluate");
+    timer.start();
 
-    evaluator->evaluate(get_sensors(),
-                        process_output,
-                        eval_org);
+    size_t norgs = pop->size();
+    Network *nets[norgs];
+    for(size_t i = 0; i < norgs; i++) {
+        nets[i] = pop->get(i)->net.get();
+    }
 
-    Organism *fittest = evaluator->get_fittest();
+    env->network_manager->activate(nets, norgs, batch_sensors, process_output);
+
+    Organism *best = nullptr;
+    for(size_t i = 0; i < norgs; i++) {
+        Organism *org = pop->get(i);
+        org->eval = evaluate(*org);
+        if( !best || (org->eval.fitness > best->eval.fitness) ) {
+            best = org;
+        }
+    }
+
+    timer.stop();
+
+    if(!fittest || (best->eval.fitness > fittest->eval.fitness)) {
+        fittest = pop->make_copy(best->population_index);
+    }
+
     Genome::Stats gstats = fittest->genome->get_stats();
     cout << "fittest [" << fittest->population_index << "]"
          << ": fitness=" << fittest->eval.fitness

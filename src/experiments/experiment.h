@@ -34,12 +34,13 @@ namespace NEAT {
 
     private:
         Experiment() {}
-        void print(class OrganismEvaluator *eval,
-                   int experiment_num,
+        void print(int experiment_num,
                    int generation);
-        void evaluate(class OrganismEvaluator *eval);
+        void evaluate();
 
         const char *name;
+        class Population *pop;
+        std::unique_ptr<Organism> fittest;
     };
 
 }
