@@ -17,7 +17,7 @@ endif
 
 ifeq (${DEVMODE}, true)
 	OPT=-O0
-	OPENMP=-fopenmp
+	#OPENMP=-fopenmp
 	MISC_FLAGS=
 	NVCC_FLAGS=-G -g
 else

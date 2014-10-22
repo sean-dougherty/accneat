@@ -41,7 +41,7 @@ namespace NEAT {
         double mean;
     };
 
-    std::ostream &operator<<(std::ostream &out, const stats_t &stats) {
+    inline std::ostream &operator<<(std::ostream &out, const stats_t &stats) {
         return out << "n=" << stats.n
                    << ", min=" << stats.min
                    << ", max=" << stats.max

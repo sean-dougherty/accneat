@@ -1,8 +1,3 @@
-#include "neat.h"
-#include "networkmanager.h"
-#include "organism.h"
-#include "util.h"
-
 namespace NEAT {
 
     class Experiment {
@@ -16,31 +11,14 @@ namespace NEAT {
     public:
         virtual ~Experiment();
 
-        void run(class rng_t &rng, int gens);
+        virtual void run(class rng_t &rng, int gens) = 0;
 
     protected:
         Experiment(const char *name);
 
-        virtual void init_env() {}
-        virtual void init_experiment() = 0;
-
-        virtual BatchSensors *get_sensors() = 0;
-        virtual void process_output(class Network &net, size_t istep) = 0;
-        virtual OrganismEvaluation evaluate(Organism &org) = 0;
-        virtual bool is_success(Organism *org);
-
-        size_t ninputs;
-        size_t noutputs;
-
     private:
         Experiment() {}
-        void print(int experiment_num,
-                   int generation);
-        void evaluate();
 
         const char *name;
-        class Population *pop;
-        std::unique_ptr<Organism> fittest;
     };
-
 }

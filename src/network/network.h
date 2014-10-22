@@ -57,8 +57,6 @@ namespace NEAT {
                                NetLink *links) = 0;
 
         virtual NetDims get_dims() = 0;
-
-        virtual real_t get_output(size_t index) = 0;
 	};
 
 } // namespace NEAT

@@ -47,19 +47,19 @@ void CpuNetwork::configure(const NetDims &dims_,
     }
 }
 
-void CpuNetwork::load_sensors(const vector<real_t> &sensvals,
-                              size_t off,
-                              bool clear_noninput) {
-    for(size_t i = 0; i < dims.nnodes.sensor; i++) {
-        activations[i + dims.nnodes.bias] = sensvals[i + off];
-    }
+void CpuNetwork::clear_noninput() {
+    memset(activations.data() + dims.nnodes.input,
+           0,
+           sizeof(real_t) * (dims.nnodes.all - dims.nnodes.input));
+}
 
-    //If clear, then reset non-input activations.
-    if(clear_noninput) {
-        memset(activations.data() + dims.nnodes.input,
-               0,
-               sizeof(real_t) * (dims.nnodes.all - dims.nnodes.input));
-    }
+void CpuNetwork::load_sensor(size_t isensor,
+                             real_t activation) {
+    activations[dims.nnodes.bias + isensor] = activation;
+}
+
+real_t *CpuNetwork::get_outputs() {
+    return activations.data() + dims.nnodes.input;
 }
 
 void CpuNetwork::activate(size_t ncycles) {
@@ -107,10 +107,4 @@ vector<real_t> &CpuNetwork::get_activations(__out vector<real_t> &result) {
 
 void CpuNetwork::set_activations(__in vector<real_t> &newacts) {
     activations = newacts;
-}
-
-real_t CpuNetwork::get_output(size_t index) {
-    assert(index < dims.nnodes.output);
-
-    return activations[dims.nnodes.input + index];
 }

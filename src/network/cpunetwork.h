@@ -18,9 +18,10 @@ namespace NEAT {
 		void activate(size_t ncycles);
         std::vector<real_t> &get_activations(__out std::vector<real_t> &result);
         void set_activations(__in std::vector<real_t> &newacts);
-        void load_sensors(const std::vector<real_t> &sensvals,
-                          size_t off,
-                          bool clear_noninput);
+
+        void clear_noninput();
+        void load_sensor(size_t isensor, real_t activation);
+        real_t *get_outputs();
 
         virtual void configure(const NetDims &dims,
                                NetNode *nodes,
@@ -28,7 +29,6 @@ namespace NEAT {
 
         virtual NetDims get_dims() override { return dims; }
 
-        virtual real_t get_output(size_t index) override;
 	};
 
 }

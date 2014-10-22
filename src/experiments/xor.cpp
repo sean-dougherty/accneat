@@ -17,13 +17,13 @@ public:
 
         return {
             {{
-                    {{T, F}, {T}, weight},
-            }},
-            {{
                     {{F, F}, {F}, weight},
             }},
             {{
                     {{F, T}, {T}, weight},
+            }},
+            {{
+                    {{T, F}, {T}, weight},
             }},
             {{
                     {{T, T}, {F}, weight}
