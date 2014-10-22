@@ -106,7 +106,7 @@ if $opt_gdb; then
 elif $opt_valgrind; then
     valgrind $cmd 2>&1 | tee valgrind.out
 else
-    time $cmd | tee out
+    $cmd || (echo "EXITED WITH ERR CODE: $?"; exit 1)
 
     if $opt_create; then
         echo "CREATING GOLD EXPERIMENTS"
@@ -115,19 +115,19 @@ else
         cp out $gold
     else
         files=$(find experiment_* -type f | sort)
-	if [ -z "$files" ]; then
-	    echo "FOUND NO RESULTS FILES!"
-	    exit 1
-	fi
+	    if [ -z "$files" ]; then
+	        echo "FOUND NO RESULTS FILES!"
+	        exit 1
+	    fi
 
         if (
-            rc=0
-            for x in $files; do
-                if ! diff -q $x $gold/$x; then
-                    rc=1;
-                fi
-            done;
-            exit $rc
+                rc=0
+                for x in $files; do
+                    if ! diff -q $x $gold/$x; then
+                        rc=1;
+                    fi
+                done;
+                exit $rc
             );
         then
             echo "RESULTS MATCH GOLD ($gold)"
@@ -136,6 +136,6 @@ else
             echo "!!! GOLD FAILURE ($gold) !!!"
             exit 1
         fi
-            
+        
     fi
 fi

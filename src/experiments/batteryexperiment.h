@@ -105,10 +105,10 @@ namespace NEAT {
                         parms->weight = step.weight;
                         
                         for(node_size_t i = 0; i < ninputs; i++)
-                            config->inputs(istep)[i] = step.input[istep];
+                            config->inputs(istep)[i] = step.input[i];
 
                         for(node_size_t i = 0; i < noutputs; i++)
-                            config->outputs(istep)[i] = step.output[istep];
+                            config->outputs(istep)[i] = step.output[i];
 
                         first = false;
                         istep++;
@@ -116,6 +116,27 @@ namespace NEAT {
                 }
             }
 
+/*
+            {
+                using namespace std;
+
+                for(size_t istep = 0; istep < config->nsteps; istep++) {
+                    Config::StepParms *parms = config->parms(istep);
+                    real_t *inputs = config->inputs(istep);
+                    real_t *outputs = config->outputs(istep);
+                    cout << "step " << istep << ", clear=" << parms->clear_noninput << ", weight=" << parms->weight << endl;
+                    cout << "inputs:";
+                    for(size_t i = 0; i < config->ninputs; i++)
+                        cout << " " << inputs[i];
+                    cout << endl;
+                    cout << "outputs:";
+                    for(size_t i = 0; i < config->noutputs; i++)
+                        cout << " " << outputs[i];
+                    cout << endl;
+                }
+                    exit(0);
+            }
+*/
             config_ = config;
             len_ = len;
         }
