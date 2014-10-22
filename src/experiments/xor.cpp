@@ -1,13 +1,13 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "batteryexperiment.h"
+#include "staticexperiment.h"
 
 using namespace NEAT;
 using namespace std;
 
-class XorExperiment : public BatteryExperiment {
+class XorExperiment : public StaticExperiment {
 public:
     XorExperiment()
-        : BatteryExperiment("xor") {
+        : StaticExperiment("xor") {
     }
 
     virtual vector<Test> create_tests() override {

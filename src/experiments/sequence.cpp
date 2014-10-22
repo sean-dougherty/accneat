@@ -1,5 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "batteryexperiment.h"
+#include "staticexperiment.h"
 #include "util.h"
 #include <assert.h>
 
@@ -9,8 +9,8 @@ using namespace std;
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences);
 
-struct Seq1bit2elExperiment : public BatteryExperiment {
-    Seq1bit2elExperiment() : BatteryExperiment("seq-1bit-2el") {
+struct Seq1bit2elExperiment : public StaticExperiment {
+    Seq1bit2elExperiment() : StaticExperiment("seq-1bit-2el") {
     }
 
     virtual vector<Test> create_tests() override {
@@ -21,8 +21,8 @@ struct Seq1bit2elExperiment : public BatteryExperiment {
     }
 } seq_1bit_2el;
 
-struct Seq1bit3elExperiment : public BatteryExperiment {
-    Seq1bit3elExperiment() : BatteryExperiment("seq-1bit-3el") {
+struct Seq1bit3elExperiment : public StaticExperiment {
+    Seq1bit3elExperiment() : StaticExperiment("seq-1bit-3el") {
     }
 
     virtual vector<Test> create_tests() override {
@@ -33,8 +33,8 @@ struct Seq1bit3elExperiment : public BatteryExperiment {
     }
 } seq_1bit_3el;
 
-struct Seq1bit4elExperiment : public BatteryExperiment {
-    Seq1bit4elExperiment() : BatteryExperiment("seq-1bit-4el") {
+struct Seq1bit4elExperiment : public StaticExperiment {
+    Seq1bit4elExperiment() : StaticExperiment("seq-1bit-4el") {
     }
 
     virtual vector<Test> create_tests() override {

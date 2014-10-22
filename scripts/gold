@@ -112,7 +112,6 @@ else
         echo "CREATING GOLD EXPERIMENTS"
         mv experiment_* $gold
         cp -r src $gold
-        cp out $gold
     else
         files=$(find experiment_* -type f | sort)
 	    if [ -z "$files" ]; then

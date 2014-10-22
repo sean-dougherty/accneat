@@ -1,5 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "batteryexperiment.h"
+#include "staticexperiment.h"
 #include <assert.h>
 
 using namespace NEAT;
@@ -7,10 +7,10 @@ using namespace std;
 
 //------------------------------
 //---
-//--- CLASS BatteryExperiment
+//--- CLASS StaticExperiment
 //---
 //------------------------------
-void BatteryExperiment::init_experiment() {
+void StaticExperiment::init_experiment() {
     vector<Test> tests = create_tests();
 
     //Validate tests
@@ -37,17 +37,17 @@ void BatteryExperiment::init_experiment() {
     //---
     //--- Config network executor
     //---
-    const BatteryEvaluator::Config *config;
+    const StaticEvaluator::Config *config;
     size_t configlen;
-    BatteryEvaluator::create_config(tests, config, configlen);
+    StaticEvaluator::create_config(tests, config, configlen);
     network_executor->configure(config, configlen);
 
     //---
     //--- Show tests
     //---
-    cout << "=====================" << endl;
-    cout << "===== BATTERIES =====" << endl;
-    cout << "=====================" << endl;
+    cout << "=================" << endl;
+    cout << "===== TESTS =====" << endl;
+    cout << "=================" << endl;
     for(Test &t: tests) {
         printf("~~~ %s\n", t.name.c_str());
         for(Step s: t.steps) {

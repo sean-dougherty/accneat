@@ -1,5 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "batteryexperiment.h"
+#include "staticexperiment.h"
 #include <assert.h>
 
 using namespace NEAT;
@@ -8,9 +8,9 @@ using namespace std;
 static vector<Test> create_tests(const vector<string> &sentences,
                                  const vector<bool> &is_grammatical);
 
-static class Cfg_XSX : public BatteryExperiment {
+static class Cfg_XSX : public StaticExperiment {
 public:
-    Cfg_XSX() : BatteryExperiment("cfg-XSX") {
+    Cfg_XSX() : StaticExperiment("cfg-XSX") {
     }
 
     virtual vector<Test> create_tests() override {

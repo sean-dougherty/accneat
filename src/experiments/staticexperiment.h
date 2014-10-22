@@ -32,7 +32,7 @@ namespace NEAT {
         Test(const std::vector<Step> &steps_) : Test("", steps_) {}
     };
 
-    struct BatteryEvaluator {
+    struct StaticEvaluator {
         struct Config {
             struct StepParms {
                 union {
@@ -116,27 +116,6 @@ namespace NEAT {
                 }
             }
 
-/*
-            {
-                using namespace std;
-
-                for(size_t istep = 0; istep < config->nsteps; istep++) {
-                    Config::StepParms *parms = config->parms(istep);
-                    real_t *inputs = config->inputs(istep);
-                    real_t *outputs = config->outputs(istep);
-                    cout << "step " << istep << ", clear=" << parms->clear_noninput << ", weight=" << parms->weight << endl;
-                    cout << "inputs:";
-                    for(size_t i = 0; i < config->ninputs; i++)
-                        cout << " " << inputs[i];
-                    cout << endl;
-                    cout << "outputs:";
-                    for(size_t i = 0; i < config->noutputs; i++)
-                        cout << " " << outputs[i];
-                    cout << endl;
-                }
-                    exit(0);
-            }
-*/
             config_ = config;
             len_ = len;
         }
@@ -144,7 +123,7 @@ namespace NEAT {
         const Config *config;
         real_t errorsum;
 
-        BatteryEvaluator(const Config *config_)
+        StaticEvaluator(const Config *config_)
         : config(config_) {
             errorsum = 0.0;
         }
@@ -186,10 +165,10 @@ namespace NEAT {
         }
     };
 
-    class BatteryExperiment : public EvaluatorExperiment<BatteryEvaluator> {
+    class StaticExperiment : public EvaluatorExperiment<StaticEvaluator> {
     public:
-        BatteryExperiment(const char *name) : EvaluatorExperiment<BatteryEvaluator>(name) {}
-        virtual ~BatteryExperiment() {}
+        StaticExperiment(const char *name) : EvaluatorExperiment<StaticEvaluator>(name) {}
+        virtual ~StaticExperiment() {}
 
         virtual void init_experiment() override;
         virtual std::vector<Test> create_tests() = 0;

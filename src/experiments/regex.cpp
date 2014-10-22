@@ -1,5 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "batteryexperiment.h"
+#include "staticexperiment.h"
 #include "util.h"
 #include <assert.h>
 
@@ -11,9 +11,9 @@ static vector<Test> create_tests_1bit(const char *grammar,
 static vector<Test> create_tests_2bit(const char *grammar,
                                       const vector<string> &sentences);
 
-static class Regex_aba : public BatteryExperiment {
+static class Regex_aba : public StaticExperiment {
 public:
-    Regex_aba() : BatteryExperiment("regex-aba") {
+    Regex_aba() : StaticExperiment("regex-aba") {
     }
 
     virtual vector<Test> create_tests() override {
@@ -39,9 +39,9 @@ public:
     }
 } regex_aba;
 
-static class Regex_aba_2bit : public BatteryExperiment {
+static class Regex_aba_2bit : public StaticExperiment {
 public:
-    Regex_aba_2bit() : BatteryExperiment("regex-aba-2bit") {
+    Regex_aba_2bit() : StaticExperiment("regex-aba-2bit") {
     }
 
     virtual vector<Test> create_tests() override {
@@ -67,9 +67,9 @@ public:
     }
 } regex_aba_2bit;
 
-static class Regex_XYXY : public BatteryExperiment {
+static class Regex_XYXY : public StaticExperiment {
 public:
-    Regex_XYXY() : BatteryExperiment("regex-XYXY") {
+    Regex_XYXY() : StaticExperiment("regex-XYXY") {
     }
 
     virtual vector<Test> create_tests() override {

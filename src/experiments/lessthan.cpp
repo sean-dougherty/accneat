@@ -1,5 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "batteryexperiment.h"
+#include "staticexperiment.h"
 #include <assert.h>
 
 using namespace NEAT;
@@ -7,10 +7,10 @@ using namespace std;
 
 static Test create_test(string sym_order);
 
-class LessThanExperiment : public BatteryExperiment {
+class LessThanExperiment : public StaticExperiment {
 public:
     LessThanExperiment()
-        : BatteryExperiment("lessthan") {
+        : StaticExperiment("lessthan") {
     }
 
     virtual vector<Test> create_tests() override {
