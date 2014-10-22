@@ -1,5 +1,5 @@
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "networkmanager.h"
+#include "network.h"
 #include "speciesorganism.h"
 #include "species.h"
 

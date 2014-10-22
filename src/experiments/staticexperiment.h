@@ -53,11 +53,8 @@ namespace NEAT {
             return sizeof(StaticConfig) + nsteps * sizeof_step(ninputs, noutputs);
         }
 
-        size_t sizeof_step() const {
-            return sizeof_step(ninputs, noutputs);
-        }
         size_t offset_step(size_t istep) const {
-            return sizeof_step() * istep;
+            return sizeof_step(ninputs, noutputs) * istep;
         }
 
         StepParms *parms(size_t istep) const {

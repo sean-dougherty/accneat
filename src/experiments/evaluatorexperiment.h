@@ -2,8 +2,7 @@
 
 #include "experiment.h"
 #include "genomemanager.h"
-#include "networkmanager.h"
-#include "networkevaluator.h"
+#include "network.h"
 #include "organism.h"
 #include "population.h"
 #include "stats.h"

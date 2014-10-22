@@ -15,9 +15,9 @@
 */
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include <unistd.h>
-#include "neat.h"
-#include "networkmanager.h"
 #include "experiment.h"
+#include "neat.h"
+#include "rng.h"
 #include "util.h"
 
 using namespace NEAT;

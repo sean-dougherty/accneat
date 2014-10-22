@@ -6,7 +6,7 @@ using namespace NEAT;
 using namespace std;
 
 static void create_config(std::vector<Test> &tests,
-                          __out const StaticConfig *&config_,
+                          __out StaticConfig *&config_,
                           __out size_t &len_) {
     size_t nsteps = 0;
     real_t max_err = 0.0;
@@ -84,10 +84,11 @@ void StaticExperiment::init_experiment() {
     //---
     //--- Config network executor
     //---
-    const StaticEvaluator::Config *config;
+    StaticEvaluator::Config *config;
     size_t configlen;
     create_config(tests, config, configlen);
     network_executor->configure(config, configlen);
+    free(config);
 
     //---
     //--- Show tests

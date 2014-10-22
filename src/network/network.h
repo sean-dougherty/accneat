@@ -13,13 +13,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
-#ifndef _NETWORK_H_
-#define _NETWORK_H_
+#pragma once
 
 #include "neattypes.h"
 
 namespace NEAT {
 
+#define NACTIVATES_PER_INPUT 10
+
+    //---
+    //--- CLASS NetDims
+    //---
     struct NetDims {
         struct {
             node_size_t bias;
@@ -35,17 +39,26 @@ namespace NEAT {
         link_size_t nlinks;
     };
 
+    //---
+    //--- CLASS NetLink
+    //---
 	struct NetLink {
 		real_t weight; // Weight of connection
         node_size_t in_node_index; // NetNode inputting into the link
         node_size_t out_node_index; // NetNode gaining energy from the link
 	};
 
+    //---
+    //--- CLASS NetNode
+    //---
 	struct NetNode {
         link_size_t incoming_start;
         link_size_t incoming_end;
 	};
 
+    //---
+    //--- CLASS Network
+    //---
 	class Network {
     public:
         size_t population_index;
@@ -59,6 +72,34 @@ namespace NEAT {
         virtual NetDims get_dims() = 0;
 	};
 
+    //---
+    //--- CLASS NetworkExecutor<>
+    //---
+    template<typename Evaluator>
+    class NetworkExecutor {
+    public:
+        
+        virtual ~NetworkExecutor() {}
+
+        virtual void configure(const typename Evaluator::Config *config,
+                               size_t len) = 0;
+
+        virtual void execute(class Network **nets_,
+                             class OrganismEvaluation *results,
+                             size_t nnets) = 0;
+    };
+
+    //---
+    //--- FACTORY METHODS
+    //---
+    std::unique_ptr<class Network> create_default_network();
+
+    template<typename Evaluator>
+    NetworkExecutor<Evaluator> *create_network_executor();
+
 } // namespace NEAT
 
+#ifndef ENABLE_CUDA
+#include "cpunetwork.h"
 #endif
+

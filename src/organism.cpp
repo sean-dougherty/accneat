@@ -16,7 +16,7 @@
 
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "genomemanager.h"
-#include "networkmanager.h"
+#include "network.h"
 #include "organism.h"
 
 using namespace NEAT;

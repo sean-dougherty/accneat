@@ -14,8 +14,8 @@
    limitations under the License.
 */
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
-#include "cpunetwork.h"
 #include "neat.h"
+#include "network.h"
 #include "util.h"
 #include <assert.h>
 
