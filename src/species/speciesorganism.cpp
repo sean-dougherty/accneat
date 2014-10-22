@@ -7,14 +7,14 @@ using namespace NEAT;
 
 SpeciesOrganism::SpeciesOrganism(const SpeciesOrganism &other) {
     this->genome = env->genome_manager->make_default();
-    this->net = env->network_manager->make_default();
+    this->net = create_default_network();
     other.copy_into(*this);
 }
 
 SpeciesOrganism::SpeciesOrganism(const Genome &genome) {
     this->genome = env->genome_manager->make_default();
     *this->genome = genome;
-    this->net = env->network_manager->make_default();
+    this->net = create_default_network();
     init(0);
 }
 

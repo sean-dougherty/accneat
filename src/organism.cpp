@@ -24,14 +24,14 @@ using namespace std;
 
 Organism::Organism(const Organism &other) {
     this->genome = env->genome_manager->make_default();
-    this->net = env->network_manager->make_default();
+    this->net = create_default_network();
     other.copy_into(*this);
 }
 
 Organism::Organism(const Genome &genome) {
     this->genome = env->genome_manager->make_default();
     *this->genome = genome;
-    this->net = env->network_manager->make_default();
+    this->net = create_default_network();
 
     //Note: We're in the base class constructor, so a derived class' init() won't
     //      be called. The derived class' constructor must also call init().
@@ -67,7 +67,7 @@ void Organism::copy_into(Organism &dst) const {
     copy(generation);
 
     // Networks must be regenerated.
-    dst.net = env->network_manager->make_default();
+    dst.net = create_default_network();
 
 #undef copy
 }

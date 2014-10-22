@@ -66,7 +66,7 @@ namespace NEAT {
 
             init_env();
 
-            network_executor = create_executor<Evaluator>();
+            network_executor = create_network_executor<Evaluator>();
 
             init_experiment();
             

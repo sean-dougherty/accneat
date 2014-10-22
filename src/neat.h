@@ -44,7 +44,6 @@ namespace NEAT {
         PopulationType population_type = PopulationType::SPECIES;
         GenomeType genome_type = GenomeType::INNOV;
 
-        class NetworkManager *network_manager = nullptr;
         class GenomeManager *genome_manager = nullptr;
 
         real_t trait_param_mut_prob = 0.5;
