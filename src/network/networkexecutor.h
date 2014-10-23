@@ -10,6 +10,7 @@ namespace NEAT {
     template<typename Evaluator>
     class NetworkExecutor {
     public:
+        static NetworkExecutor *create();
         
         virtual ~NetworkExecutor() {}
 

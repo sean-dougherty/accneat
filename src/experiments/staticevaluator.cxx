@@ -220,7 +220,7 @@ public:
         //---
         //--- Config network executor
         //---
-        executor = create_network_executor<Evaluator>();
+        executor = NetworkExecutor<Evaluator>::create();
 
         Evaluator::Config *config;
         size_t configlen;

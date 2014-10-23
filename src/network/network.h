@@ -19,8 +19,6 @@
 
 namespace NEAT {
 
-    extern class Network *create_default_network();
-
     //---
     //--- CLASS NetDims
     //---
@@ -61,6 +59,8 @@ namespace NEAT {
     //---
 	class Network {
     public:
+        static Network *create();
+
         size_t population_index;
 
 		virtual ~Network() {}

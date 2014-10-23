@@ -24,12 +24,9 @@
 using namespace NEAT;
 using namespace std;
 
-namespace NEAT {
 
-    Network *create_default_network() {
-        return new CpuNetwork();
-    }
-
+Network *Network::create() {
+    return new CpuNetwork();
 }
 
 // Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
