@@ -1,3 +1,4 @@
+#if false
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "staticexperiment.h"
 #include <assert.h>
@@ -7,18 +8,11 @@ using namespace std;
 
 static Test create_test(string sym_order);
 
-class LessThanExperiment : public StaticExperiment {
-public:
-    LessThanExperiment()
-        : StaticExperiment("lessthan") {
-    }
-
-    virtual vector<Test> create_tests() override {
-        return {
-            create_test("abc")
-        };
-    }
-} lessthan;
+static vector<Test> create_tests() {
+    return {
+        create_test("abc")
+    };
+}
 
 static Test create_test(string sym_order) {
     static map<char, array<real_t, 2>> sym_encoding {
@@ -59,3 +53,6 @@ static Test create_test(string sym_order) {
 
     return {steps};
 }
+
+static unique_ptr<Experiment> lessthan{create_static_experiment("lessthan", create_tests())};
+#endif

@@ -3,6 +3,7 @@
 #include "experiment.h"
 #include "genomemanager.h"
 #include "network.h"
+#include "networkexecutor.h"
 #include "organism.h"
 #include "population.h"
 #include "stats.h"
@@ -36,38 +37,34 @@ namespace NEAT {
 //--- CLASS EvaluatorExperiment
 //---
 //------------------------------
-    template<typename Evaluator>
     class EvaluatorExperiment : public Experiment {
-    protected:
-        NetworkExecutor<Evaluator> *network_executor;
+    public:
+        typedef std::function<NetworkEvaluator *()> CreateEvaluatorFunc;
+        typedef std::function< std::vector<std::unique_ptr<Genome>> (rng_t rng)> CreateSeedsFunc;
 
-        EvaluatorExperiment(const char *name)
-            : Experiment(name) {
-            network_executor = nullptr;
+        CreateEvaluatorFunc create_evaluator;
+        CreateSeedsFunc create_seeds;
+        std::unique_ptr<NetworkEvaluator> network_evaluator;
+
+        EvaluatorExperiment(const char *name,
+                            CreateEvaluatorFunc create_evaluator_,
+                            CreateSeedsFunc create_seeds_)
+            : Experiment(name)
+            , create_evaluator(create_evaluator_)
+            , create_seeds(create_seeds_) {
         }
 
         virtual ~EvaluatorExperiment() {
-            delete network_executor;
         }
-
-        virtual void init_env() {}
-        virtual void init_experiment() = 0;
 
         virtual bool is_success(Organism *org) {
             return org->eval.error <= 0.0000001;
         }
 
-        size_t ninputs;
-        size_t noutputs;
-    public:
         virtual void run(class rng_t &rng, int gens) override {
             using namespace std;
 
-            init_env();
-
-            network_executor = create_network_executor<Evaluator>();
-
-            init_experiment();
+            network_evaluator = unique_ptr<NetworkEvaluator>(create_evaluator());
             
             int nsuccesses = 0;
             vector<int> success_generations;
@@ -83,13 +80,8 @@ namespace NEAT {
 
                 fittest = nullptr;
                 env->genome_manager = GenomeManager::create();
-                vector<unique_ptr<Genome>> genomes = 
-                    env->genome_manager->create_seed_generation(env->pop_size,
-                                                                rng_exp,
-                                                                1,
-                                                                ninputs,
-                                                                noutputs,
-                                                                ninputs);
+                vector<unique_ptr<Genome>> genomes = create_seeds(rng_exp);
+
                 //Spawn the Population
                 pop = Population::create(rng_exp, genomes);
       
@@ -168,7 +160,7 @@ namespace NEAT {
             }
             OrganismEvaluation evaluations[norgs];
 
-            network_executor->execute(nets, evaluations, norgs);
+            network_evaluator->execute(nets, evaluations, norgs);
 
             Organism *best = nullptr;
             for(size_t i = 0; i < norgs; i++) {

@@ -4,30 +4,29 @@
 using namespace NEAT;
 using namespace std;
 
-class XorExperiment : public StaticExperiment {
-public:
-    XorExperiment()
-        : StaticExperiment("xor") {
-    }
+static struct Init {
+    Init() {
+        create_static_experiment("xor", [] () {
+                const real_t T = 1.0;
+                const real_t F = 0.0;
+                const real_t weight = 1.0;
 
-    virtual vector<Test> create_tests() override {
-        const real_t T = 1.0;
-        const real_t F = 0.0;
-        const real_t weight = 1.0;
+                vector<Test> tests = {
+                    {{
+                            {{F, F}, {F}, weight},
+                    }},
+                    {{
+                            {{F, T}, {T}, weight},
+                    }},
+                    {{
+                            {{T, F}, {T}, weight},
+                    }},
+                    {{
+                            {{T, T}, {F}, weight}
+                    }}
+                };
 
-        return {
-            {{
-                    {{F, F}, {F}, weight},
-            }},
-            {{
-                    {{F, T}, {T}, weight},
-            }},
-            {{
-                    {{T, F}, {T}, weight},
-            }},
-            {{
-                    {{T, T}, {F}, weight}
-            }}
-        };
+                return tests;
+            });
     }
-} xor_experiment;
+} init;

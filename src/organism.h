@@ -20,13 +20,6 @@
 
 namespace NEAT {
 
-    struct OrganismEvaluation {
-        real_t fitness = 0.0;
-        real_t error = 0.0;
-        
-        void reset() {fitness = error = 0.0;}
-    };
-
 	// ---------------------------------------------  
 	// ORGANISM CLASS:
 	//   Organisms are Genomes and Networks with fitness

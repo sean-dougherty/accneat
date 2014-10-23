@@ -13,6 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+#ifndef ENABLE_CUDA
+
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "neat.h"
 #include "network.h"
@@ -108,3 +110,5 @@ vector<real_t> &CpuNetwork::get_activations(__out vector<real_t> &result) {
 void CpuNetwork::set_activations(__in vector<real_t> &newacts) {
     activations = newacts;
 }
+
+#endif // ENABLE_CUDA

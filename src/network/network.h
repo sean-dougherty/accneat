@@ -72,34 +72,11 @@ namespace NEAT {
         virtual NetDims get_dims() = 0;
 	};
 
-    //---
-    //--- CLASS NetworkExecutor<>
-    //---
-    template<typename Evaluator>
-    class NetworkExecutor {
-    public:
-        
-        virtual ~NetworkExecutor() {}
-
-        virtual void configure(const typename Evaluator::Config *config,
-                               size_t len) = 0;
-
-        virtual void execute(class Network **nets_,
-                             class OrganismEvaluation *results,
-                             size_t nnets) = 0;
-    };
-
-    //---
-    //--- FACTORY METHODS
-    //---
-    std::unique_ptr<class Network> create_default_network();
-
-    template<typename Evaluator>
-    NetworkExecutor<Evaluator> *create_network_executor();
-
 } // namespace NEAT
 
-#ifndef ENABLE_CUDA
+#ifdef ENABLE_CUDA
+#include "cudanetwork.h"
+#else
 #include "cpunetwork.h"
 #endif
 

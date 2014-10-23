@@ -1,3 +1,4 @@
+#if false
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "staticexperiment.h"
 #include "util.h"
@@ -9,41 +10,29 @@ using namespace std;
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences);
 
-struct Seq1bit2elExperiment : public StaticExperiment {
-    Seq1bit2elExperiment() : StaticExperiment("seq-1bit-2el") {
-    }
+static vector<Test> create_1bit_2el() {
+    string syms = "ab";
+    vector<string> seqs = permute_repeat(syms, 2);
 
-    virtual vector<Test> create_tests() override {
-        string syms = "ab";
-        vector<string> seqs = permute_repeat(syms, 2);
+    return create_parallel_output_tests(syms, seqs);
+}
+static unique_ptr<Experiment> _1bit_2el{create_static_experiment("seq-1bit-2el", create_1bit_2el())};
 
-        return create_parallel_output_tests(syms, seqs);
-    }
-} seq_1bit_2el;
+static vector<Test> create_1bit_3el() {
+    string syms = "ab";
+    vector<string> seqs = permute_repeat(syms, 3);
 
-struct Seq1bit3elExperiment : public StaticExperiment {
-    Seq1bit3elExperiment() : StaticExperiment("seq-1bit-3el") {
-    }
+    return create_parallel_output_tests(syms, seqs);
+}
+static unique_ptr<Experiment> _1bit_3el{create_static_experiment("seq-1bit-3el", create_1bit_3el())};
 
-    virtual vector<Test> create_tests() override {
-        string syms = "ab";
-        vector<string> seqs = permute_repeat(syms, 3);
+static vector<Test> create_1bit_4el() {
+    string syms = "ab";
+    vector<string> seqs = permute_repeat(syms, 4);
 
-        return create_parallel_output_tests(syms, seqs);
-    }
-} seq_1bit_3el;
-
-struct Seq1bit4elExperiment : public StaticExperiment {
-    Seq1bit4elExperiment() : StaticExperiment("seq-1bit-4el") {
-    }
-
-    virtual vector<Test> create_tests() override {
-        string syms = "ab";
-        vector<string> seqs = permute_repeat(syms, 4);
-
-        return create_parallel_output_tests(syms, seqs);
-    }
-} seq_1bit_4el;
+    return create_parallel_output_tests(syms, seqs);
+}
+static unique_ptr<Experiment> _1bit_4el{create_static_experiment("seq-1bit-4el", create_1bit_4el())};
 
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences) {
@@ -131,3 +120,4 @@ static vector<Test> create_parallel_output_tests(string syms,
 
     return tests;
 }
+#endif

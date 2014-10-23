@@ -2,8 +2,9 @@ include Makefile.conf
 
 INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 SOURCES=$(shell find src -name "*.cpp")
+CXX_SOURCES=$(shell find src -name "*.cxx")
+
 OBJECTS=${SOURCES:src/%.cpp=obj/cpp/%.o}
-DEPENDS=${OBJECTS:%.o=%.d}
 
 LIBS=-lgomp
 DEFINES=
@@ -11,9 +12,14 @@ DEFINES=
 ifeq (${ENABLE_CUDA}, true)
 	CUDA_SOURCES=$(shell find src -name "*.cu")
 	CUDA_OBJECTS=${CUDA_SOURCES:src/%.cu=obj/cu/%.o}
+	CUDA_OBJECTS+=${CXX_SOURCES:src/%.cxx=obj/cu/cxx/%.o}
 	LIBS+=-lcudart
 	DEFINES+=-DENABLE_CUDA
+else
+	OBJECTS+=${CXX_SOURCES:src/%.cxx=obj/cpp/cxx/%.o}
 endif
+
+DEPENDS=${OBJECTS:%.o=%.d}
 
 ifeq (${DEVMODE}, true)
 	OPT=-O0
@@ -40,12 +46,22 @@ clean:
 src/util/std.h.gch: src/util/std.h Makefile.conf Makefile
 	g++ ${CC_FLAGS} $< -o $@
 
+ifeq (${ENABLE_CUDA}, true)
+obj/cu/cxx/%.o: src/%.cxx src/%.h Makefile.conf Makefile
+	@mkdir -p $(shell dirname $@)
+	nvcc -DENABLE_CUDA ${NVCC_FLAGS} -Xcompiler "${OPT} ${INCLUDES}" -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
+else
+obj/cpp/cxx/%.o: src/%.cxx Makefile.conf Makefile src/util/std.h.gch
+	@mkdir -p $(shell dirname $@)
+	g++ ${CC_FLAGS} -MMD $< -o $@
+endif
+
 obj/cpp/%.o: src/%.cpp Makefile.conf Makefile src/util/std.h.gch
 	@mkdir -p $(shell dirname $@)
 	g++ ${CC_FLAGS} -MMD $< -o $@
 
 obj/cu/%.o: src/%.cu src/%.h Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	nvcc ${NVCC_FLAGS} -Xcompiler "${OPT}" -Isrc -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
+	nvcc -DENABLE_CUDA ${NVCC_FLAGS} -Xcompiler "${OPT}" -Isrc -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
 
 -include ${DEPENDS}

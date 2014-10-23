@@ -1,9 +1,8 @@
 #pragma once
 
-#include "networkmanager.h"
-
 namespace NEAT {
 
+#if false
     class CudaNetworkManager : public NetworkManager {
     public:
         CudaNetworkManager();
@@ -33,4 +32,5 @@ namespace NEAT {
         } batch_bounds [nbatches];
     };
 
+#endif // false
 }

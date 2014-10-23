@@ -1,3 +1,5 @@
+#if false
+
 #ifdef ENABLE_CUDA
 
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
@@ -69,3 +71,5 @@ unique_ptr<BatchSensors> CudaNetworkManager::make_batch_sensors(node_size_t nsen
 }
 
 #endif // #if ENABLE_CUDA
+
+#endif // false

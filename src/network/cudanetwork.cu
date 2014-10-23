@@ -3,7 +3,7 @@
 #include <iostream>
 #include <vector>
 
-#include "cudanetwork.h"
+#include "network.h"
 
 #include <assert.h>
 #include <cuda.h>
@@ -39,10 +39,12 @@
     }
 
 namespace NEAT {
+/*
     __global__ void activate(GpuState *states,
                              RawBuffers bufs,
                              CudaBatchSensorsDims sensor_dims,
                              uint ncycles);
+*/
 
     static uchar *alloc_host(uint size) {
         uchar *result;
@@ -91,24 +93,67 @@ namespace NEAT {
         return (ActivationPartition *)(bufs.main + offs.main.partitions);
     }
 
-    __dh_util StepParms *step_parms(const RawBuffers &bufs,
-                                    const Offsets &offs,
-                                    const CudaBatchSensorsDims &dims,
-                                    size_t istep) {
-        return StepParms::get(bufs.input + offs.input.step_parms,
-                              dims,
-                              istep);
-    }
-
-    __dh_util real_t *output_activations(const RawBuffers &bufs,
-                                         const Offsets &offs,
-                                         const CudaNetDims &dims,
-                                         size_t istep) {
-        real_t *activations = (real_t *)(bufs.output + offs.output.activation);
-        return activations + istep*(dims.nnodes.output);
-    }
-
 #undef __dh_util
+
+//--------------------------------------------------------------------------------
+//---
+//--- CLASS CudaNetwork
+//---
+//--------------------------------------------------------------------------------
+    void CudaNetwork::configure_batch(const RawBuffers &bufs_,
+                                      const Offsets &offsets_) {
+        bufs = bufs_;
+        offsets = offsets_;
+
+        memcpy( NEAT::links(bufs, offsets),
+                gpu_links.data(),
+                sizeof(CudaLink) * gpu_links.size() );
+        memcpy( NEAT::partitions(bufs, offsets),
+                partitions.data(),
+                sizeof(ActivationPartition) * partitions.size() );
+    }
+
+    void CudaNetwork::configure(const NetDims &dims_,
+                                NetNode *nodes,
+                                NetLink *links) {
+
+        static_cast<NetDims &>(dims) = dims_;
+
+        require(dims.nlinks < Max_Links);
+
+        partitions.clear();
+        gpu_links.resize(dims.nlinks);
+
+        if(dims.nlinks != 0) {
+            ActivationPartition partition;
+
+            for(link_size_t i = 0; i < dims.nlinks; i++) {
+                NetLink &link = links[i];
+                if( (i % Threads_Per_Block == 0)
+                    || (link.out_node_index != partition.out_node_index) ) {
+
+                    if(i != 0) {
+                        partitions.push_back(partition);
+                    }
+
+                    partition.out_node_index = link.out_node_index;
+                    partition.offset = i % Threads_Per_Block;
+                    partition.len = 0;
+                }
+                partition.len++;
+
+                CudaLink &gpu_link = gpu_links[i];
+                gpu_link.in_node_index = link.in_node_index;
+                gpu_link.partition = partitions.size();
+                gpu_link.weight = link.weight;
+            }
+
+            partitions.push_back(partition);
+        }
+        dims.npartitions = partitions.size();
+    }
+
+#if false
 
 //--------------------------------------------------------------------------------
 //---
@@ -292,70 +337,6 @@ namespace NEAT {
         parms->clear_noninput = clear_noninput;
         for(size_t i = 0; i < dims.nsensors; i++)
             parms->activations[i] = values[i];
-    }
-
-//--------------------------------------------------------------------------------
-//---
-//--- CLASS CudaNetwork
-//---
-//--------------------------------------------------------------------------------
-    void CudaNetwork::configure_batch(const RawBuffers &bufs_,
-                                      const Offsets &offsets_,
-                                      size_t const *istep_output_) {
-        bufs = bufs_;
-        offsets = offsets_;
-        istep_output = istep_output_;
-
-        memcpy( NEAT::links(bufs, offsets),
-                gpu_links.data(),
-                sizeof(CudaLink) * gpu_links.size() );
-        memcpy( NEAT::partitions(bufs, offsets),
-                partitions.data(),
-                sizeof(ActivationPartition) * partitions.size() );
-    }
-
-    void CudaNetwork::configure(const NetDims &dims_,
-                                NetNode *nodes,
-                                NetLink *links) {
-
-        static_cast<NetDims &>(dims) = dims_;
-
-        require(dims.nlinks < Max_Links);
-
-        partitions.clear();
-        gpu_links.resize(dims.nlinks);
-
-        if(dims.nlinks != 0) {
-            ActivationPartition partition;
-
-            for(link_size_t i = 0; i < dims.nlinks; i++) {
-                NetLink &link = links[i];
-                if( (i % Threads_Per_Block == 0)
-                    || (link.out_node_index != partition.out_node_index) ) {
-
-                    if(i != 0) {
-                        partitions.push_back(partition);
-                    }
-
-                    partition.out_node_index = link.out_node_index;
-                    partition.offset = i % Threads_Per_Block;
-                    partition.len = 0;
-                }
-                partition.len++;
-
-                CudaLink &gpu_link = gpu_links[i];
-                gpu_link.in_node_index = link.in_node_index;
-                gpu_link.partition = partitions.size();
-                gpu_link.weight = link.weight;
-            }
-
-            partitions.push_back(partition);
-        }
-        dims.npartitions = partitions.size();
-    }
-
-    real_t CudaNetwork::get_output(size_t index) {
-        return output_activations(bufs, offsets, dims, *istep_output)[index];
     }
 
 //--------------------------------------------------------------------------------
@@ -596,5 +577,7 @@ namespace NEAT {
             
         exit(0);
     }
+#endif // false
 
 } // namespace NEAT
+

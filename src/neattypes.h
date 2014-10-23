@@ -22,6 +22,15 @@ namespace NEAT {
 		NT_HIDDEN = 3
 	};
 
+    struct OrganismEvaluation {
+        real_t fitness;
+        real_t error;
+
+        OrganismEvaluation() {reset();}
+        
+        void reset() {fitness = error = 0.0;}
+    };
+
     #define __in const
     #define __out
     #define __inout

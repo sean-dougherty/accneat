@@ -1,9 +1,5 @@
 #pragma once
 
-#include "batchsensors.h"
-#include "network.h"
-#include <pthread.h>
-
 #ifndef DEVICE_CODE
 #define __host__
 #define __device__
@@ -14,45 +10,27 @@
 
 namespace NEAT {
 
-    struct CudaBatchSensorsDims {
-        node_size_t nsensors;
-        size_t nsteps;
-    };
-
-    struct StepParms {
-    private:
-        __dh_util size_t sizeof_(const CudaBatchSensorsDims &dims) {
-            return (sizeof(StepParms) + dims.nsensors * sizeof(real_t));
-        }
-
-    public:
-        union {
-            bool clear_noninput;
-            real_t __padding;
-        };
-        float activations[];
-
-        __dh_util size_t sizeof_buf(const CudaBatchSensorsDims &dims) {
-            return dims.nsteps * sizeof_(dims);
-        }
-
-        __dh_util StepParms *get(uchar *buf, const CudaBatchSensorsDims &dims, size_t istep) {
-            return (StepParms *)(buf + sizeof_(dims)*istep);
-        }
-    };
-
+    //---
+    //--- CLASS CudaLink
+    //---
     struct CudaLink {
         link_size_t partition;
         node_size_t in_node_index;
         real_t weight;
     };
 
+    //---
+    //--- CLASS ActivationPartition
+    //---
     struct ActivationPartition {
         node_size_t out_node_index;
         uchar offset;
         uchar len;
     };
 
+    //---
+    //--- CLASS Offsets
+    //---
     struct Offsets {
         struct {
             uint links;
@@ -66,83 +44,76 @@ namespace NEAT {
         } output;
     };
 
+    //---
+    //--- CLASS Lens
+    //---
     struct Lens {
         uint main;
         uint input;
         uint output;
     };
 
+    //---
+    //--- CLASS RawBuffers
+    //---
     struct RawBuffers {
         uchar *main;
         uchar *input;
         uchar *output;
     };
 
+    //---
+    //--- CLASS CudaNetDims
+    //---
     struct CudaNetDims : public NetDims {
         link_size_t npartitions;
     };
 
+    //---
+    //--- CLASS GpuState
+    //---
     struct GpuState {
         CudaNetDims dims;
         Offsets offsets;
     };
 
-    class CudaBatchSensors : public BatchSensors {
-    private:
-        CudaBatchSensorsDims dims;
-        uchar *h_buf;
-
-    public:
-        CudaBatchSensors(const CudaBatchSensorsDims &dims);
-        virtual ~CudaBatchSensors();
-
-        uint sizeof_buf() {return StepParms::sizeof_buf(dims);}
-        uchar *get_h_buf() {return h_buf;};
-        const CudaBatchSensorsDims &get_dims() {return dims;}
-
-        virtual void configure_step(size_t istep,
-                                    const std::vector<real_t> &values,
-                                    bool clear_noninput);
-
-    };
-
+    //---
+    //--- CLASS CudaNetwork
+    //---
     class CudaNetwork : public Network {
     private:
-        friend class CudaNetworkBatch;
-
         CudaNetDims dims;
         std::vector<CudaLink> gpu_links;
         std::vector<ActivationPartition> partitions;
 
         RawBuffers bufs;
         Offsets offsets;
-        size_t const *istep_output;
 
     public:
         CudaNetwork() {}
         virtual ~CudaNetwork() {}
 
         void configure_batch(const RawBuffers &bufs,
-                             const Offsets &offsets,
-                             size_t const *istep_output);
+                             const Offsets &offsets);
 
         virtual void configure(const NetDims &counts,
                                NetNode *nodes,
                                NetLink *links);
 
         virtual NetDims get_dims() { return dims; }
-
-        virtual real_t get_output(size_t index);
     };
 
+    //---
+    //--- CLASS CudaNetworkBatch
+    //---
+    template<typename Evaluator>
     class CudaNetworkBatch {
         int device;
         uint nnets;
-        size_t istep_output;
+        const typename Evaluator::Config *d_config;
         GpuState *h_gpu_states;
         GpuState *d_gpu_states;
 
-        CudaBatchSensorsDims sensor_dims;
         RawBuffers h_bufs;
         RawBuffers d_bufs;
         Offsets offsets;
@@ -151,17 +122,90 @@ namespace NEAT {
         uint sizeof_shared;
 
     public:
-        CudaNetworkBatch(int device, uint nnets);
+        CudaNetworkBatch(int device_, uint nnets_)
+            : device(device_)
+            , nnets(nnets_)
+            , d_config(NULL) {
+
+            cudaSetDevice(device);
+
+            memset(&h_bufs, 0, sizeof(h_bufs));
+            memset(&d_bufs, 0, sizeof(d_bufs));
+            memset(&offsets, 0, sizeof(offsets));
+            memset(&capacity, 0, sizeof(capacity));
+            memset(&lens, 0, sizeof(lens));
+
+            h_gpu_states = (GpuState *)alloc_host(sizeof(GpuState) * nnets);
+            d_gpu_states = (GpuState *)alloc_dev(sizeof(GpuState) * nnets);
+        }
         ~CudaNetworkBatch();
 
-        void configure(CudaBatchSensors *batch_sensors,
-                       CudaNetwork **nets,
-                       uint nnets);
+        void configure(const typename Evaluator::Config *config);
+
+        void configure_nets(CudaNetwork **nets,
+                            uint nnets);
 
         void activate(uint ncycles);
-
-        void set_output_step(size_t istep);
     };
 
+#ifdef DEVICE_CODE
+    template<typename Evaluator>
+    __global__ void foo() {
+        Evaluator eval(NULL);
+    }
+#endif
+
+/*
+    //---
+    //--- CLASS CudaNetworkExecutor
+    //---
+    template<typename Evaluator>
+    class CudaNetworkExecutor : public NetworkExecutor<Evaluator> {
+    public:
+        const typename Evaluator::Config *config = nullptr;
+
+        virtual ~CudaNetworkExecutor() {
+            delete config;
+        }
+
+        virtual void configure(const typename Evaluator::Config *config_,
+                               size_t len) override {
+            void *buf = malloc(len);
+            memcpy(buf, config_, len);
+            config = (const typename Evaluator::Config *)buf;
+        }
+
+        virtual void execute(class Network **nets_,
+                             OrganismEvaluation *results,
+                             size_t nnets) override {
+
+            CudaNetwork **nets = (CudaNetwork **)nets_;
+            size_t nsensors = nets[0]->get_dims().nnodes.sensor;
+
+#pragma omp parallel for
+            for(size_t inet = 0; inet < nnets; inet++) {
+                CudaNetwork *net = nets[inet];
+                Evaluator eval{config};
+
+                for(size_t istep = 0; !eval.complete(istep); istep++) {
+                    if(eval.clear_noninput(istep)) {
+                        net->clear_noninput();
+                    }
+                    for(size_t isensor = 0; isensor < nsensors; isensor++) {
+                        net->load_sensor(isensor, eval.get_sensor(istep, isensor));
+                    }
+                    net->activate(NACTIVATES_PER_INPUT);
+                    eval.evaluate(istep, net->get_outputs());
+                }
+
+                results[inet] = eval.result();
+            }
+        }
+        
+    };
+*/
+
+#if false
     void test_sum_partition();
+#endif // false
 }
