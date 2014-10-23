@@ -16,13 +16,21 @@
 #ifndef ENABLE_CUDA
 
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "cpunetwork.h"
 #include "neat.h"
-#include "network.h"
 #include "util.h"
 #include <assert.h>
 
 using namespace NEAT;
 using namespace std;
+
+namespace NEAT {
+
+    Network *create_default_network() {
+        return new CpuNetwork();
+    }
+
+}
 
 // Requires nodes to be sorted by type: BIAS, SENSOR, OUTPUT, HIDDEN
 void CpuNetwork::configure(const NetDims &dims_,

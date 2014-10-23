@@ -19,7 +19,7 @@
 
 namespace NEAT {
 
-#define NACTIVATES_PER_INPUT 10
+    extern class Network *create_default_network();
 
     //---
     //--- CLASS NetDims
@@ -72,11 +72,13 @@ namespace NEAT {
         virtual NetDims get_dims() = 0;
 	};
 
+    class NetworkEvaluator {
+    public:
+        virtual ~NetworkEvaluator() {}
+
+        virtual void execute(class Network **nets_,
+                             class OrganismEvaluation *results,
+                             size_t nnets) = 0;
+    };
+
 } // namespace NEAT
-
-#ifdef ENABLE_CUDA
-#include "cudanetwork.h"
-#else
-#include "cpunetwork.h"
-#endif
-

@@ -34,8 +34,4 @@ namespace NEAT {
 
 	};
 
-    inline Network *create_default_network() {
-        return new CpuNetwork();
-    }
-
 }
