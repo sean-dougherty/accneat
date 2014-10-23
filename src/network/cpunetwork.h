@@ -28,9 +28,9 @@ namespace NEAT {
 
         virtual void configure(const NetDims &dims,
                                NetNode *nodes,
-                               NetLink *links) override;
+                               NetLink *links);
 
-        virtual NetDims get_dims() override { return dims; }
+        virtual NetDims get_dims() { return dims; }
 	};
 
 }

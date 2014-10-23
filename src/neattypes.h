@@ -26,8 +26,6 @@ namespace NEAT {
         real_t fitness;
         real_t error;
 
-        OrganismEvaluation() {reset();}
-        
         void reset() {fitness = error = 0.0;}
     };
 

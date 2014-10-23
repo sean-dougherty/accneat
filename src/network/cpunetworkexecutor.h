@@ -13,14 +13,18 @@ namespace NEAT {
     template<typename Evaluator>
     class CpuNetworkExecutor : public NetworkExecutor<Evaluator> {
     public:
-        const typename Evaluator::Config *config = nullptr;
+        const typename Evaluator::Config *config;
+
+        CpuNetworkExecutor() {
+            config = NULL;
+        }
 
         virtual ~CpuNetworkExecutor() {
             delete config;
         }
 
         virtual void configure(const typename Evaluator::Config *config_,
-                               size_t len) override {
+                               size_t len) {
             void *buf = malloc(len);
             memcpy(buf, config_, len);
             config = (const typename Evaluator::Config *)buf;
@@ -28,7 +32,7 @@ namespace NEAT {
 
         virtual void execute(class Network **nets_,
                              OrganismEvaluation *results,
-                             size_t nnets) override {
+                             size_t nnets) {
 
             CpuNetwork **nets = (CpuNetwork **)nets_;
             size_t nsensors = nets[0]->get_dims().nnodes.sensor;
@@ -36,7 +40,7 @@ namespace NEAT {
 #pragma omp parallel for
             for(size_t inet = 0; inet < nnets; inet++) {
                 CpuNetwork *net = nets[inet];
-                Evaluator eval{config};
+                Evaluator eval(config);
 
                 for(size_t istep = 0; !eval.complete(istep); istep++) {
                     if(eval.clear_noninput(istep)) {

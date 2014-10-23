@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -134,7 +135,8 @@ static void create_config(const std::vector<Test> &tests,
         for(size_t i = 1; i < tests.size(); i++) {
             const Test &test = tests[i];
             assert(test.steps.size() > 0);
-            for(const Step &step: tests[i].steps) {
+            for(size_t j = 0; j < test.steps.size(); j++) {
+                const Step &step = test.steps[j];
                 assert(step.input.size() == ninputs);
                 assert(step.output.size() == noutputs);
             }
@@ -144,9 +146,11 @@ static void create_config(const std::vector<Test> &tests,
     size_t nsteps = 0;
     real_t max_err = 0.0;
 
-    for(const Test &test: tests) {
+    for(size_t i = 0; i < tests.size(); i++) {
+        const Test &test = tests[i];
         nsteps += test.steps.size();
-        for(const Step &step: test.steps) {
+        for(size_t j = 0; j < test.steps.size(); j++) {
+            const Step &step = test.steps[j];
             max_err += step.weight * step.output.size();
         }
     }
@@ -163,11 +167,12 @@ static void create_config(const std::vector<Test> &tests,
 
     {
         size_t istep = 0;
-        for(const Test &t: tests) {
-            bool first = true;
-            for(const Step &step: t.steps) {
+        for(size_t i = 0; i < tests.size(); i++) {
+            const Test &t = tests[i];
+            for(size_t j = 0; j < t.steps.size(); j++) {
+                const Step &step = t.steps[j];
                 Config::StepParms *parms = config->parms(istep);
-                parms->clear_noninput = first;
+                parms->clear_noninput = (j == 0);
                 parms->weight = step.weight;
                         
                 for(node_size_t i = 0; i < ninputs; i++)
@@ -176,7 +181,6 @@ static void create_config(const std::vector<Test> &tests,
                 for(node_size_t i = 0; i < noutputs; i++)
                     config->outputs(istep)[i] = step.output[i];
 
-                first = false;
                 istep++;
             }
         }
@@ -191,15 +195,17 @@ static void create_config(const std::vector<Test> &tests,
     cout << "=================" << endl;
     cout << "===== TESTS =====" << endl;
     cout << "=================" << endl;
-    for(const Test &t: tests) {
+    for(size_t i = 0; i < tests.size(); i++) {
+        const Test &t = tests[i];
         printf("~~~ %s\n", t.name.c_str());
-        for(const Step s: t.steps) {
-            for(real_t i: s.input) {
-                printf("%1.3f ", i);
+        for(size_t j = 0; j < t.steps.size(); j++) {
+            const Step s = t.steps[j];
+            for(size_t ii = 0; ii < s.input.size(); ii++) {
+                printf("%1.3f ", s.input[ii]);
             }
             printf("| ");
-            for(real_t o: s.output) {
-                printf("%1.3f ", o);
+            for(size_t ii = 0; ii < s.output.size(); ii++) {
+                printf("%1.3f ", s.output[ii]);
             }
             printf(" ; weight=%f", s.weight);
             printf("\n");

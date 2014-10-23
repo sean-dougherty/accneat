@@ -1,3 +1,5 @@
+#if false
+
 #pragma once
 
 #ifndef DEVICE_CODE
@@ -209,3 +211,5 @@ namespace NEAT {
     void test_sum_partition();
 #endif // false
 }
+
+#endif

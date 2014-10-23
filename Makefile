@@ -32,7 +32,7 @@ else
 	MISC_FLAGS=-Werror
 endif
 
-CC_FLAGS=-Wall ${DEFINES} ${MISC_FLAGS} ${PROFILE} ${INCLUDES} ${OPENMP} ${OPT} -c -std=c++11 -g -gdwarf-3
+CC_FLAGS=-Wall ${DEFINES} ${MISC_FLAGS} ${PROFILE} ${INCLUDES} ${OPENMP} ${OPT} -c -g -gdwarf-3
 
 ./neat: ${OBJECTS} ${CUDA_OBJECTS}
 	g++ ${PROFILE} ${OBJECTS} ${CUDA_OBJECTS} ${PFM_LD_FLAGS} ${LIBS} -o $@
@@ -44,21 +44,21 @@ clean:
 	rm -f src/util/std.h.gch
 
 src/util/std.h.gch: src/util/std.h Makefile.conf Makefile
-	g++ ${CC_FLAGS} $< -o $@
+	g++ ${CC_FLAGS} -std=c++11 $< -o $@
 
 ifeq (${ENABLE_CUDA}, true)
 obj/cu/cxx/%.o: src/%.cxx src/%.h Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	nvcc -DENABLE_CUDA ${NVCC_FLAGS} -Xcompiler "${OPT} ${INCLUDES}" -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
+	nvcc -x cu -DENABLE_CUDA ${NVCC_FLAGS} -Xcompiler "${OPT} ${INCLUDES}" -c -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} $< -o $@
 else
-obj/cpp/cxx/%.o: src/%.cxx Makefile.conf Makefile src/util/std.h.gch
+obj/cpp/cxx/%.o: src/%.cxx Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	g++ ${CC_FLAGS} -MMD $< -o $@
+	g++ ${CC_FLAGS} -std=c++98 -MMD $< -o $@
 endif
 
 obj/cpp/%.o: src/%.cpp Makefile.conf Makefile src/util/std.h.gch
 	@mkdir -p $(shell dirname $@)
-	g++ ${CC_FLAGS} -MMD $< -o $@
+	g++ ${CC_FLAGS} -std=c++11 -MMD $< -o $@
 
 obj/cu/%.o: src/%.cu src/%.h Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)

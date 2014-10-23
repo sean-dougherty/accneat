@@ -3,7 +3,6 @@
 #include "experiment.h"
 #include "genomemanager.h"
 #include "network.h"
-#include "networkexecutor.h"
 #include "organism.h"
 #include "population.h"
 #include "stats.h"

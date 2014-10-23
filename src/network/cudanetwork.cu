@@ -1,3 +1,5 @@
+#if false
+
 #define DEVICE_CODE
 
 #include <iostream>
@@ -581,3 +583,4 @@ namespace NEAT {
 
 } // namespace NEAT
 
+#endif

@@ -29,7 +29,9 @@ namespace NEAT {
              const std::vector<Step> &steps_)
         : name(name_), steps(steps_) {
         }
-        Test(const std::vector<Step> &steps_) : Test("", steps_) {}
+        Test(const std::vector<Step> &steps_)
+        : name("") , steps(steps_) {
+        }
     };
 
     extern class NetworkEvaluator *create_static_evaluator(const std::vector<Test> &tests);
