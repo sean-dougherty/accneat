@@ -4,6 +4,9 @@
 
 namespace NEAT {
 
+    //Don't need any special qualifiers for CPU
+    #define __net_eval_decl
+
     //---
     //--- CLASS CpuNetworkExecutor
     //---

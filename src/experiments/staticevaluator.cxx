@@ -36,24 +36,24 @@ struct Config {
     size_t nsteps;
     uchar steps[];
 
-    static size_t sizeof_step(node_size_t ninputs, node_size_t noutputs) {
+    __net_eval_decl static size_t sizeof_step(node_size_t ninputs, node_size_t noutputs) {
         return sizeof(StepParms) + sizeof(real_t) * (ninputs+noutputs);
     }
-    static size_t sizeof_buffer(size_t nsteps, node_size_t ninputs, node_size_t noutputs) {
+    __net_eval_decl static size_t sizeof_buffer(size_t nsteps, node_size_t ninputs, node_size_t noutputs) {
         return sizeof(Config) + nsteps * sizeof_step(ninputs, noutputs);
     }
 
-    size_t offset_step(size_t istep) const {
+    __net_eval_decl size_t offset_step(size_t istep) const {
         return sizeof_step(ninputs, noutputs) * istep;
     }
 
-    StepParms *parms(size_t istep) const {
+    __net_eval_decl StepParms *parms(size_t istep) const {
         return (StepParms *)(steps + offset_step(istep));
     }
-    real_t *inputs(size_t istep) const {
+    __net_eval_decl real_t *inputs(size_t istep) const {
         return (real_t *)(parms(istep) + 1);
     }
-    real_t *outputs(size_t istep) const {
+    __net_eval_decl real_t *outputs(size_t istep) const {
         return inputs(istep) + ninputs;
     }
 };
@@ -70,25 +70,25 @@ struct Evaluator {
     const Config *config;
     real_t errorsum;
 
-    Evaluator(const Config *config_)
+    __net_eval_decl Evaluator(const Config *config_)
     : config(config_) {
         errorsum = 0.0;
     }
 
-    bool complete(size_t istep) {
+    __net_eval_decl bool complete(size_t istep) {
         return istep >= config->nsteps;
     }
 
-    bool clear_noninput(size_t istep) {
+    __net_eval_decl bool clear_noninput(size_t istep) {
         return config->parms(istep)->clear_noninput;
     }
 
-    real_t get_sensor(size_t istep,
+    __net_eval_decl real_t get_sensor(size_t istep,
                       size_t sensor_index) {
         return config->inputs(istep)[sensor_index];
     }
 
-    void evaluate(size_t istep, real_t *actual) {
+    __net_eval_decl void evaluate(size_t istep, real_t *actual) {
         real_t *expected = config->outputs(istep);
         real_t result = 0.0;
 
@@ -104,7 +104,7 @@ struct Evaluator {
         errorsum += result * config->parms(istep)->weight;
     }
 
-    OrganismEvaluation result() {
+    __net_eval_decl OrganismEvaluation result() {
         OrganismEvaluation eval;
         eval.error = errorsum;
         eval.fitness = 1.0 - errorsum/config->max_err;
@@ -217,9 +217,6 @@ class StaticNetworkEvaluator : public NetworkEvaluator {
     NetworkExecutor<Evaluator> *executor;
 public:
     StaticNetworkEvaluator(const vector<Test> &tests) {
-        //---
-        //--- Config network executor
-        //---
         executor = NetworkExecutor<Evaluator>::create();
 
         Evaluator::Config *config;
@@ -227,6 +224,10 @@ public:
         create_config(tests, config, configlen);
         executor->configure(config, configlen);
         free(config);
+    }
+
+    ~StaticNetworkEvaluator() {
+        delete executor;
     }
 
     virtual void execute(class Network **nets_,

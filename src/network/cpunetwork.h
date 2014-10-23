@@ -31,7 +31,6 @@ namespace NEAT {
                                NetLink *links) override;
 
         virtual NetDims get_dims() override { return dims; }
-
 	};
 
 }
