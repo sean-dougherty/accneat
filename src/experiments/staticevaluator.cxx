@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 
+#include "network.h"
 #include "networkexecutor.h"
 #include "staticevaluator.h"
 

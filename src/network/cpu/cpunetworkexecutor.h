@@ -59,7 +59,9 @@ namespace NEAT {
         
     };
 
-    
+    //---
+    //--- FUNC NetworkExecutor<Evaluator>::create()
+    //---
     template<typename Evaluator>
     inline NetworkExecutor<Evaluator> *NetworkExecutor<Evaluator>::create() {
         return new CpuNetworkExecutor<Evaluator>();

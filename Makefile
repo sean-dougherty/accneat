@@ -1,6 +1,6 @@
 include Makefile.conf
 
-CC_CUDA=nvcc -DENABLE_CUDA ${NVCC_FLAGS} -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN}
+CC_CUDA=nvcc -DENABLE_CUDA ${NVCC_FLAGS} -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} -Xcompiler "${OPT} ${INCLUDES}"
 
 INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 SOURCES=$(shell find src -name "*.cpp")
@@ -48,7 +48,6 @@ clean:
 ./neat: ${OBJECTS} ${CUDA_OBJECTS}
 	g++ ${PROFILE} ${OBJECTS} ${CUDA_OBJECTS} ${PFM_LD_FLAGS} ${LIBS} -o $@
 
-
 src/util/std.h.gch: src/util/std.h Makefile.conf Makefile
 	g++ ${CC_FLAGS} -std=c++11 $< -o $@
 
@@ -56,21 +55,21 @@ ifeq (${ENABLE_CUDA}, true)
 
 obj/cu/cxx/%.o: src/%.cxx Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	${CC_CUDA} -c -x cu -Xcompiler "${OPT} ${INCLUDES}" $< -o $@
+	${CC_CUDA} -c -x cu $< -o $@
 
 obj/cu/cxx/%.d: src/%.cxx
 	@mkdir -p $(dir $@)
-	@${CC_CUDA} -M -x cu -Xcompiler "${OPT} ${INCLUDES}" $< > $@.tmp
+	@${CC_CUDA} -M -x cu $< > $@.tmp
 	@cat $@.tmp | sed 's,.*\.o[[:space:]]*:,$@:,g' | sed 's,\.d,\.o,' > $@
 	@rm $@.tmp
 
 obj/cu/%.o: src/%.cu Makefile.conf Makefile
 	@mkdir -p $(shell dirname $@)
-	${CC_CUDA} -c -Xcompiler "${OPT}" -Isrc $< -o $@
+	${CC_CUDA} -c $< -o $@
 
 obj/cu/%.d: src/%.cu
 	@mkdir -p $(dir $@)
-	@${CC_CUDA} -M -Xcompiler "${OPT}" -Isrc $< > $@.tmp
+	@${CC_CUDA} -M $< > $@.tmp
 	@cat $@.tmp | sed 's,.*\.o[[:space:]]*:,$@:,g' | sed 's,\.d,\.o,' > $@
 	@rm $@.tmp
 

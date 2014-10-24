@@ -1,3 +1,16 @@
+#include <cstdio>
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+
+#include "cudanetworkexecutor.h"
+
+using namespace NEAT;
+
+Network *Network::create() {
+    return new CudaNetwork();
+}
+
 #if false
 
 #define DEVICE_CODE
@@ -17,29 +30,11 @@
 //--- MACROS
 //---
 //--------------------------------------------------------------------------------
-#define errif( STMT, MSG... ) if( STMT ) { fprintf(stderr, "[%s:%d] '%s' ", __FILE__, __LINE__, #STMT); fprintf(stderr, MSG); fprintf(stderr, "\n"); abort(); }
 #define require( STMT ) if( !(STMT) ) { fprintf(stderr, "ASSERTION ERROR! [%s:%d] '%s'\n", __FILE__, __LINE__, #STMT); abort(); }
 #define panic() { fprintf(stderr, "PANIC! [%s:%d]\n", __FILE__, __LINE__); abort(); }
 #define trap(msg) {std::cerr << __FILE__ << ":" << __LINE__ << ": " << msg << std::endl; abort();}
 
-#define p(msg) std::cout << "[cuda]: " << msg << std::endl
-
-// Number of threads cannot exceed max value of ActivationPartition's offset and
-// len fields. If they are of type uchar, then Threads_Per_Block must be < 256
-#define Threads_Per_Block 32
-
-// Use no more than 256 bytes of local memory for links
-#define Max_Links_Per_Thread (256 / sizeof(CudaLink))
-#define Max_Links (Max_Links_Per_Thread * Threads_Per_Block)
-
-#define xcuda(stmt) {                                                   \
-        cudaError_t err = stmt;                                         \
-        if (err != cudaSuccess) {                                       \
-            std::cerr << __FILE__ << ":" << __LINE__ << ": Failed to run " << #stmt << ". Reason: " << cudaGetErrorString(err) << std::endl; \
-            abort();                                                    \
-        }                                                               \
-    }
-
+ 
 namespace NEAT {
 /*
     __global__ void activate(GpuState *states,
@@ -48,42 +43,6 @@ namespace NEAT {
                              uint ncycles);
 */
 
-    static uchar *alloc_host(uint size) {
-        uchar *result;
-        xcuda( cudaMallocHost((void **)&result, size) );
-        return result;
-    }
-    static uchar *alloc_dev(uint size) {
-        uchar *result;
-        xcuda( cudaMalloc((void **)&result, size) );
-        return result;
-    }
-    static void free_host(__inout uchar *&buf, bool tolerate_shutdown = false) {
-        if(buf) {
-            cudaError_t err = cudaFreeHost(buf);
-            if( (err == cudaSuccess)
-                || (tolerate_shutdown && (err == cudaErrorCudartUnloading)) ) {
-                buf = 0;
-            } else {
-                std::cerr << "Failed freeing cuda host buffer" << std::endl;
-                abort();
-            }
-        }
-    }
-    static void free_dev(__inout uchar *&buf) {
-        if(buf) {
-            xcuda( cudaFree(buf) );
-            buf = 0;
-        }
-    }
-    static void grow_buffers(__inout uchar *&h_buf, __inout uchar *&d_buf,
-                             __inout uint &capacity, __in uint newlen) {
-        free_host(h_buf);
-        free_dev(d_buf);
-        capacity = newlen;
-        h_buf = alloc_host(newlen);
-        d_buf = alloc_dev(newlen);
-    }
 
     __dh_util CudaLink *links(const RawBuffers &bufs,
                               const Offsets &offs) {

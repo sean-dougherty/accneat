@@ -72,6 +72,9 @@ namespace NEAT {
         virtual NetDims get_dims() = 0;
 	};
 
+    //---
+    //--- CLASS NetworkEvaluator
+    //---
     class NetworkEvaluator {
     public:
         virtual ~NetworkEvaluator() {}
