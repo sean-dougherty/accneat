@@ -1,6 +1,11 @@
 #pragma once
 
+#include <cstdio>
+#include <iostream>
+#include <vector>
 #include "neattypes.h"
+
+#define __net_eval_decl __host__ __device__
 
 using namespace NEAT;
 
