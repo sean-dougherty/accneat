@@ -1299,7 +1299,7 @@ node_size_t InnovGenome::get_node_index(int id) {
 
 void InnovGenome::delete_if_orphaned_hidden_node(int node_id) {
     InnovNodeGene *node = get_node(node_id);
-    if(node->type != NT_HIDDEN)
+    if( (node == nullptr) || (node->type != NT_HIDDEN) )
         return;
 
     bool found_link;
