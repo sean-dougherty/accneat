@@ -16,7 +16,6 @@ namespace NEAT {
             int ndevices;
             xcuda( cudaGetDeviceCount(&ndevices) );
             errif(ndevices == 0, "No Cuda devices found!");
-
             batches.resize(ndevices);
             for(int i = 0; i < ndevices; i++) {
                 batches[i] = new CudaNetworkBatch<Evaluator>(i);

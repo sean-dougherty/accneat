@@ -1,6 +1,6 @@
 include Makefile.conf
 
-CC_CUDA=nvcc -DENABLE_CUDA ${NVCC_FLAGS} -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} -Xcompiler "${OPT} ${INCLUDES}"
+CC_CUDA=nvcc -DENABLE_CUDA ${NVCC_FLAGS} -arch=sm_13 --compiler-bindir ${PFM_NVCC_CCBIN} -Xcompiler "${OPT} ${INCLUDES} ${OPENMP}"
 
 INCLUDES=$(patsubst %,-I%,$(shell find src -type d))
 SOURCES=$(shell find src -name "*.cpp")

@@ -95,8 +95,7 @@ namespace NEAT {
                         activation[inode] = 1.0;
                     } else {
                         //Sensor 
-                        activation[inode] =
-                            eval.get_sensor(istep, inode - nbias);
+                        activation[inode] = eval.get_sensor(istep, inode - nbias);
                     }
                     newactivation[inode] = activation[inode];
                 } else {
