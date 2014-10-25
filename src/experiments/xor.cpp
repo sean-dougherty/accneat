@@ -4,8 +4,8 @@
 using namespace NEAT;
 using namespace std;
 
-static struct Init {
-    Init() {
+static struct XorInit {
+    XorInit() {
         create_static_experiment("xor", [] () {
                 const real_t T = 1.0;
                 const real_t F = 0.0;

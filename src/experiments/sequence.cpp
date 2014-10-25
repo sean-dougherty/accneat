@@ -1,7 +1,5 @@
-#if false
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "staticexperiment.h"
-#include "util.h"
 #include <assert.h>
 
 using namespace NEAT;
@@ -10,29 +8,27 @@ using namespace std;
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences);
 
-static vector<Test> create_1bit_2el() {
-    string syms = "ab";
-    vector<string> seqs = permute_repeat(syms, 2);
+static struct SequenceInit {
+    SequenceInit() {
+        create_static_experiment("seq-1bit-2el", [] () {
+                string syms = "ab";
+                vector<string> seqs = permute_repeat(syms, 2);
+                return create_parallel_output_tests(syms, seqs);
+            });
 
-    return create_parallel_output_tests(syms, seqs);
-}
-static unique_ptr<Experiment> _1bit_2el{create_static_experiment("seq-1bit-2el", create_1bit_2el())};
+        create_static_experiment("seq-1bit-3el", [] () {
+                string syms = "ab";
+                vector<string> seqs = permute_repeat(syms, 3);
+                return create_parallel_output_tests(syms, seqs);
+            });
 
-static vector<Test> create_1bit_3el() {
-    string syms = "ab";
-    vector<string> seqs = permute_repeat(syms, 3);
-
-    return create_parallel_output_tests(syms, seqs);
-}
-static unique_ptr<Experiment> _1bit_3el{create_static_experiment("seq-1bit-3el", create_1bit_3el())};
-
-static vector<Test> create_1bit_4el() {
-    string syms = "ab";
-    vector<string> seqs = permute_repeat(syms, 4);
-
-    return create_parallel_output_tests(syms, seqs);
-}
-static unique_ptr<Experiment> _1bit_4el{create_static_experiment("seq-1bit-4el", create_1bit_4el())};
+        create_static_experiment("seq-1bit-4el", [] () {
+                string syms = "ab";
+                vector<string> seqs = permute_repeat(syms, 4);
+                return create_parallel_output_tests(syms, seqs);
+            });
+    }
+} init;
 
 static vector<Test> create_parallel_output_tests(string syms,
                                                  vector<string> &sequences) {
@@ -120,4 +116,41 @@ static vector<Test> create_parallel_output_tests(string syms,
 
     return tests;
 }
+
+#if false
+#include "std.h" // Must be included first. Precompiled header with standard library includes.
+#include "staticexperiment.h"
+#include "util.h"
+#include <assert.h>
+
+using namespace NEAT;
+using namespace std;
+
+static vector<Test> create_parallel_output_tests(string syms,
+                                                 vector<string> &sequences);
+
+static vector<Test> create_1bit_2el() {
+    string syms = "ab";
+    vector<string> seqs = permute_repeat(syms, 2);
+
+    return create_parallel_output_tests(syms, seqs);
+}
+static unique_ptr<Experiment> _1bit_2el{create_static_experiment("seq-1bit-2el", create_1bit_2el())};
+
+static vector<Test> create_1bit_3el() {
+    string syms = "ab";
+    vector<string> seqs = permute_repeat(syms, 3);
+
+    return create_parallel_output_tests(syms, seqs);
+}
+static unique_ptr<Experiment> _1bit_3el{create_static_experiment("seq-1bit-3el", create_1bit_3el())};
+
+static vector<Test> create_1bit_4el() {
+    string syms = "ab";
+    vector<string> seqs = permute_repeat(syms, 4);
+
+    return create_parallel_output_tests(syms, seqs);
+}
+static unique_ptr<Experiment> _1bit_4el{create_static_experiment("seq-1bit-4el", create_1bit_4el())};
+
 #endif
