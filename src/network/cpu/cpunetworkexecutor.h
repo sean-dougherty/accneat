@@ -42,15 +42,15 @@ namespace NEAT {
                 CpuNetwork *net = nets[inet];
                 Evaluator eval(config);
 
-                for(size_t istep = 0; !eval.complete(istep); istep++) {
-                    if(eval.clear_noninput(istep)) {
+                while(eval.next_step()) {
+                    if(eval.clear_noninput()) {
                         net->clear_noninput();
                     }
                     for(size_t isensor = 0; isensor < nsensors; isensor++) {
-                        net->load_sensor(isensor, eval.get_sensor(istep, isensor));
+                        net->load_sensor(isensor, eval.get_sensor(isensor));
                     }
                     net->activate(NACTIVATES_PER_INPUT);
-                    eval.evaluate(istep, net->get_outputs());
+                    eval.evaluate(net->get_outputs());
                 }
 
                 results[inet] = eval.result();

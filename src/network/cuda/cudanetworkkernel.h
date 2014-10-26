@@ -80,7 +80,7 @@ namespace NEAT {
         //---
         //--- Process all batch steps
         //---
-        for(size_t istep = 0; !eval.complete(istep); istep++) {
+        while(eval.next_step()) {
             //---
             //--- Load step activations
             //---
@@ -95,14 +95,14 @@ namespace NEAT {
                         activation[inode] = 1.0;
                     } else {
                         //Sensor 
-                        activation[inode] = eval.get_sensor(istep, inode - nbias);
+                        activation[inode] = eval.get_sensor(inode - nbias);
                     }
                     newactivation[inode] = activation[inode];
                 } else {
                     //---
                     //--- Output/Hidden node
                     //---
-                    if( eval.clear_noninput(istep) ) {
+                    if( eval.clear_noninput() ) {
                         activation[inode] = 0.0;
                     }
                 }
@@ -181,14 +181,9 @@ namespace NEAT {
             } //for each cycle
 
             //---
-            //--- Evaluate output for this step. For now, only use one thread.
-            //--- In the future, may want to parallelize this. At the moment,
-            //--- the number of outputs is typically very small, so the complexity
-            //--- of a parallel computation doesn't seem worth it.
+            //--- Evaluate output for this step.
             //---
-            if(tid == 0) {
-                eval.evaluate(istep, activation + state.dims.nnodes.input);
-            }
+            eval.evaluate(activation + state.dims.nnodes.input);
 
         } //for each step
 

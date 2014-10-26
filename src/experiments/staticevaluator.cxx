@@ -1,9 +1,4 @@
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <string>
-#include <vector>
+#include "std.hxx"
 
 #include "network.h"
 #include "networkexecutor.h"
@@ -35,7 +30,7 @@ struct Config {
     real_t max_err;
     node_size_t ninputs;
     node_size_t noutputs;
-    size_t nsteps;
+    ushort nsteps;
     uchar steps[];
 
     __net_eval_decl static size_t sizeof_step(node_size_t ninputs, node_size_t noutputs) {
@@ -71,26 +66,27 @@ struct Evaluator {
 
     const Config *config;
     real_t errorsum;
+    int istep;
 
     __net_eval_decl Evaluator(const Config *config_)
     : config(config_) {
         errorsum = 0.0;
+        istep = -1;
     }
 
-    __net_eval_decl bool complete(size_t istep) {
-        return istep >= config->nsteps;
+    __net_eval_decl bool next_step() {
+        return ++istep < int(config->nsteps);
     }
 
-    __net_eval_decl bool clear_noninput(size_t istep) {
+    __net_eval_decl bool clear_noninput() {
         return config->parms(istep)->clear_noninput;
     }
 
-    __net_eval_decl real_t get_sensor(size_t istep,
-                      size_t sensor_index) {
+    __net_eval_decl real_t get_sensor(size_t sensor_index) {
         return config->inputs(istep)[sensor_index];
     }
 
-    __net_eval_decl void evaluate(size_t istep, real_t *actual) {
+    __net_eval_decl void evaluate(real_t *actual) {
         real_t *expected = config->outputs(istep);
         real_t result = 0.0;
 
