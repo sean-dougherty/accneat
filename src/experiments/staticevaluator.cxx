@@ -30,7 +30,7 @@ struct Config {
     real_t max_err;
     node_size_t ninputs;
     node_size_t noutputs;
-    ushort nsteps;
+    int nsteps;
     uchar steps[];
 
     __net_eval_decl static size_t sizeof_step(node_size_t ninputs, node_size_t noutputs) {
@@ -82,7 +82,7 @@ struct Evaluator {
         return config->parms(istep)->clear_noninput;
     }
 
-    __net_eval_decl real_t get_sensor(size_t sensor_index) {
+    __net_eval_decl real_t get_sensor(node_size_t sensor_index) {
         return config->inputs(istep)[sensor_index];
     }
 

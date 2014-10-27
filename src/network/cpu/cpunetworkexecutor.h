@@ -35,7 +35,7 @@ namespace NEAT {
                              size_t nnets) {
 
             CpuNetwork **nets = (CpuNetwork **)nets_;
-            size_t nsensors = nets[0]->get_dims().nnodes.sensor;
+            node_size_t nsensors = nets[0]->get_dims().nnodes.sensor;
 
 #pragma omp parallel for
             for(size_t inet = 0; inet < nnets; inet++) {
@@ -46,7 +46,7 @@ namespace NEAT {
                     if(eval.clear_noninput()) {
                         net->clear_noninput();
                     }
-                    for(size_t isensor = 0; isensor < nsensors; isensor++) {
+                    for(node_size_t isensor = 0; isensor < nsensors; isensor++) {
                         net->load_sensor(isensor, eval.get_sensor(isensor));
                     }
                     net->activate(NACTIVATES_PER_INPUT);
