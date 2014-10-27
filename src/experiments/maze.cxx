@@ -6,6 +6,11 @@
 #include "networkexecutor.h"
 #include <assert.h>
 
+//#define No_Sound
+//#define No_Obj_Sensor
+#define Max_Seq_Len 3
+#define Max_Trial_Steps 25
+
 using namespace std;
 
 namespace NEAT {
@@ -13,17 +18,17 @@ namespace NEAT {
     struct position_t {
         char row;
         char col;
-        position_t() {
+        __net_eval_decl position_t() {
         }
-        position_t(char row_, char col_) : row(row_), col(col_) {
+        __net_eval_decl position_t(char row_, char col_) : row(row_), col(col_) {
         }
     };
 
-    position_t operator+(const position_t a, const position_t b) {
+    __net_eval_decl position_t operator+(const position_t a, const position_t b) {
         return position_t( char(a.row + b.row), char(a.col + b.col) );
     }
 
-    bool operator==(const position_t a, const position_t b) {
+    __net_eval_decl bool operator==(const position_t a, const position_t b) {
         return (a.row == b.row) && (a.col == b.col);
     }
 
@@ -35,21 +40,25 @@ namespace NEAT {
         rot_clockwise = -1, rot_none = 0, rot_counter = 1
     };
 
-    position_t get_rel_pos(const direction_t &dir) {
+    __net_eval_decl position_t get_rel_pos(const direction_t &dir) {
         switch(dir) {
         case dir_east: return position_t(0, 1);
         case dir_north: return position_t(-1, 0);
         case dir_west: return position_t(0, -1);
         case dir_south: return position_t(1, 0);
+#ifdef ENABLE_CUDA
+        default: return position_t(0, 0);
+#else
         default: abort();
+#endif
         }
     }
 
-    direction_t rotate(const direction_t &dir, const rotation_t &rot) {
+    __net_eval_decl direction_t rotate(const direction_t &dir, const rotation_t &rot) {
         return direction_t( (int(dir) + int(rot) + 4) % 4 );
     }
 
-    position_t get_look_pos(const position_t &pos,
+    __net_eval_decl position_t get_look_pos(const position_t &pos,
                             const direction_t &dir,
                             const rotation_t &rot) {
         return pos + get_rel_pos( rotate(dir,rot) );
@@ -78,9 +87,6 @@ namespace NEAT {
         abort();
 #undef __if
     }
-
-#define Max_Seq_Len 3
-#define Max_Trial_Steps 50
 
     struct Config {
         uchar width;
@@ -203,11 +209,16 @@ namespace NEAT {
         char iseq;
         OrganismEvaluation eval;
 
-        Evaluator(const Config *config_)
+        __net_eval_decl Evaluator(const Config *config_)
         : config(config_) {
 
             trial = 0;
             trial_step = 0;
+            food_pos = position_t(0,0);
+            agent_pos = position_t(0,0);
+            agent_dir = dir_east;
+            success = false;
+            iseq = 0;
             eval.error = 0.0;
             eval.fitness = 0.0;
         }
@@ -250,11 +261,15 @@ namespace NEAT {
             return trial_step == 1;
         }
 
-        real_t obj_sensor(rotation_t rot) {
+        __net_eval_decl real_t obj_sensor(rotation_t rot) {
+#ifdef No_Obj_Sensor
+            return 0.0;
+#else
             position_t look_pos = get_look_pos(agent_pos, agent_dir, rot);
             return config->wall[int(look_pos.row) * config->width + int(look_pos.col)]
                 ? 1.0
                 : 0.0;
+#endif
         }
 
         __net_eval_decl real_t get_sensor(node_size_t sensor_index) {
@@ -268,11 +283,19 @@ namespace NEAT {
             case sensor_sound:
                 return iseq > -1 ? 1.0 : 0.0;
             case sensor_freq:
+#ifdef No_Sound
+                return 0.0;
+#else
                 return iseq > -1 ? config->trials[trial].seq[int(iseq)] : 0.0;
+#endif
             case sensor_go:
                 return iseq == -2 ? 1.0 : 0.0;
             default:
+#ifdef ENABLE_CUDA
+                return 0.0;
+#else
                 abort();
+#endif
             }
         }
 
