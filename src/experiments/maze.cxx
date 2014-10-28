@@ -9,7 +9,7 @@
 //#define No_Sound
 //#define No_Obj_Sensor
 #define Max_Seq_Len 3
-#define Max_Trial_Steps 25
+#define Max_Maze_Len 26
 
 using namespace std;
 
@@ -93,19 +93,68 @@ namespace NEAT {
         uchar height;
         position_t agent_pos;
         direction_t agent_dir;
-        bool wall[32*32];
+        bool wall[Max_Maze_Len * Max_Maze_Len];
         struct Trial {
             position_t food_pos;
             uchar seqlen;
             real_t seq[Max_Seq_Len];
+            ushort max_steps;
+            uchar max_dist;
+            uchar dist_map[Max_Maze_Len * Max_Maze_Len];
         };
         ushort ntrials;
         Trial trials[];
     };
 
+    static void create_distance_map(const Config *config,
+                                    position_t from,
+                                    uchar *dist_map,
+                                    uchar &max_dist) {
+        const uchar w = config->width;
+        const uchar h = config->height;
+
+        memset(dist_map, 0xff, sizeof(uchar) * w * h);
+
+        max_dist = 0;
+
+        struct local {
+            static void _(const uchar w,
+                          const uchar h,
+                          const bool *wall,
+                          uchar *dist_map,
+                          uchar &max_dist,
+                          const uchar row, 
+                          const uchar col,
+                          const uchar dist) {
+                if(row >= h) return;
+                if(col >= w) return;
+
+                size_t offset = w * row + col;
+
+                if(dist >= dist_map[offset]) {
+                    return;
+                }
+                if(wall[offset]) {
+                    return;
+                }
+
+                dist_map[offset] = dist;
+                if(dist > max_dist)
+                    max_dist = dist;
+
+                _(w, h, wall, dist_map, max_dist, row - 1, col, dist + 1);
+                _(w, h, wall, dist_map, max_dist, row + 1, col, dist + 1);
+                _(w, h, wall, dist_map, max_dist, row, col - 1, dist + 1);
+                _(w, h, wall, dist_map, max_dist, row, col + 1, dist + 1);
+            }
+        };
+
+        local::_(w, h, config->wall, dist_map, max_dist, from.row, from.col, 0);
+    }
+
     static void create_config(__out Config *&config_,
                               __out size_t &len_) {
-        Map map = parse_map("./res/maze.map");
+        Map map = parse_map("/home/dougher1/neat/neat/res/maze.map");
 
         Config config;
         config.width = map.width;
@@ -164,8 +213,36 @@ namespace NEAT {
         len_ = sizeof(Config) + sizeof(Config::Trial) * config.ntrials;
         config_ = (Config *)malloc(len_);
         memcpy(config_, &config, sizeof(Config));
+
+        for(size_t i = 0; i < config.ntrials; i++) {
+            Config::Trial &trial = trials[i];
+            create_distance_map(config_, trial.food_pos, trial.dist_map, trial.max_dist);
+            uchar dist = trial.dist_map[config.agent_pos.row * config.width + config.agent_pos.col];
+            trial.max_steps = dist + 3 * trial.seqlen;
+        }
         memcpy(config_->trials, trials.data(), sizeof(Config::Trial) * config.ntrials);
 
+/*
+        for(size_t i = 0; i < config.ntrials; i++) {
+            printf("max_steps=%u\n", unsigned(config_->trials[i].max_steps));
+            printf("max_dist=%u\n", unsigned(config_->trials[i].max_dist));
+            uchar *dist_map = config_->trials[i].dist_map;
+            const uchar w = config_->width;
+            const uchar h = config_->height;
+            for(uchar row = 0; row < h; row++) {
+                for(uchar col = 0; col < w; col++) {
+                    uchar dist = dist_map[row * w + col];
+                    if(dist == uchar(0xff))
+                        printf("..");
+                    else
+                        printf("%02d", int(dist));
+                }
+                printf("\n");
+            }
+        }
+
+        exit(0);
+*/
 /*
   for(size_t row = 0; row < map.height; row++) {
   for(size_t col = 0; col < map.width; col++) {
@@ -202,10 +279,12 @@ namespace NEAT {
         const Config *config;
         ushort trial;
         ushort trial_step;
-        position_t food_pos;
         position_t agent_pos;
         direction_t agent_dir;
-        bool success;
+        position_t food_pos;
+        ushort max_trial_steps;
+        const uchar *dist_map;
+        uchar best_dist;
         char iseq;
         OrganismEvaluation eval;
 
@@ -214,17 +293,23 @@ namespace NEAT {
 
             trial = 0;
             trial_step = 0;
+            max_trial_steps = trial_step + 1;
             food_pos = position_t(0,0);
             agent_pos = position_t(0,0);
             agent_dir = dir_east;
-            success = false;
+            dist_map = NULL;
+            best_dist = uchar(0xff);
             iseq = 0;
             eval.error = 0.0;
             eval.fitness = 0.0;
         }
 
+        __net_eval_decl uchar dist() {
+            return dist_map[config->width * agent_pos.row + agent_pos.col];
+        }
+
         __net_eval_decl bool next_step() {
-            bool trial_complete = success || (trial_step == Max_Trial_Steps);
+            bool trial_complete = (best_dist == 0) || (trial_step == max_trial_steps);
             if(trial_complete) {
                 if(trial == config->ntrials - 1) {
                     return false;
@@ -237,10 +322,12 @@ namespace NEAT {
             }
 
             if(trial_step == 1) {
-                success = false;
                 agent_pos = config->agent_pos;
                 agent_dir = config->agent_dir;
                 food_pos = config->trials[trial].food_pos;
+                max_trial_steps = config->trials[trial].max_steps;
+                dist_map = config->trials[trial].dist_map;
+                best_dist = dist();
                 iseq = 0;
             } else {
                 if(trial_step <= config->trials[trial].seqlen * 2) {
@@ -313,13 +400,17 @@ namespace NEAT {
                         agent_pos = newpos;
                     }
                 }
-                if(agent_pos == food_pos) {
-                    success = true;
-                    eval.fitness += 10.0 + (Max_Trial_Steps - trial_step) / real_t(Max_Trial_Steps);
-                } else if(trial_step == Max_Trial_Steps) {
+                uchar curr_dist = dist();
+                if(curr_dist < best_dist)
+                    best_dist = curr_dist;
+
+                if(best_dist == 0) {
+                    eval.fitness += 10.0 + (max_trial_steps - trial_step) / real_t(max_trial_steps);
+                } else if(trial_step == max_trial_steps) {
                     eval.error += 1.0;
-                    int dist = abs(agent_pos.row - food_pos.row) + abs(agent_pos.col - food_pos.col);
-                    eval.fitness += ((config->width + config->height) - dist) / real_t(config->width + config->height);
+                    uchar max_dist = config->trials[trial].max_dist;
+                    eval.fitness += real_t(max_dist - best_dist) / real_t(max_dist);
+                    eval.fitness += real_t(max_dist - curr_dist) / real_t(max_dist);
                 }
             }
         }
