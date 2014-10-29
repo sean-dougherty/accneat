@@ -13,30 +13,25 @@ namespace NEAT {
 
 //------------------------------
 //---
-//--- UTIL
-//---
-//------------------------------
-    inline std::string get_dir_path(int experiment_num) {
-        char buf[1024];
-        sprintf(buf, "./experiment_%d", experiment_num);
-        return buf;
-    }
-
-    inline std::string get_fittest_path(int experiment_num, int generation) {
-        char buf[1024];
-        sprintf(buf, "%s/fittest_%d",
-                get_dir_path(experiment_num).c_str(),
-                generation);
-        return buf;
-    }
-
-
-//------------------------------
-//---
 //--- CLASS EvaluatorExperiment
 //---
 //------------------------------
     class EvaluatorExperiment : public Experiment {
+    private:
+        std::string get_dir_path(int experiment_num) {
+            char buf[1024];
+            sprintf(buf, "./experiment_%d", experiment_num);
+            return buf;
+        }
+
+        std::string get_fittest_path(int experiment_num, int generation) {
+            char buf[1024];
+            sprintf(buf, "%s/fittest_%d",
+                    get_dir_path(experiment_num).c_str(),
+                    generation);
+            return buf;
+        }
+
     public:
         typedef std::function<NetworkEvaluator *()> CreateEvaluatorFunc;
         typedef std::function< std::vector<std::unique_ptr<Genome>> (rng_t rng)> CreateSeedsFunc;

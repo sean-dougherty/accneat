@@ -1,9 +1,10 @@
 #include "std.hxx"
 
-#include "maze.h"
+#include "mazeevaluator.h"
 #include "map.h"
 #include "network.h"
 #include "networkexecutor.h"
+#include "resource.h"
 #include <assert.h>
 
 //#define Truncate_Seq 2
@@ -154,7 +155,7 @@ namespace NEAT {
 
     static void create_config(__out Config *&config_,
                               __out size_t &len_) {
-        Map map = parse_map("/home/dougher1/neat/neat/res/maze.map");
+        Map map = parse_map( find_resource("maze.map") );
 
         Config config;
         config.width = map.width;

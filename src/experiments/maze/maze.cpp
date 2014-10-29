@@ -2,7 +2,7 @@
 
 #include "evaluatorexperiment.h"
 #include "genomemanager.h"
-#include "maze.h"
+#include "mazeevaluator.h"
 #include "neat.h"
 #include "rng.h"
 
@@ -11,8 +11,7 @@ using namespace NEAT;
 static struct MazeInit {
     MazeInit() {
 
-        auto create_evaluator =
-            [] () {
+        auto create_evaluator = [] () {
             return create_maze_evaluator();
         };
 
