@@ -174,7 +174,9 @@ delete the old directories.
 
 ## Making your own experiments
 
-For an example of how to make your own experiment, look at *src/experiments/xor.cpp*, which
-shows a simple declaration of input and output. For an example of a more complicated setup,
-see *src/experiments/regex.cpp*. Simply put your source file in the *src/experiments* directory,
-and it should be automatically built and will be available from the command-line tool.
+For an example of how to make your own experiment, look at *src/experiments/static/xor.cpp*, which
+shows a simple declaration of input and output. For an example of a more complicated setup in which
+the inputs/outputs are programatically generated, see *src/experiments/static/regex.cpp*. For an
+example of an embodied experiment, see *src/experiments/maze*. Simply put your source file under the
+*src/experiments* directory and it should be automatically built and will be available from the 
+command-line tool.

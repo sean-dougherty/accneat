@@ -1,4 +1,3 @@
-#if false
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "staticexperiment.h"
 #include "util.h"
@@ -12,61 +11,39 @@ static vector<Test> create_tests_1bit(const char *grammar,
 static vector<Test> create_tests_2bit(const char *grammar,
                                       const vector<string> &sentences);
 
-static vector<Test> create_aba() {
-    const char *grammar = "a+b+a+";
+static struct RegexInit {
+    RegexInit() {
+        create_static_experiment("regex-aba", [] () {
+                const char *grammar = "a+b+a+";
 
-    vector<string> sentences = {
-        "aaa",
-        "aabb",
-        "bbaa",
-        "aababa",
-        "aababaa",
-        "aaaaabbabbaaaaa",
+                vector<string> sentences = {
+                    "aaa",
+                    "aabb",
+                    "bbaa",
+                    "aababa",
+                    "aababaa",
+                    "aaaaabbabbaaaaa",
 
-        "aba",
-        "aaba",
-        "abba",
-        "aabbaa",
-        "aabbbba",
-        "aaaaabbbbbaaaaa",
-    };
+                    "aba",
+                    "aaba",
+                    "abba",
+                    "aabbaa",
+                    "aabbbba",
+                    "aaaaabbbbbaaaaa",
+                };
 
-    return create_tests_1bit(grammar, sentences);
-}
-static unique_ptr<Experiment> aba{create_static_experiment("regex-aba", create_aba())};
+                return create_tests_1bit(grammar, sentences);
+            });
 
-static vector<Test> create_aba_2bit() {
-    const char *grammar = "a+b+a+";
+        create_static_experiment("regex-XYXY", [] () {
+                const char *grammar = "[ad][bc][ad][bc]";
 
-    vector<string> sentences = {
-        "aaa",
-        "aabb",
-        "bbaa",
-        "aababa",
-        "aababaa",
-        "aaaaabbabbaaaaa",
+                vector<string> sentences = permute_repeat("abcd", 4);
 
-        "aba",
-        "aaba",
-        "abba",
-        "aabbaa",
-        "aabbbba",
-        "aaaaabbbbbaaaaa",
-    };
-
-    return ::create_tests_2bit(grammar, sentences);
-}
-static unique_ptr<Experiment> aba_2bit{create_static_experiment("regex-aba-2bit", create_aba_2bit())};
-
-static vector<Test> create_XYXY() {
-    const char *grammar = "[ad][bc][ad][bc]";
-
-    vector<string> sentences = permute_repeat("abcd", 4);
-
-    return ::create_tests_2bit(grammar, sentences);
-}
-static unique_ptr<Experiment> XYXY{create_static_experiment("regex-XYXY", create_XYXY())};
-
+                return ::create_tests_2bit(grammar, sentences);
+            });
+    }
+} init;
 
 static vector<Test> create_tests_1bit(const char *grammar,
                                       const vector<string> &sentences) {
@@ -192,4 +169,4 @@ static vector<Test> create_tests_2bit(const char *grammar,
 
     return tests;
 }
-#endif
+

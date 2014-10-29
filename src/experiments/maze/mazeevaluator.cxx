@@ -228,56 +228,6 @@ namespace NEAT {
             trial.max_steps = dist + 3 * trial.seqlen;
         }
         memcpy(config_->trials, trials.data(), sizeof(Config::Trial) * config.ntrials);
-
-/*
-        for(size_t i = 0; i < config.ntrials; i++) {
-            printf("max_steps=%u\n", unsigned(config_->trials[i].max_steps));
-            printf("max_dist=%u\n", unsigned(config_->trials[i].max_dist));
-            uchar *dist_map = config_->trials[i].dist_map;
-            const uchar w = config_->width;
-            const uchar h = config_->height;
-            for(uchar row = 0; row < h; row++) {
-                for(uchar col = 0; col < w; col++) {
-                    uchar dist = dist_map[row * w + col];
-                    if(dist == uchar(0xff))
-                        printf("..");
-                    else
-                        printf("%02d", int(dist));
-                }
-                printf("\n");
-            }
-        }
-
-        exit(0);
-*/
-/*
-  for(size_t row = 0; row < map.height; row++) {
-  for(size_t col = 0; col < map.width; col++) {
-  if(config.wall[row * map.width + col]) {
-  cout << "*";
-  } else {
-  if( (row == config.agent_row) && (col == config.agent_col) ) {
-  cout << "A";
-  } else {
-  bool trial = false;
-  size_t i;
-  for(i = 0; i < trials.size(); i++) {
-  if(row == trials[i].food_row && col == trials[i].food_col) {
-  trial = true;
-  break;
-  }
-  }
-  if(trial) {
-  cout << "f";
-  } else {
-  cout << ".";
-  }
-  }
-  }
-  }
-  cout << endl;
-  }
-*/
     }
 
     struct Evaluator {

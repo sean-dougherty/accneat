@@ -1,4 +1,3 @@
-#if false
 #include "std.h" // Must be included first. Precompiled header with standard library includes.
 #include "staticexperiment.h"
 #include "util.h"
@@ -10,36 +9,38 @@ using namespace std;
 static vector<Test> create_tests(const vector<string> &sentences,
                                  const vector<bool> &is_grammatical);
 
-static vector<Test> create_XSX() {
-    // S -> aSa
-    // S -> bSb
-    // S -> \0
-    vector<string> sentences;
-    append(sentences, permute_repeat("ab", 2));
-    append(sentences, permute_repeat("ab", 4));
+static struct CfgInit {
+    CfgInit() {
+        create_static_experiment("cfg-XSX", [] () {
+                // S -> aSa
+                // S -> bSb
+                // S -> \0
+                vector<string> sentences;
+                append(sentences, permute_repeat("ab", 2));
+                append(sentences, permute_repeat("ab", 4));
 
-    vector<bool> is_grammatical;
-    for(string &s: sentences) {
-        size_t n = s.size();
-        if(n % 2 != 0) {
-            is_grammatical.push_back(false);
-        } else {
-            bool mirrored = true;
-            for(size_t i = 0; mirrored && (i < n/2); i++) {
-                mirrored = s[i] == s[n - 1 - i];
-            }
-            is_grammatical.push_back(mirrored);
-        }
+                vector<bool> is_grammatical;
+                for(string &s: sentences) {
+                    size_t n = s.size();
+                    if(n % 2 != 0) {
+                        is_grammatical.push_back(false);
+                    } else {
+                        bool mirrored = true;
+                        for(size_t i = 0; mirrored && (i < n/2); i++) {
+                            mirrored = s[i] == s[n - 1 - i];
+                        }
+                        is_grammatical.push_back(mirrored);
+                    }
+                }
+
+                for(size_t i = 0; i < sentences.size(); i++) {
+                    cout << sentences[i] << ": " << is_grammatical[i] << endl;
+                }
+
+                return ::create_tests(sentences, is_grammatical);
+            });
     }
-
-    for(size_t i = 0; i < sentences.size(); i++) {
-        cout << sentences[i] << ": " << is_grammatical[i] << endl;
-    }
-
-    return ::create_tests(sentences, is_grammatical);
-}
-
-static unique_ptr<Experiment> XSX{create_static_experiment("cfg-XSX", create_XSX())};
+} init;
 
 static vector<Test> create_tests(const vector<string> &sentences,
                                  const vector<bool> &is_grammatical) {
@@ -113,4 +114,4 @@ static vector<Test> create_tests(const vector<string> &sentences,
 
     return tests;
 }
-#endif
+
