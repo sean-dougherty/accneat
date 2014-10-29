@@ -1,5 +1,3 @@
-# Introduction
-
 ## What is AccNEAT?
 
 AccNEAT (Accelerated NEAT) is a fork of
