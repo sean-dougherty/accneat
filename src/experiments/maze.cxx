@@ -6,8 +6,8 @@
 #include "networkexecutor.h"
 #include <assert.h>
 
-//#define No_Sound
-//#define No_Obj_Sensor
+//#define Truncate_Seq 2
+
 #define Max_Seq_Len 3
 #define Max_Maze_Len 26
 
@@ -201,6 +201,12 @@ namespace NEAT {
                         }
                     }
 
+#ifdef Truncate_Seq
+                    for(size_t i = Truncate_Seq; i < seq.length(); i++) {
+                        trial.seq[i] = 0.5;
+                    }
+#endif
+
                     trials.push_back(trial);
                 }
             } else {
@@ -349,14 +355,10 @@ namespace NEAT {
         }
 
         __net_eval_decl real_t obj_sensor(rotation_t rot) {
-#ifdef No_Obj_Sensor
-            return 0.0;
-#else
             position_t look_pos = get_look_pos(agent_pos, agent_dir, rot);
             return config->wall[int(look_pos.row) * config->width + int(look_pos.col)]
                 ? 1.0
                 : 0.0;
-#endif
         }
 
         __net_eval_decl real_t get_sensor(node_size_t sensor_index) {
@@ -370,11 +372,7 @@ namespace NEAT {
             case sensor_sound:
                 return iseq > -1 ? 1.0 : 0.0;
             case sensor_freq:
-#ifdef No_Sound
-                return 0.0;
-#else
                 return iseq > -1 ? config->trials[trial].seq[int(iseq)] : 0.0;
-#endif
             case sensor_go:
                 return iseq == -2 ? 1.0 : 0.0;
             default:
