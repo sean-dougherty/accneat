@@ -27,6 +27,12 @@ static struct SequenceInit {
                 vector<string> seqs = permute_repeat(syms, 4);
                 return create_parallel_output_tests(syms, seqs);
             });
+
+        create_static_experiment("seq-1bit-5el", [] () {
+                string syms = "ab";
+                vector<string> seqs = permute_repeat(syms, 5);
+                return create_parallel_output_tests(syms, seqs);
+            });
     }
 } init;
 
